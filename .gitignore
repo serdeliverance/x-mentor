@@ -1,0 +1,42 @@
+Thumbs.db
+.tmp*
+tmp
+.target
+*.class
+*.log
+out
+/bin
+
+# sbt specific
+.cache*
+.history
+.lib
+target
+lib_managed
+src_managed
+project/boot
+project/plugins/project
+
+# Play! Framework specific
+RUNNING_PID
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+
+# Eclipse specific
+.classpath
+.settings
+.project
+.eclipse
+
+# IntelliJ specific
+.idea
+*.iml
+.idea_modules
+
+# VS Code specific
+.metals
+
+# Mac specific
+.DS_Store*
