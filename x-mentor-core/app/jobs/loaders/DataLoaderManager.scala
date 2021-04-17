@@ -7,7 +7,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DataLoaderManager @Inject()(topicLoader: TopicLoader, courseLoader: CourseLoader)(implicit ec: ExecutionContext)
+class DataLoaderManager @Inject()(topicLoader: TopicLoader, courseLoader: CourseLoader, filterLoader: FilterLoader)(implicit ec: ExecutionContext)
     extends Logging {
 
   def load(): Future[Done] = {
@@ -16,6 +16,7 @@ class DataLoaderManager @Inject()(topicLoader: TopicLoader, courseLoader: Course
       _ <- topicLoader.loadTopics()
 //      _ <- courseLoader.loadCourses()
       _ <- courseLoader.loadJSONCourses()
+      _ <- filterLoader.loadFilters()
 //      _ <- loadHasRelations()
 //      _ <- loadStudents()
 //      _ <- loadInterestRelations()

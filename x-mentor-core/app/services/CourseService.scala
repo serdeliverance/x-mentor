@@ -2,15 +2,13 @@ package services
 
 import akka.Done
 import akka.Done.done
-import com.redislabs.modules.rejson.JReJSON
-import constants.{COURSE_KEY, COURSE_LAST_ID_KEY}
+import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
 import global.ApplicationResult
 import io.rebloom.client.Client
-
 import javax.inject.{Inject, Singleton}
 import models.Course
+import models.errors.NotFoundError
 import play.api.Logging
-import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
@@ -32,23 +30,21 @@ class CourseService @Inject()(
       val currentIndex: Long = redisInstance.get(COURSE_LAST_ID_KEY).toLong + 1
       logger.info(s"Current Index: $currentIndex")
       val updatedCourse = course.copy(id = Some(currentIndex))
+      logger.info(s"Saving course in Redis, increasing last id and adding to bloom filter")
       redisJsonRepository.set(s"$COURSE_KEY$currentIndex", s"'${toJson(updatedCourse)}'")
       redisInstance.incr(COURSE_LAST_ID_KEY)
+      redisBloom.add(COURSE_IDS_FILTER, currentIndex.toString)
     }.map(_ => Right(done()))
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
-  def retrieveAll(): ApplicationResult[Done] = ???
-
-//  def retrieveById(courseId: Long): ApplicationResult[Done] =
-//    ApplicationResult {
-//      val exists = redisBloom.exists("courses", courseId.toString)
-//      if (exists) {
-//        redisJsonRepository.get[String](s"$COURSE_KEY$courseId")
-//      }
-//    }.map(_ => Right(done()))
+  def retrieveAll(): ApplicationResult[Done] =
+    redisJsonRepository.getAll[Course](classOf[Course], s"$COURSE_KEY")
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =
-    redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
-
+      if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
+        redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
+      } else {
+        ApplicationResult.error(NotFoundError("Course not found"))
+      }
 }

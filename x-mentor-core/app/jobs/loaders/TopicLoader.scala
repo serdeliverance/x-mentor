@@ -1,12 +1,10 @@
 package jobs.loaders
 
-import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
 import models.Topic
-import models.errors.ApplicationError
 import play.api.Logging
 import repositories.RedisGraphRepository
 

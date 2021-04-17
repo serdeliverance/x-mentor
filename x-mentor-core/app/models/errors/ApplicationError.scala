@@ -17,3 +17,5 @@ case class ClientError(errorMessage: String) extends ApplicationError
 case object ExternalServiceError extends ApplicationError
 
 case class GenericError(msg: String) extends ApplicationError
+
+case class NotFoundError(msg: String) extends ApplicationError

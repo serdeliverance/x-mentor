@@ -3,8 +3,7 @@ package jobs.loaders
 import akka.actor.ActorSystem
 import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, JsonFraming, Sink}
-import constants.{COURSE_KEY, COURSE_LAST_ID_KEY}
-import io.circe.generic.auto._
+import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
 import io.circe.parser.decode
 import models.Course
 import play.api.Logging
@@ -13,16 +12,19 @@ import play.api.libs.json.Json._
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import repositories.{RedisGraphRepository, RedisJsonRepository}
-
 import java.nio.file.Paths
+
+import io.rebloom.client.Client
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent._
 
 @Singleton
 class CourseLoader @Inject()(
     redisGraphRepository: RedisGraphRepository,
     redisJsonRepository: RedisJsonRepository,
-    redisPool: Pool[Jedis]
+    redisPool: Pool[Jedis],
+    redisBloom: Client
   )(implicit system: ActorSystem)
     extends Logging {
 
@@ -53,6 +55,7 @@ class CourseLoader @Inject()(
         case Right(course) => course
       }
       .filter(course => course.id.nonEmpty)
+      .map{course => redisBloom.add(COURSE_IDS_FILTER, course.id.get.toString); course}
       .map(course => (s"$COURSE_KEY${course.id.get}", course))
       .mapAsync(1)(courseIdAndCourse =>
         redisJsonRepository.set(courseIdAndCourse._1, s"'${toJson(courseIdAndCourse._2)}'"))
