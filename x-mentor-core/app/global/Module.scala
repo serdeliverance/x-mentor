@@ -1,20 +1,20 @@
 package global
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.actor.typed.eventstream.EventStream.Subscribe
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.redisgraph.impl.api.RedisGraph
-import configurations.MESSAGING_DISPATCHER
+import io.rebloom.client.Client
 import jobs.ApplicationStart
-import models.configurations._
+import configurations._
 import play.api.libs.concurrent.{AkkaGuiceSupport, CustomExecutionContext}
 import play.api.{Configuration, Environment}
 import queues.MessageHandler.CourseRated
 import queues.{ChannelListener, MessageHandler}
 import redis.clients.jedis.util.Pool
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
-
 import javax.inject.{Named, Singleton}
+import models.configurations.{RedisConfiguration, RedisGraphConfiguration}
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
@@ -64,18 +64,23 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides @Singleton @Named(COURSE_RATED_TOPIC)
   def courseRatedTopicSubscription(
-      @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-    ): ChannelListener[CourseRated] =
+                                    @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
+                                  ): ChannelListener[CourseRated] =
     new ChannelListener[CourseRated](messageConsumer)
 
   @Provides @Singleton @Named(COURSE_RECOMMENDED_TOPIC)
   def topicRatedTopicSubscription(
-      @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-    ): ChannelListener[CourseRated] =
+                                   @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
+                                 ): ChannelListener[CourseRated] =
     new ChannelListener[CourseRated](messageConsumer)
 
   @Provides @Singleton @Named(MESSAGING_DISPATCHER)
   def messagingExecutionContext(system: ActorSystem): ExecutionContext =
     new CustomExecutionContext(system, MESSAGING_DISPATCHER) {}
+
+  @Provides
+  def redisBlooms(config: RedisConfiguration): Client = {
+    new Client(config.host, config.port)
+  }
 
 }

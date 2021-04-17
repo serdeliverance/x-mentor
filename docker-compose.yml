@@ -3,7 +3,9 @@ version: '3.7'
 services:
 
   x-redis:
-    image: redislabs/redisgraph
+    image: redislabs/redismod
+    volumes:
+      - /home/user/redis-data:/data
     ports:
       - 6379:6379
 
@@ -12,22 +14,7 @@ services:
     restart: always
     ports:
       - 8083:8080
-      
-  x-redis-bloom:
-    image: redislabs/rebloom
-    ports:
-      - 6380:6379
-
-  x-redis-ai:
-    image: redisai/redisai
-    ports:
-      - 6381:6379
-
-  x-redis-timeseries:
-    image: redislabs/redistimeseries
-    ports:
-      - 6382:6379
-  
+       
   x-keycloak:
     image: jboss/keycloak
     command: ["-Dkeycloak.migration.action=import",
@@ -35,8 +22,8 @@ services:
       "-Dkeycloak.migration.dir=/opt/jboss/keycloak/realm-config",
        "-Dkeycloak.migration.strategy=IGNORE_EXISTING"]
     volumes:
-      - ./realm-config:/opt/jboss/keycloak/realm-config
-      - ./keycloak-db:/opt/jboss/keycloak/standalone/data
+      -  /home/user/keycloak/realm-config:/opt/jboss/keycloak/realm-config
+      -  /home/user/keycloak/keycloak-db:/opt/jboss/keycloak/standalone/data
     environment:
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin

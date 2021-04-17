@@ -20,8 +20,8 @@ class LoginController @Inject()(
     with ErrorToResultConverter
     with Logging {
 
-  def login(): Action[LoginRequestDTO] = Action.async(decode[LoginRequestDTO]) { request =>
-    logger.info(s"Creating course")
+  def login(username: String, password: String): Action[LoginRequestDTO] = Action.async(decode[LoginRequestDTO]) { request =>
+    logger.info(s"Login")
     ???
   }
 }

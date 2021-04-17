@@ -2,14 +2,15 @@ package jobs
 
 import configurations.MESSAGING_DISPATCHER
 import jobs.loaders.DataLoaderManager
-import models.configurations.{COURSE_RATED_TOPIC, RedisConfiguration}
+import configurations.COURSE_RATED_TOPIC
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
 import queues.MessageHandler.CourseRated
 import queues.{COURSE_RATED_EVENT, ChannelListener}
 import redis.clients.jedis.Jedis
-
 import javax.inject.{Inject, Named, Singleton}
+import models.configurations.RedisConfiguration
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
