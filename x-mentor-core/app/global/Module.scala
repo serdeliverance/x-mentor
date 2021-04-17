@@ -20,6 +20,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
+
   val _ = environment
 
   override def configure(): Unit = {
@@ -65,14 +66,14 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides @Singleton @Named(COURSE_RATED_TOPIC)
   def courseRatedTopicSubscription(
-    @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-  ): ChannelListener[CourseRated] =
+      @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
+    ): ChannelListener[CourseRated] =
     new ChannelListener[CourseRated](messageConsumer)
 
   @Provides @Singleton @Named(COURSE_RECOMMENDED_TOPIC)
   def topicRatedTopicSubscription(
-     @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-   ): ChannelListener[CourseRated] =
+      @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
+    ): ChannelListener[CourseRated] =
     new ChannelListener[CourseRated](messageConsumer)
 
   @Provides @Singleton @Named(MESSAGING_DISPATCHER)
@@ -82,9 +83,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   @Provides
   def redisBlooms(config: RedisConfiguration): Client = new Client(config.host, config.port)
 
-
   @Provides
   def redisJSON(config: RedisConfiguration): JReJSON = new JReJSON(config.host, config.port)
-
-
 }

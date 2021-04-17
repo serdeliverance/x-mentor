@@ -2,35 +2,32 @@ package jobs.loaders
 
 import akka.actor.ActorSystem
 import akka.stream.IOResult
-import akka.stream.scaladsl.{FileIO, Framing, JsonFraming, Sink}
-import akka.util.ByteString
+import akka.stream.scaladsl.{FileIO, JsonFraming, Sink}
+import constants.{COURSE_KEY, COURSE_LAST_ID_KEY}
+import io.circe.generic.auto._
+import io.circe.parser.decode
 import models.Course
 import play.api.Logging
-import repositories.RedisGraphRepository
-import java.nio.file.Paths
-
-import com.redislabs.modules.rejson.JReJSON
-import io.circe.parser.decode
-import javax.inject.{Inject, Singleton}
-
-import scala.concurrent._
-import io.circe.generic.auto._
-import constans._
-import play.api.libs.json.Json._
 import play.api.libs.json.Json
+import play.api.libs.json.Json._
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
+import repositories.{RedisGraphRepository, RedisJsonRepository}
+
+import java.nio.file.Paths
+import javax.inject.{Inject, Singleton}
+import scala.concurrent._
 
 @Singleton
 class CourseLoader @Inject()(
-  redisGraphRepository: RedisGraphRepository,
-  redisJSON: JReJSON,
-  redisPool: Pool[Jedis]
-)(implicit system: ActorSystem)
-  extends Logging {
+    redisGraphRepository: RedisGraphRepository,
+    redisJsonRepository: RedisJsonRepository,
+    redisPool: Pool[Jedis]
+  )(implicit system: ActorSystem)
+    extends Logging {
 
-  implicit val writes = Json.writes[Course]
-  private val COURSE_CSV_PATH = "conf/data/courses.csv"
+  implicit val writes          = Json.writes[Course]
+  private val COURSE_CSV_PATH  = "conf/data/courses.csv"
   private val COURSE_JSON_PATH = "conf/data/courses.json"
 
   /*def loadCourses(): Future[IOResult] = {
@@ -52,13 +49,13 @@ class CourseLoader @Inject()(
       .via(JsonFraming.objectScanner(Int.MaxValue))
       .map(_.utf8String)
       .map(decode[Course](_))
-      .map(course => {
-        val courseId = s"$COURSE_KEY${course.map(_.id).getOrElse(0) match {
-          case None => ""
-          case Some(s) => s //return the string to set your value
-        }}"
-        redisJSON.set(courseId, s"'${toJson(course.getOrElse(null))}'")
-      })
+      .collect {
+        case Right(course) => course
+      }
+      .filter(course => course.id.nonEmpty)
+      .map(course => (s"$COURSE_KEY${course.id.get}", course))
+      .mapAsync(1)(courseIdAndCourse =>
+        redisJsonRepository.set(courseIdAndCourse._1, s"'${toJson(courseIdAndCourse._2)}'"))
       .to(Sink.ignore)
       .run()
   }

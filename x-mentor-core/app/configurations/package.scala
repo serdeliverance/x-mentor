@@ -1,5 +1,5 @@
 package object configurations {
-  final val MESSAGING_DISPATCHER = "x-mentor.dispatchers.messaging"
+  final val MESSAGING_DISPATCHER      = "x-mentor.dispatchers.messaging"
   val REDIS_HOST                      = "redis.host"
   val REDIS_PORT                      = "redis.port"
   val REDIS_PASSWORD                  = "redis.password"
@@ -14,9 +14,4 @@ package object configurations {
 
   final val COURSE_RATED_TOPIC       = "course-rated-topic"
   final val COURSE_RECOMMENDED_TOPIC = "course-recommended-topic"
-}
-
-package object constans {
-  final val COURSE_KEY = "course:"
-  final val COURSE_LAST_ID_KEY = "course-last-index"
 }
