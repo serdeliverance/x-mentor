@@ -15,3 +15,7 @@ package object configurations {
   final val COURSE_RATED_TOPIC       = "course-rated-topic"
   final val COURSE_RECOMMENDED_TOPIC = "course-recommended-topic"
 }
+
+package object constans {
+  final val COURSE_KEY = "course:"
+}

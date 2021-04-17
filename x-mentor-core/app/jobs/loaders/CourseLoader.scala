@@ -15,6 +15,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import constans._
 
 @Singleton
 class CourseLoader @Inject()(
@@ -44,7 +45,7 @@ class CourseLoader @Inject()(
       .via(JsonFraming.objectScanner(Int.MaxValue))
       .map(_.utf8String)
       .map(decode[Course](_))
-      .map(course => redisJSON.set(s"course:${course.map(_.id).getOrElse(0)}", course.map(_.asJson).getOrElse(null)))
+      .map(course => redisJSON.set(s"$COURSE_KEY${course.map(_.id).getOrElse(0)}", course.map(_.asJson).getOrElse(null)))
       .to(Sink.ignore)
       .run()
   }
