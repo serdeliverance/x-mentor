@@ -25,7 +25,7 @@ class RedisGraphRepository @Inject()(
     extends Logging {
 
   def createTopic(topic: Topic): ApplicationResult[Done] = {
-    logger.info(s"Creating topic: $topic")
+    logger.info(s"Creating topic: ${topic.name}")
     executeQuery(redisGraphConfiguration.graph, createTopicQuery(topic))
   }
 
