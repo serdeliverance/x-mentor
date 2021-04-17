@@ -10,8 +10,8 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class CourseService @Inject()(
-                               redisBloom: Client
-                             )(implicit ec: ExecutionContext)
+   redisBloom: Client
+ )(implicit ec: ExecutionContext)
   extends Logging {
 
   def create(): ApplicationResult[Done] = ???

@@ -14,7 +14,8 @@ class DataLoaderManager @Inject()(topicLoader: TopicLoader, courseLoader: Course
     logger.info("Loading all data into the graph")
     for {
       _ <- topicLoader.loadTopics()
-      _ <- courseLoader.loadCourses()
+//      _ <- courseLoader.loadCourses()
+      _ <- courseLoader.loadJSONCourses()
 //      _ <- loadHasRelations()
 //      _ <- loadStudents()
 //      _ <- loadInterestRelations()

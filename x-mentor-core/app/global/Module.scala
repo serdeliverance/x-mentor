@@ -2,6 +2,7 @@ package global
 
 import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.{AbstractModule, Provides}
+import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
 import io.rebloom.client.Client
 import jobs.ApplicationStart
@@ -64,14 +65,14 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides @Singleton @Named(COURSE_RATED_TOPIC)
   def courseRatedTopicSubscription(
-                                    @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-                                  ): ChannelListener[CourseRated] =
+    @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
+  ): ChannelListener[CourseRated] =
     new ChannelListener[CourseRated](messageConsumer)
 
   @Provides @Singleton @Named(COURSE_RECOMMENDED_TOPIC)
   def topicRatedTopicSubscription(
-                                   @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-                                 ): ChannelListener[CourseRated] =
+     @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
+   ): ChannelListener[CourseRated] =
     new ChannelListener[CourseRated](messageConsumer)
 
   @Provides @Singleton @Named(MESSAGING_DISPATCHER)
@@ -79,8 +80,11 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     new CustomExecutionContext(system, MESSAGING_DISPATCHER) {}
 
   @Provides
-  def redisBlooms(config: RedisConfiguration): Client = {
-    new Client(config.host, config.port)
-  }
+  def redisBlooms(config: RedisConfiguration): Client = new Client(config.host, config.port)
+
+
+  @Provides
+  def redisJSON(config: RedisConfiguration): JReJSON = new JReJSON(config.host, config.port)
+
 
 }

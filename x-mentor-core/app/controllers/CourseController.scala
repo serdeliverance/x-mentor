@@ -12,9 +12,9 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class CourseController @Inject()(
-                                  val controllerComponents: ControllerComponents,
-                                  courseService: CourseService
-                                )(implicit ec: ExecutionContext)
+    val controllerComponents: ControllerComponents,
+    courseService: CourseService
+  )(implicit ec: ExecutionContext)
   extends BaseController
     with Decodable
     with ErrorToResultConverter

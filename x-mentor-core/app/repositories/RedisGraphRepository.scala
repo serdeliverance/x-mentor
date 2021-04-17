@@ -65,7 +65,7 @@ object RedisGraphRepository {
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"
 
-  private val createCourseQuery = (course: Course) => s"CREATE (:Course {name: '${course.name}'})"
+  private val createCourseQuery = (course: Course) => s"CREATE (:Course {name: '${course.title}'})"
 
   private val courseRecommendationQuery = (studentId: Long, courseId: Long) =>
     s"CREATE (:Student {student_id: '$studentId'})-[:recommends]->(:Course {course_id: '$courseId'})"
