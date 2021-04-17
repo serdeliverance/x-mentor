@@ -18,4 +18,5 @@ package object configurations {
 
 package object constans {
   final val COURSE_KEY = "course:"
+  final val COURSE_LAST_ID_KEY = "course-last-index"
 }

@@ -23,7 +23,7 @@ class CourseController @Inject()(
 
   def create(): Action[CourseCreationRequestDTO] = Action.async(decode[CourseCreationRequestDTO]) { request =>
     logger.info(s"Creating course")
-    val course = Course(request.body.title, request.body.description, request.body.content, request.body.preview, request.body.topic)
+    val course = Course(title = request.body.title, description = request.body.description, content = request.body.content, preview = request.body.preview, topic = request.body.topic)
       courseService
       .create(course)
       .map(_ => Ok)

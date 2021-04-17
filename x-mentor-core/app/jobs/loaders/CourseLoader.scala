@@ -12,18 +12,24 @@ import java.nio.file.Paths
 import com.redislabs.modules.rejson.JReJSON
 import io.circe.parser.decode
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent._
 import io.circe.generic.auto._
-import io.circe.syntax._
 import constans._
+import play.api.libs.json.Json._
+import play.api.libs.json.Json
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.util.Pool
 
 @Singleton
 class CourseLoader @Inject()(
   redisGraphRepository: RedisGraphRepository,
-  redisJSON: JReJSON
+  redisJSON: JReJSON,
+  redisPool: Pool[Jedis]
 )(implicit system: ActorSystem)
   extends Logging {
 
+  implicit val writes = Json.writes[Course]
   private val COURSE_CSV_PATH = "conf/data/courses.csv"
   private val COURSE_JSON_PATH = "conf/data/courses.json"
 
@@ -40,12 +46,19 @@ class CourseLoader @Inject()(
 
   def loadJSONCourses(): Future[IOResult] = {
     logger.info("Loading JSON courses into the redisJSON")
+    redisPool.getResource.set(COURSE_LAST_ID_KEY, "19")
     FileIO
       .fromPath(Paths.get(COURSE_JSON_PATH))
       .via(JsonFraming.objectScanner(Int.MaxValue))
       .map(_.utf8String)
       .map(decode[Course](_))
-      .map(course => redisJSON.set(s"$COURSE_KEY${course.map(_.id).getOrElse(0)}", course.map(_.asJson).getOrElse(null)))
+      .map(course => {
+        val courseId = s"$COURSE_KEY${course.map(_.id).getOrElse(0) match {
+          case None => ""
+          case Some(s) => s //return the string to set your value
+        }}"
+        redisJSON.set(courseId, s"'${toJson(course.getOrElse(null))}'")
+      })
       .to(Sink.ignore)
       .run()
   }

@@ -1,3 +1,3 @@
 package models
 
-case class Course(id: Long, title: String, description: String, content: String, preview: String, topic: String, rating: Int)
+case class Course(id: Option[Long] = None, title: String, description: String, content: String, preview: String, topic: String, rating: Option[Int] = None)
