@@ -42,9 +42,9 @@ class CourseService @Inject()(
       //redisJsonRepository.getAll[Course](s"$COURSE_KEY")
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =
-      if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
-        redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
-      } else {
-        ApplicationResult.error(NotFoundError("Course not found"))
-      }
+    if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
+      redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
+    } else {
+      ApplicationResult.error(NotFoundError("Course not found"))
+    }
 }
