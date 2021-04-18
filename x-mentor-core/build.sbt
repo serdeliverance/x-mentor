@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
   "com.redislabs" % "jredistimeseries" % "1.4.0",
   "com.redislabs" % "jredisai" % "0.9.0",
   "com.redislabs" % "jrejson" % "1.3.0",
+  "com.redislabs" % "jredisearch" % "2.0.0",
 
   // Test
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test

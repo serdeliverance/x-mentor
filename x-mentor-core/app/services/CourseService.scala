@@ -30,7 +30,7 @@ class CourseService @Inject()(
       val currentIndex: Long = redisInstance.get(COURSE_LAST_ID_KEY).toLong + 1
       logger.info(s"Current Index: $currentIndex")
       val updatedCourse = course.copy(id = Some(currentIndex))
-      logger.info(s"Saving course in Redis, increasing last id and adding to bloom filter")
+      logger.info(s"Storing course in Redis, increasing last id and adding to bloom filter")
       redisJsonRepository.set(s"$COURSE_KEY$currentIndex", s"'${toJson(updatedCourse)}'")
       redisInstance.incr(COURSE_LAST_ID_KEY)
       redisBloom.add(COURSE_IDS_FILTER, currentIndex.toString)
@@ -38,8 +38,8 @@ class CourseService @Inject()(
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
-  def retrieveAll(): ApplicationResult[Done] =
-    redisJsonRepository.getAll[Course](classOf[Course], s"$COURSE_KEY")
+  def retrieveAll(): ApplicationResult[List[Course]] = ???
+      //redisJsonRepository.getAll[Course](s"$COURSE_KEY")
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =
       if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {

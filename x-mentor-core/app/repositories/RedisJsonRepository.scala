@@ -35,8 +35,8 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         }
       )
 
-  def getAll[T](clazz: T, key: String)(implicit decoder: Decoder[T]): ApplicationResult[List[T]] =
-    Try(redisJson.mget(clazz.getClass, key))
+  /*def getAll[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[List[T]] =
+    Try(redisJson.mget(classOf[T], key))
       .fold(
         error => {
           logger.info(s"Error getting key: $key from redisJSON")
@@ -52,7 +52,8 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
               value => ApplicationResult(value)
             )
         }
-      )
+      )*/
+
   def set(key: String, jsonString: String): ApplicationResult[Done] = {
     logger.info(s"Uploading json with key: $key to redisJson")
     Try(redisJson.set(key, jsonString))
