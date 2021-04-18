@@ -12,6 +12,8 @@ import javax.inject.{Inject, Singleton}
 import scala.util.Try
 import io.circe.parser.decode
 import util.JsonParsingUtils
+import scala.reflect.ClassTag
+import scala.reflect._
 
 @Singleton
 class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonParsingUtils {
@@ -35,11 +37,12 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         }
       )
 
-  /*def getAll[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[List[T]] =
-    Try(redisJson.mget(classOf[T], key))
+  /*def getAll[T: ClassTag](keys: List[String])(implicit decoder: Decoder[T]): ApplicationResult[List[T]] = {
+    val args = Seq(keys)
+    Try(redisJson.mget(classTag[T].runtimeClass, args:_*))
       .fold(
         error => {
-          logger.info(s"Error getting key: $key from redisJSON")
+          logger.info(s"Error getting key: ${keys:_*} from redisJSON")
           ApplicationResult.error(UnexpectedError(error))
         },
         jsonArray => {
@@ -52,7 +55,8 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
               value => ApplicationResult(value)
             )
         }
-      )*/
+      )
+  }*/
 
   def set(key: String, jsonString: String): ApplicationResult[Done] = {
     logger.info(s"Uploading json with key: $key to redisJson")

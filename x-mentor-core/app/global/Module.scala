@@ -4,9 +4,9 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
-import io.rebloom.client.Client
 import jobs.ApplicationStart
 import configurations._
+import io.rebloom.client.Client
 import play.api.libs.concurrent.{AkkaGuiceSupport, CustomExecutionContext}
 import play.api.{Configuration, Environment}
 import queues.MessageHandler.CourseRated
@@ -81,8 +81,11 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     new CustomExecutionContext(system, MESSAGING_DISPATCHER) {}
 
   @Provides
-  def redisBlooms(config: RedisConfiguration): Client = new Client(config.host, config.port)
+  def redisBlooms(config: RedisConfiguration): Client = new Client(redisPool(config))
 
   @Provides
-  def redisJSON(config: RedisConfiguration): JReJSON = new JReJSON(config.host, config.port)
+  def redisJSON(config: RedisConfiguration): JReJSON = new JReJSON(redisPool(config))
+
+  @Provides
+  def rediSearch(config: RedisConfiguration): io.redisearch.client.Client = new io.redisearch.client.Client("xmentor", redisPool(config))
 }

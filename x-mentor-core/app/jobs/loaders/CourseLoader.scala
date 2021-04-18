@@ -5,18 +5,17 @@ import akka.actor.ActorSystem
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.{Broadcast, FileIO, Flow, GraphDSL, JsonFraming, RunnableGraph, Sink}
 import akka.{Done, NotUsed}
-import constants.COURSE_KEY
+import constants.{COURSE_KEY, COURSE_LAST_ID_KEY}
 import io.circe.parser.decode
 import io.rebloom.client.Client
 import models.Course
 import play.api.Logging
 import play.api.libs.json.Json._
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.util.Pool
-import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository}
-
+import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import java.nio.file.Paths
+
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent._
 
 @Singleton
@@ -24,7 +23,7 @@ class CourseLoader @Inject()(
     redisGraphRepository: RedisGraphRepository,
     redisJsonRepository: RedisJsonRepository,
     redisBloomRepository: RedisBloomRepository,
-    redisPool: Pool[Jedis],
+    redisRepository: RedisRepository,
     redisBloom: Client
   )(implicit system: ActorSystem,
     ec: ExecutionContext)
@@ -38,6 +37,7 @@ class CourseLoader @Inject()(
   private def graph(): RunnableGraph[NotUsed] =
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
+      redisRepository.set(COURSE_LAST_ID_KEY, "19")
 
       val source = FileIO
         .fromPath(Paths.get(COURSE_JSON_PATH))
@@ -59,6 +59,14 @@ class CourseLoader @Inject()(
         .mapAsync(1)(redisGraphRepository.createCourse)
         .to(Sink.ignore)
 
+      // TODO
+      /*val rediHashSink = Flow[Course]
+        .mapAsync(1)(course => {
+          val courseId = course.id.get
+          redisRepository.hset(s"hash$COURSE_KEY$courseId", "id", courseId.toString)
+        })
+        .to(Sink.ignore)*/
+
       val redisJsonSink = Flow[Course]
         .map(course => (s"$COURSE_KEY${course.id.get}", course))
         .mapAsync(1)(courseIdAndCourse =>
@@ -69,6 +77,7 @@ class CourseLoader @Inject()(
 
       source ~> convertToJson ~> broadcast ~> redisBloomSink
       broadcast ~> redisGraphSink
+      //broadcast ~> rediHashSink
       broadcast ~> redisJsonSink
       ClosedShape
     })
