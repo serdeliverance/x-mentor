@@ -5,14 +5,10 @@ import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
 import global.ApplicationResult
 import models.configurations.RedisGraphConfiguration
-import models.{Course, Rating, Topic}
+import models.{Course, CourseNode, Rating, Topic}
 import play.api.Logging
-import repositories.RedisGraphRepository.{
-  courseRecommendationQuery,
-  createCourseQuery,
-  createTopicQuery,
-  topicRecommendationQuery
-}
+import repositories.RedisGraphRepository._
+import repositories.graph.{CourseTag, GraphEntityTag, NodeDecoder, ResultDecoder, TopicTag}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -20,31 +16,53 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class RedisGraphRepository @Inject()(
     redisGraph: RedisGraph,
-    redisGraphConfiguration: RedisGraphConfiguration
-  )(implicit ec: ExecutionContext)
-    extends Logging {
+)(implicit redisGraphConfiguration: RedisGraphConfiguration,
+    ec: ExecutionContext)
+    extends Logging
+    with ResultDecoder {
+
+  def getCourses(): ApplicationResult[List[CourseNode]] = {
+    import models.Course._
+    executeQuery[CourseNode](coursesQuery, CourseTag)
+  }
+
+  def getTopics(): ApplicationResult[List[Topic]] = {
+    import models.Topic._
+    executeQuery[Topic](topicsQuery, TopicTag)
+  }
+
+  def executeQuery[T](
+      query: String,
+      entityTag: GraphEntityTag
+    )(implicit redisGraphConfiguration: RedisGraphConfiguration,
+      nodeDecoder: NodeDecoder[T]
+    ): ApplicationResult[List[T]] =
+    ApplicationResult {
+      val result = redisGraph.query(redisGraphConfiguration.graph, query)
+      decode(result, entityTag)
+    }
 
   def createTopic(topic: Topic): ApplicationResult[Done] = {
     logger.info(s"Creating topic: ${topic.name}")
-    executeQuery(redisGraphConfiguration.graph, createTopicQuery(topic))
+    executeCreateQuery(createTopicQuery(topic))
   }
 
   def createCourse(course: Course): ApplicationResult[Done] = {
     logger.info(s"Creating course: $course")
-    executeQuery(redisGraphConfiguration.graph, createCourseQuery(course))
+    executeCreateQuery(createCourseQuery(course))
   }
 
   // TODO retrieve information from redis in order to get a Student and Course instance to perform a more semantic graph relation
   def recommendCourse(studentId: Long, courseId: Long): ApplicationResult[Done] = {
     logger.info(
       s"Applying query: (:Student {studentId: '$studentId'})--[:recommeds]-->(:Course {courseId: '$courseId') to graph: ${redisGraphConfiguration.graph}")
-    executeQuery(redisGraphConfiguration.graph, courseRecommendationQuery(studentId, courseId))
+    executeCreateQuery(courseRecommendationQuery(studentId, courseId))
   }
 
   def recommendTopic(studentId: Long, topicId: Long): ApplicationResult[Done] = {
     logger.info(
       s"Applying query: (:Student {studentId: '$studentId'})--[:recommeds]-->(:Topic {topicId: '$topicId') to graph: ${redisGraphConfiguration.graph}")
-    executeQuery(redisGraphConfiguration.graph, topicRecommendationQuery(studentId, topicId))
+    executeCreateQuery(topicRecommendationQuery(studentId, topicId))
   }
 
   // TODO define correct signature and implement
@@ -54,9 +72,12 @@ class RedisGraphRepository @Inject()(
   // TODO define correct signature and implement
   def createRatesRelation(rating: Rating): ApplicationResult[Done] = ???
 
-  private def executeQuery(graph: String, query: String): ApplicationResult[Done] =
+  private def executeCreateQuery(
+      query: String
+    )(implicit redisGraphConfiguration: RedisGraphConfiguration
+    ): ApplicationResult[Done] =
     ApplicationResult {
-      redisGraph.query(graph, query)
+      redisGraph.query(redisGraphConfiguration.graph, query)
     }.map(_ => Right(done()))
 }
 
@@ -72,4 +93,8 @@ object RedisGraphRepository {
 
   private val topicRecommendationQuery = (studentId: Long, topicId: Long) =>
     s"CREATE (:Student {student_id: '$studentId'})-[:recommends]->(:Topic {topic_id: '$topicId'})"
+
+  private val coursesQuery = "MATCH (course:Course) RETURN course"
+
+  private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
 }

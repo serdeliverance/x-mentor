@@ -1,7 +1,7 @@
 package models
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
+import io.circe.{Decoder, Encoder}
 import models.json.CirceImplicits
 import play.api.libs.json.Json
 
