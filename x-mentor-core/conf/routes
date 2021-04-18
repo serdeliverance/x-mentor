@@ -1,7 +1,5 @@
 GET     /healthcheck                           controllers.HealthcheckController.healthcheck()
 POST    /ratings                               controllers.RatingController.rate()
-POST    /recommendations/courses               controllers.RecommendationController.recommendCourse()
-POST    /recommendations/topics                controllers.RecommendationController.recommendTopic()
 GET     /courses                               controllers.CourseController.retrieveAll()
 POST    /courses                               controllers.CourseController.create()
 GET     /courses/:courseId                     controllers.CourseController.retrieveById(courseId: Long)

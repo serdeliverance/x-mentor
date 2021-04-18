@@ -52,25 +52,8 @@ class RedisGraphRepository @Inject()(
     executeCreateQuery(createCourseQuery(course))
   }
 
-  // TODO retrieve information from redis in order to get a Student and Course instance to perform a more semantic graph relation
-  def recommendCourse(studentId: Long, courseId: Long): ApplicationResult[Done] = {
-    logger.info(
-      s"Applying query: (:Student {studentId: '$studentId'})--[:recommeds]-->(:Course {courseId: '$courseId') to graph: ${redisGraphConfiguration.graph}")
-    executeCreateQuery(courseRecommendationQuery(studentId, courseId))
-  }
-
-  def recommendTopic(studentId: Long, topicId: Long): ApplicationResult[Done] = {
-    logger.info(
-      s"Applying query: (:Student {studentId: '$studentId'})--[:recommeds]-->(:Topic {topicId: '$topicId') to graph: ${redisGraphConfiguration.graph}")
-    executeCreateQuery(topicRecommendationQuery(studentId, topicId))
-  }
-
-  // TODO define correct signature and implement
-  def createRecommendRelation(userId: Long, topicId: Option[Long], courseId: Option[Long]): ApplicationResult[Done] =
-    ???
-
-  // TODO define correct signature and implement
-  def createRatesRelation(rating: Rating): ApplicationResult[Done] = ???
+  def createRatesRelation(rating: Rating): ApplicationResult[Done] =
+    executeCreateQuery(createRatesQuery(rating))
 
   private def executeCreateQuery(
       query: String
@@ -88,13 +71,10 @@ object RedisGraphRepository {
 
   private val createCourseQuery = (course: Course) => s"CREATE (:Course {name: '${course.title}'})"
 
-  private val courseRecommendationQuery = (studentId: Long, courseId: Long) =>
-    s"CREATE (:Student {student_id: '$studentId'})-[:recommends]->(:Course {course_id: '$courseId'})"
-
-  private val topicRecommendationQuery = (studentId: Long, topicId: Long) =>
-    s"CREATE (:Student {student_id: '$studentId'})-[:recommends]->(:Topic {topic_id: '$topicId'})"
-
   private val coursesQuery = "MATCH (course:Course) RETURN course"
 
   private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
+
+  private val createRatesQuery = (rating: Rating) =>
+    s"MATCH (s:Student), (c:Course) WHERE s.name = '${rating.student}' AND c.name = '${rating.course}' CREATE (s)-[:rates {rating:${rating.stars}}]->(c)"
 }

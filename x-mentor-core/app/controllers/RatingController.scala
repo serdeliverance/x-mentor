@@ -23,8 +23,8 @@ class RatingController @Inject()(
 
   def rate(): Action[RatingRequestDTO] = Action.async(decode[RatingRequestDTO]) { request =>
     // TODO remove this when action refined were implemented (this action validates user and creates rating object)
-    val rating = Rating(studentId = 1, courseId = request.body.courseId, stars = request.body.stars)
-    logger.info(s"Rating course: ${rating.courseId}")
+    val rating = Rating(student = request.body.student, course = request.body.course, stars = request.body.stars)
+    logger.info(s"Rating course: ${rating.course}")
     ratingService
       .rate(rating)
       .map(_ => Ok)
