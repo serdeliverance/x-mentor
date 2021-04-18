@@ -38,13 +38,13 @@ class CourseService @Inject()(
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
-  def retrieveAll(): ApplicationResult[Done] =
-    redisJsonRepository.getAll[Course](classOf[Course], s"$COURSE_KEY")
+  def retrieveAll(): ApplicationResult[Done] = ???
+  // redisJsonRepository.getAll[Course](classOf[Course], s"$COURSE_KEY")
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =
-      if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
-        redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
-      } else {
-        ApplicationResult.error(NotFoundError("Course not found"))
-      }
+    if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
+      redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
+    } else {
+      ApplicationResult.error(NotFoundError("Course not found"))
+    }
 }
