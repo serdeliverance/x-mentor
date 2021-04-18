@@ -37,12 +37,11 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         }
       )
 
-  /*def getAll[T: ClassTag](keys: List[String])(implicit decoder: Decoder[T]): ApplicationResult[List[T]] = {
-    val args = Seq(keys)
-    Try(redisJson.mget(classTag[T].runtimeClass, args:_*))
+  def getAll[T: ClassTag](keys: List[String])(implicit decoder: Decoder[T]): ApplicationResult[List[T]] = {
+    Try(redisJson.mget(classTag[T].runtimeClass, keys:_*))
       .fold(
         error => {
-          logger.info(s"Error getting key: ${keys:_*} from redisJSON")
+          logger.info(s"Error getting keys from redisJSON. $error")
           ApplicationResult.error(UnexpectedError(error))
         },
         jsonArray => {
@@ -56,7 +55,7 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
             )
         }
       )
-  }*/
+  }
 
   def set(key: String, jsonString: String): ApplicationResult[Done] = {
     logger.info(s"Uploading json with key: $key to redisJson")

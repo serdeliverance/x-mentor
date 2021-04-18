@@ -22,7 +22,6 @@ class RedisGraphRepository @Inject()(
     with ResultDecoder {
 
   def getCourses(): ApplicationResult[List[CourseNode]] = {
-    import models.Course._
     executeQuery[CourseNode](coursesQuery, CourseTag)
   }
 
@@ -86,7 +85,7 @@ object RedisGraphRepository {
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"
 
-  private val createCourseQuery = (course: Course) => s"CREATE (:Course {name: '${course.title}'})"
+  private val createCourseQuery = (course: Course) => s"CREATE (:Course {name: '${course.title}', id: '${course.id.get}'})"
 
   private val courseRecommendationQuery = (studentId: Long, courseId: Long) =>
     s"CREATE (:Student {student_id: '$studentId'})-[:recommends]->(:Course {course_id: '$courseId'})"

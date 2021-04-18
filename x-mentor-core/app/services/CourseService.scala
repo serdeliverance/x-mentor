@@ -5,7 +5,6 @@ import akka.Done.done
 import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
 import global.ApplicationResult
 import io.rebloom.client.Client
-import io.redisearch.Query
 import javax.inject.{Inject, Singleton}
 import models.Course
 import models.errors.NotFoundError
@@ -13,17 +12,17 @@ import play.api.Logging
 import play.api.libs.json.Json.toJson
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
-import repositories.RedisJsonRepository
-import repositories.RedisRepository
+import repositories.{RedisGraphRepository, RedisJsonRepository, RedisRepository}
 
-import scala.concurrent.ExecutionContext
-
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 @Singleton
 class CourseService @Inject()(
    redisBloom: Client,
    redisJsonRepository: RedisJsonRepository,
    redisRepository: RedisRepository,
+   redisGraphRepository: RedisGraphRepository,
    redisPool: Pool[Jedis],
    rediSearch: io.redisearch.client.Client
   )(implicit ec: ExecutionContext)
@@ -42,18 +41,31 @@ class CourseService @Inject()(
       redisInstance.incr(COURSE_LAST_ID_KEY)
       // Insert into bloom filter
       redisBloom.add(COURSE_IDS_FILTER, currentIndex.toString)
-      // Create hash
-      //redisRepository.hset(key, "id", currentIndex.toString)
     }.map(_ => Right(done()))
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
   def retrieveAll(): ApplicationResult[Done] =
     ApplicationResult {
-      val query = new Query("")
-      .limit(0,10)
-      val result = rediSearch.search(query)
-      logger.info(s"$result")
+      logger.info(s"Retrieving courses")
+      val courses = redisGraphRepository.getCourses()
+      val keys = courses.map {
+        case courseList => courseList.map(courseList => {
+          courseList.map(course => {
+            logger.info(s"$course")
+            s"$COURSE_KEY${course.id}"
+          })
+        })
+        case _ => ???
+      }
+      keys.onComplete {
+        case Success(data) => {
+          logger.info(s"${data.getOrElse(List.empty)}")
+          val courses = redisJsonRepository.getAll[String](data.getOrElse(List.empty))
+          logger.info(s"$courses")
+        }
+        case Failure(ex) => println("ERROR occured - "+ex.getMessage)
+      }
       Done
   }
 

@@ -57,8 +57,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   }
 
   @Provides
-  def redisGraph(): RedisGraph =
-    new RedisGraph()
+  def redisGraph(config: RedisConfiguration): RedisGraph =
+    new RedisGraph(redisPool(config))
 
   @Provides
   def redisGraphConfiguration(): RedisGraphConfiguration =

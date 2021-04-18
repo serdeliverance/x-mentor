@@ -44,7 +44,7 @@ class CourseController @Inject()(
         .map(_ => Ok)
   }
 
-  def retrieveAll(): Action[CourseEnrollmentRequestDTO] = Action.async(decode[CourseEnrollmentRequestDTO]) { request =>
+  def retrieveAll(): Action[AnyContent] = Action.async{ _ =>
     logger.info(s"Retrieving all courses")
     courseService
       .retrieveAll()
