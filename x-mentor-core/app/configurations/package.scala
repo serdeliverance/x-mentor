@@ -10,8 +10,7 @@ package object configurations {
 
   val REDIS_GRAPH = "redis.graph"
 
-  final val MESSAGE_HANDLER_ACTOR = "message-handler-actor"
-
+  // TODO delete those variables if not used
   final val COURSE_RATED_TOPIC       = "course-rated-topic"
   final val COURSE_RECOMMENDED_TOPIC = "course-recommended-topic"
 }

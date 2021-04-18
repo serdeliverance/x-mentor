@@ -1,3 +1,3 @@
 package models
 
-case class Rating(id: Option[Long] = None, studentId: Long, courseId: Long, stars: Int)
+case class Rating(student: String, course: String, stars: Int)

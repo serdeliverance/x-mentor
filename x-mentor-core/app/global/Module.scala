@@ -1,21 +1,19 @@
 package global
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorSystem
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
-import jobs.ApplicationStart
 import configurations._
 import io.rebloom.client.Client
+import jobs.ApplicationStart
+import models.configurations.{RedisConfiguration, RedisGraphConfiguration}
 import play.api.libs.concurrent.{AkkaGuiceSupport, CustomExecutionContext}
 import play.api.{Configuration, Environment}
-import queues.MessageHandler.CourseRated
-import queues.{ChannelListener, MessageHandler}
 import redis.clients.jedis.util.Pool
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
-import javax.inject.{Named, Singleton}
-import models.configurations.{RedisConfiguration, RedisGraphConfiguration}
 
+import javax.inject.{Named, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
@@ -23,10 +21,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   val _ = environment
 
-  override def configure(): Unit = {
-    bindActor[MessageHandler](MESSAGE_HANDLER_ACTOR)
+  override def configure(): Unit =
     bind(classOf[ApplicationStart]).asEagerSingleton()
-  }
 
   @Provides
   def redisConfiguration: RedisConfiguration = RedisConfiguration(
@@ -64,18 +60,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   def redisGraphConfiguration(): RedisGraphConfiguration =
     RedisGraphConfiguration(configuration.get[String](REDIS_GRAPH))
 
-  @Provides @Singleton @Named(COURSE_RATED_TOPIC)
-  def courseRatedTopicSubscription(
-      @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-    ): ChannelListener[CourseRated] =
-    new ChannelListener[CourseRated](messageConsumer)
-
-  @Provides @Singleton @Named(COURSE_RECOMMENDED_TOPIC)
-  def topicRatedTopicSubscription(
-      @Named(MESSAGE_HANDLER_ACTOR) messageConsumer: ActorRef
-    ): ChannelListener[CourseRated] =
-    new ChannelListener[CourseRated](messageConsumer)
-
   @Provides @Singleton @Named(MESSAGING_DISPATCHER)
   def messagingExecutionContext(system: ActorSystem): ExecutionContext =
     new CustomExecutionContext(system, MESSAGING_DISPATCHER) {}
@@ -87,5 +71,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   def redisJSON(config: RedisConfiguration): JReJSON = new JReJSON(redisPool(config))
 
   @Provides
-  def rediSearch(config: RedisConfiguration): io.redisearch.client.Client = new io.redisearch.client.Client("xmentor", redisPool(config))
+  def rediSearch(config: RedisConfiguration): io.redisearch.client.Client =
+    new io.redisearch.client.Client("xmentor", redisPool(config))
 }
