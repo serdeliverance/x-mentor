@@ -11,4 +11,4 @@ def toTimeSeries(x):
 
 gearsCtx('StreamReader').\
     foreach(toTimeSeries).\
-    register('course-rated:0')
+    register('course-rated:0', trimStream=False)
