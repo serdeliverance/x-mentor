@@ -47,4 +47,6 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
       )
   }
 
+  def formatJson(string: String): String = string.replaceAll("^\"'|'\"$|\\\\", "")
+
 }

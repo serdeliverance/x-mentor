@@ -7,7 +7,6 @@ import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
 import global.ApplicationResult
 import io.rebloom.client.Client
 import io.redisearch.{Document, Query}
-
 import javax.inject.{Inject, Singleton}
 import models.Course
 import models.errors.NotFoundError
@@ -18,8 +17,9 @@ import redis.clients.jedis.util.Pool
 import repositories.{RediSearchRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import cats.implicits._
 import io.circe.parser.decode
+import util.JsonParsingUtils
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CourseService @Inject()(
@@ -30,7 +30,8 @@ class CourseService @Inject()(
     redisPool: Pool[Jedis],
     rediSearchRepository: RediSearchRepository
   )(implicit ec: ExecutionContext)
-    extends Logging {
+    extends Logging
+    with JsonParsingUtils {
 
   def create(course: Course): ApplicationResult[Done] =
     ApplicationResult {
@@ -51,7 +52,7 @@ class CourseService @Inject()(
 
   def retrieveAll(): ApplicationResult[List[Course]] = {
     logger.info(s"Retrieving courses")
-    val query = new Query("*")
+    val query = new Query("*").limit(0,12)
     for {
       coursesResp <- EitherT { rediSearchRepository.search(query) }
       courseList  <- EitherT { handleSearchResp(coursesResp) }
@@ -61,7 +62,7 @@ class CourseService @Inject()(
   private def handleSearchResp(documents: List[Document]): ApplicationResult[List[Course]] =
     ApplicationResult {
       documents
-        .map(doc => decode[Course](doc.toString))
+        .map(doc => { decode[Course](redisJsonRepository.formatJson(doc.getString("$"))) })
         .collect {
           case Right(decodedCourse) => decodedCourse
         }
