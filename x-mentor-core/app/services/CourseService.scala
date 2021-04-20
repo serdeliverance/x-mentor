@@ -16,8 +16,9 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import repositories.{RediSearchRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import cats.implicits._
+import io.circe.parser.decode
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CourseService @Inject()(
@@ -47,20 +48,15 @@ class CourseService @Inject()(
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
-  def retrieveAll(): ApplicationResult[Done] = {
+  def retrieveAll(): ApplicationResult[List[Course]] = {
     logger.info(s"Retrieving courses")
     val query   = new Query("*")
     val courses = rediSearchRepository.search(query)
 
     for {
-      c <- EitherT { courses }
-      _ <- EitherT {
-        c.foreach(course => {
-          logger.info(s"$course")
-        })
-        ApplicationResult(done())
-      }
-    } yield Done
+      c          <- EitherT { courses }
+      courseList <- EitherT { c.map(doc => decode[Course](doc.toString)) }
+    } yield courseList
   }.value
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =
