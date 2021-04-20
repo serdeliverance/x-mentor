@@ -6,7 +6,8 @@ import cats.data.EitherT
 import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
 import global.ApplicationResult
 import io.rebloom.client.Client
-import io.redisearch.Query
+import io.redisearch.{Document, Query}
+
 import javax.inject.{Inject, Singleton}
 import models.Course
 import models.errors.NotFoundError
@@ -50,14 +51,21 @@ class CourseService @Inject()(
 
   def retrieveAll(): ApplicationResult[List[Course]] = {
     logger.info(s"Retrieving courses")
-    val query   = new Query("*")
-    val courses = rediSearchRepository.search(query)
-
+    val query = new Query("*")
     for {
-      c          <- EitherT { courses }
-      courseList <- EitherT { c.map(doc => decode[Course](doc.toString)) }
+      coursesResp <- EitherT { rediSearchRepository.search(query) }
+      courseList  <- EitherT { handleSearchResp(coursesResp) }
     } yield courseList
   }.value
+
+  private def handleSearchResp(documents: List[Document]): ApplicationResult[List[Course]] =
+    ApplicationResult {
+      documents
+        .map(doc => decode[Course](doc.toString))
+        .collect {
+          case Right(decodedCourse) => decodedCourse
+        }
+    }
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =
     if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
