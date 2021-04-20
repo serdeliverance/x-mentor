@@ -20,11 +20,11 @@ services:
     ports:
       - 6379:6379
 
-  x-adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8083:8080
+  x-gears:
+    build: ./x-gears
+    depends_on:
+      - x-redis
+    command: ['init.py', '--url', 'redis://x-redis:6379']
        
   x-keycloak:
     image: jboss/keycloak
