@@ -7,7 +7,7 @@ def toIA(x):
 	xlog('toIA: ', x)
 
 def toTimeSeries(x):
-	redisgears.executeCommand('set', 'foo', 'bar')
+	redisgears.executeCommand('xadd', 'replicator', '*', 'student', x['value']['student'])
 
 gearsCtx('StreamReader').\
     foreach(toTimeSeries).\
