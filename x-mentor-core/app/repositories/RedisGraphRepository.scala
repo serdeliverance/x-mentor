@@ -5,7 +5,7 @@ import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
 import global.ApplicationResult
 import models.configurations.RedisGraphConfiguration
-import models.{Course, CourseNode, Rating, Topic}
+import models.{Course, CourseNode, Rating, Student, Topic}
 import play.api.Logging
 import repositories.RedisGraphRepository._
 import repositories.graph.{CourseTag, GraphEntityTag, NodeDecoder, ResultDecoder, TopicTag}
@@ -21,9 +21,8 @@ class RedisGraphRepository @Inject()(
     extends Logging
     with ResultDecoder {
 
-  def getCourses(): ApplicationResult[List[CourseNode]] = {
+  def getCourses(): ApplicationResult[List[CourseNode]] =
     executeQuery[CourseNode](coursesQuery, CourseTag)
-  }
 
   def getTopics(): ApplicationResult[List[Topic]] = {
     import models.Topic._
@@ -51,6 +50,11 @@ class RedisGraphRepository @Inject()(
     executeCreateQuery(createCourseQuery(course))
   }
 
+  def createStudent(student: Student): ApplicationResult[Done] = {
+    logger.info(s"Creating student: $student")
+    executeCreateQuery(createStudentQuery(student))
+  }
+
   def createRatesRelation(rating: Rating): ApplicationResult[Done] =
     executeCreateQuery(createRatesQuery(rating))
 
@@ -68,7 +72,11 @@ object RedisGraphRepository {
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"
 
-  private val createCourseQuery = (course: Course) => s"CREATE (:Course {name: '${course.title}', id: '${course.id.get}'})"
+  private val createCourseQuery = (course: Course) =>
+    s"CREATE (:Course {name: '${course.title}', id: '${course.id.get}'})"
+
+  private val createStudentQuery = (student: Student) =>
+    s"CREATE (:Student {username: '${student.username}', email: '${student.email}'})"
 
   private val coursesQuery = "MATCH (course:Course) RETURN course"
 
