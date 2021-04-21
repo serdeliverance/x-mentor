@@ -62,7 +62,7 @@ class CourseLoader @Inject()(
       val redisJsonSink = Flow[Course]
         .map(course => (s"$COURSE_KEY${course.id.get}", course))
         .mapAsync(1)(courseIdAndCourse =>
-          redisJsonRepository.set(courseIdAndCourse._1, s"'${toJson(courseIdAndCourse._2)}'"))
+          redisJsonRepository.set(courseIdAndCourse._1, toJson(courseIdAndCourse._2)))
         .to(Sink.ignore)
 
       val broadcast = builder.add(Broadcast[Course](3))

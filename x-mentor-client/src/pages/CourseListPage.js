@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination';
+import { useLocation } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,8 +42,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 export default function CourseListPage() {
   const classes = useStyles()
+  const query = useQuery()
   const [courses, setCourses] = useState([])
   const [page, setPage] = useState(0)
   const [total, setTotal] = useState(10)
@@ -52,15 +58,16 @@ export default function CourseListPage() {
   };
 
   useEffect(() => {
+    console.log("TEst")
     const fetchData = async () => {
       const result = await axios(
-          `http://localhost:9000/courses?page=${page}`,
+          `http://localhost:9000/courses?q=${query.get('q')}&page=${page}`,
         )
         setCourses(result.data)
         // setTotal(result.data)
       }
     fetchData()
-  }, [])
+  }, [query])
   
   return (
     <div className={classes.root}>

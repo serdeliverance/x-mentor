@@ -1,14 +1,13 @@
 package jobs.loaders
 
-import java.nio.file.Paths
-
-import akka.Done.done
 import akka.actor.ActorSystem
-import akka.Done
-
+import global.ApplicationResult
+import io.redisearch.Schema
+import io.redisearch.client.Client
 import javax.inject.{Inject, Singleton}
 import play.api.Logging
 import repositories.RediSearchRepository
+import io.redisearch.client.IndexDefinition
 
 import scala.concurrent._
 
@@ -19,7 +18,14 @@ class IndexLoader @Inject()(
     ec: ExecutionContext)
     extends Logging {
 
-  def loadIndexes(): Future[Done] =
-    Future(done())
+  def loadIndexes(): ApplicationResult[Unit] =
+    ApplicationResult {
+      logger.info("Creating indexes")
+      val schema = new Schema()
+                        .addSortableTextField("$.title", 1.0)
+                        .addSortableTextField("$.description", 1.0)
+      val definition = new IndexDefinition().setPrefixes(List("course:"):_*)
+      rediSearchRepository.createIndex(schema, Client.IndexOptions.defaultOptions().setDefinition(definition))
+    }
 
 }

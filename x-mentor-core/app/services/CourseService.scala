@@ -42,7 +42,7 @@ class CourseService @Inject()(
 
       logger.info(s"Storing course $currentIndex in Redis, increasing last id and adding to bloom filter")
       // Insert into redisJSON
-      redisJsonRepository.set(key, s"'${toJson(updatedCourse)}'")
+      redisJsonRepository.set(key, toJson(updatedCourse))
       redisInstance.incr(COURSE_LAST_ID_KEY)
       // Insert into bloom filter
       redisBloom.add(COURSE_IDS_FILTER, currentIndex.toString)
@@ -50,9 +50,11 @@ class CourseService @Inject()(
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
-  def retrieveAll(): ApplicationResult[List[Course]] = {
-    logger.info(s"Retrieving courses")
-    val query = new Query("*").limit(0,12)
+  def retrieve(q: String, page: Int): ApplicationResult[List[Course]] = {
+    val offset = page * 12
+    logger.info(s"Retrieving courses with query $q and offset $offset")
+    val queryString = if(q.isEmpty) "*" else q
+    val query = new Query(queryString).limit(offset, offset + 12)
     for {
       coursesResp <- EitherT { rediSearchRepository.search(query) }
       courseList  <- EitherT { handleSearchResp(coursesResp) }

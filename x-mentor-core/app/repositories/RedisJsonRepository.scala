@@ -2,6 +2,7 @@ package repositories
 
 import akka.Done
 import akka.Done.done
+import com.google.gson.Gson
 import com.redislabs.modules.rejson.JReJSON
 import global.ApplicationResult
 import io.circe.Decoder
@@ -9,12 +10,16 @@ import models.errors.{ClientError, UnexpectedError}
 import play.api.Logging
 import javax.inject.{Inject, Singleton}
 import com.redislabs.modules.rejson.Path
+
 import scala.util.Try
 import io.circe.parser.decode
+import play.api.libs.json.JsValue
 import util.JsonParsingUtils
 
 @Singleton
 class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonParsingUtils {
+
+  private val gson = new Gson
 
   def get[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[T] =
     Try(redisJson.get[String](key))
@@ -35,8 +40,8 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         }
       )
 
-  def set(key: String, jsonString: String): ApplicationResult[Done] = {
-    logger.info(s"Uploading json with key: $key to redisJson")
+  def set(key: String, jsonString: JsValue): ApplicationResult[Done] = {
+    logger.info(s"Uploading json with key: $key to redisJson ${gson.toJson(jsonString)}")
     Try(redisJson.set(key, jsonString, new Path("$")))
       .fold(
         error => {

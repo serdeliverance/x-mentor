@@ -44,10 +44,10 @@ class CourseController @Inject()(
         .map(_ => Ok)
   }
 
-  def retrieveAll(): Action[AnyContent] = Action.async{ _ =>
-    logger.info(s"Retrieving all courses")
+  def retrieve(q: String, page: Int): Action[AnyContent] = Action.async{ _ =>
+    logger.info(s"Retrieving courses")
     courseService
-      .retrieveAll()
+      .retrieve(q, page)
       .map {
         case Right(courses) =>
           logger.info("Courses retrieved successfully")

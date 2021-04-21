@@ -72,5 +72,5 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides
   def rediSearch(config: RedisConfiguration): io.redisearch.client.Client =
-    new io.redisearch.client.Client("courses-index", redisPool(config))
+    new io.redisearch.client.Client("courses-idx", redisPool(config))
 }
