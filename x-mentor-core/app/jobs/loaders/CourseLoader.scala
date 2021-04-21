@@ -10,11 +10,12 @@ import io.circe.parser.decode
 import io.rebloom.client.Client
 import models.Course
 import play.api.Logging
-import play.api.libs.json.Json._
+import scala.jdk.CollectionConverters._
 import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import java.nio.file.Paths
 
 import javax.inject.{Inject, Singleton}
+import util.CourseConverter
 
 import scala.concurrent._
 
@@ -62,7 +63,7 @@ class CourseLoader @Inject()(
       val redisJsonSink = Flow[Course]
         .map(course => (s"$COURSE_KEY${course.id.get}", course))
         .mapAsync(1)(courseIdAndCourse =>
-          redisJsonRepository.set(courseIdAndCourse._1, toJson(courseIdAndCourse._2)))
+          redisJsonRepository.set(courseIdAndCourse._1, CourseConverter.courseToMap(courseIdAndCourse._2).asJava))
         .to(Sink.ignore)
 
       val broadcast = builder.add(Broadcast[Course](3))

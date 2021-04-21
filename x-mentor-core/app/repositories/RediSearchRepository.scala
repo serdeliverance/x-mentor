@@ -17,14 +17,16 @@ import scala.util.Try
 @Singleton
 class RediSearchRepository @Inject()(rediSearch: Client) extends Logging with JsonParsingUtils {
 
-  def search(query: Query): ApplicationResult[List[Document]] = {
+  def search(query: Query): ApplicationResult[(Long, List[Document])] = {
     Try(rediSearch.search(query))
       .fold(
         error => {
-          logger.info(s"Error searching with query: $query")
+          logger.info(s"Error searching with query: ${query.toString}")
           ApplicationResult.error(UnexpectedError(error))
         },
-        searchResult => ApplicationResult(searchResult.docs.asScala.toList)
+        searchResult => {
+          ApplicationResult((searchResult.totalResults, searchResult.docs.asScala.toList))
+        }
       )
   }
 

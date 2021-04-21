@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
-import Pagination from '@material-ui/lab/Pagination';
-import { useLocation } from "react-router-dom";
+import Pagination from '@material-ui/lab/Pagination'
+import { useLocation } from "react-router-dom"
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(10),
+    padding: `${theme.spacing(8)}px ${theme.spacing(18)}px`,
   },
   grid: {
     display: 'flex',
@@ -15,14 +15,15 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
   },
   media: {
-    height: 140,
+    height: 180,
+    padding: "45px 0",
+    margin: "20px 0 0"
   },
   tile: {
-    padding: theme.spacing(2),
-    width: "33%"
+    padding: theme.spacing(4),
+    width: "30%"
   },
   description: {
-    maxWidth: '30ch',
     WebkitLineClamp: 3,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
@@ -49,62 +50,81 @@ function useQuery() {
 export default function CourseListPage() {
   const classes = useStyles()
   const query = useQuery()
+  const prevQueryParam = useRef()
   const [courses, setCourses] = useState([])
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
 
-  const handleChange = (event, value) => {
-    setPage(value);
-  };
+  const handleChange = (event, value) => setPage(value)
 
+  const fetchData = async () => {
+    const result = await axios(
+      `http://localhost:9000/courses?q=${query.get('q')}&page=${page}`,
+    )
+    setCourses(result.data.courses)
+    setTotal(Math.round(result.data.total / 6))
+  }
+
+  // TODO Arreglar
   useEffect(() => {
-    console.log("TEst")
-    const fetchData = async () => {
-      const result = await axios(
-          `http://localhost:9000/courses?q=${query.get('q')}&page=${page}`,
-        )
-        setCourses(result.data)
-        // setTotal(result.data)
-      }
-    fetchData()
+    if(query.get('q') !== prevQueryParam.current){
+      fetchData()
+      setPage(1)
+      prevQueryParam.current = query.get('q')
+    }
   }, [query])
   
+  useEffect(() => {
+    if(query.get('q') === prevQueryParam.current){
+      fetchData()
+    }
+  }, [page])
+
   return (
     <div className={classes.root}>
-    <div className={classes.pagination}>
-      <Pagination count={total} shape="rounded" onChange={handleChange} />
-    </div>
-    <Grid container classes={{ root: classes.grid }}>
-      {courses.map((course) => (
-          <Grid item className={classes.tile} key={course.id}>
-              <Card className={classes.card}>
-                  <CardActionArea>
-                      <CardContent>
-                          <Typography gutterBottom variant="h6" className={classes.title}>
-                            {course.title}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
-                            {course.description}
-                          </Typography>
-                          <CardMedia
-                            className={classes.media}
-                            image={course.preview}
-                            title={course.title}
-                          />
-                      </CardContent>
-                  </CardActionArea>
-                  <CardActions>
-                    <Button size="small" color="primary">
-                      Share
-                    </Button>
-                    <Button size="small" color="primary">
-                      Learn More
-                    </Button>
-                  </CardActions>
-              </Card>
-          </Grid>
-      ))}
-  </Grid>
+      {courses.length > 0 ?
+      <>
+      <div className={classes.pagination}>
+        <Pagination count={total} shape="rounded" onChange={handleChange} />
+      </div>
+      <Grid container classes={{ root: classes.grid }}>
+        {courses.map((course) => (
+            <Grid item className={classes.tile} key={course.id}>
+                <Card className={classes.card}>
+                    <CardActionArea>
+                        <CardContent>
+                            <Typography gutterBottom variant="h6" className={classes.title}>
+                              {course.title}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
+                              {course.description}
+                            </Typography>
+                            <CardMedia
+                              className={classes.media}
+                              image={course.preview}
+                              title={course.title}
+                            />
+                        </CardContent>
+                    </CardActionArea>
+                    <CardActions>
+                      <Button size="small" color="primary">
+                        Share
+                      </Button>
+                      <Button size="small" color="primary">
+                        Learn More
+                      </Button>
+                    </CardActions>
+                </Card>
+            </Grid>
+          ))}
+      </Grid>
+      </>
+    : <Grid container item classes={{ root: classes.grid }}>
+        <Typography gutterBottom variant="h6" className={classes.title}>
+          We couldn't find any courses with the specified filter
+        </Typography>
+      </Grid>
+    }
   </div>
 
   );

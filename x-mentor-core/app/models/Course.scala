@@ -3,7 +3,6 @@ package models
 import io.circe.generic.extras.semiauto.{deriveConfiguredDecoder, deriveConfiguredEncoder}
 import io.circe.{Decoder, Encoder}
 import models.json.CirceImplicits
-import play.api.libs.json.Json
 
 case class Course(
     id: Option[Long] = None,
@@ -17,6 +16,4 @@ case class Course(
 object Course extends CirceImplicits {
   implicit val encoder: Encoder[Course] = deriveConfiguredEncoder
   implicit val decoder: Decoder[Course] = deriveConfiguredDecoder
-
-  implicit val writes = Json.writes[Course]
 }

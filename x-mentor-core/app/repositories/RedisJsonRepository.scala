@@ -13,13 +13,10 @@ import com.redislabs.modules.rejson.Path
 
 import scala.util.Try
 import io.circe.parser.decode
-import play.api.libs.json.JsValue
 import util.JsonParsingUtils
 
 @Singleton
 class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonParsingUtils {
-
-  private val gson = new Gson
 
   def get[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[T] =
     Try(redisJson.get[String](key))
@@ -40,8 +37,10 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         }
       )
 
-  def set(key: String, jsonString: JsValue): ApplicationResult[Done] = {
-    logger.info(s"Uploading json with key: $key to redisJson ${gson.toJson(jsonString)}")
+  def set(key: String, jsonString: Object): ApplicationResult[Done] = {
+    val gson: Gson = new Gson
+
+    logger.info(s"Uploading json with key: $key to redisJson")
     Try(redisJson.set(key, jsonString, new Path("$")))
       .fold(
         error => {

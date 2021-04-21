@@ -8,17 +8,17 @@ import global.ApplicationResult
 import io.rebloom.client.Client
 import io.redisearch.{Document, Query}
 import javax.inject.{Inject, Singleton}
-import models.Course
+import models.{Course, CourseResponse}
 import models.errors.NotFoundError
 import play.api.Logging
-import play.api.libs.json.Json.toJson
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import repositories.{RediSearchRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import cats.implicits._
 import io.circe.parser.decode
-import util.JsonParsingUtils
+import util.{CourseConverter, JsonParsingUtils}
 
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -42,7 +42,7 @@ class CourseService @Inject()(
 
       logger.info(s"Storing course $currentIndex in Redis, increasing last id and adding to bloom filter")
       // Insert into redisJSON
-      redisJsonRepository.set(key, toJson(updatedCourse))
+      redisJsonRepository.set(key, CourseConverter.courseToMap(updatedCourse).asJava)
       redisInstance.incr(COURSE_LAST_ID_KEY)
       // Insert into bloom filter
       redisBloom.add(COURSE_IDS_FILTER, currentIndex.toString)
@@ -50,24 +50,28 @@ class CourseService @Inject()(
 
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
-  def retrieve(q: String, page: Int): ApplicationResult[List[Course]] = {
-    val offset = page * 12
-    logger.info(s"Retrieving courses with query $q and offset $offset")
-    val queryString = if(q.isEmpty) "*" else q
-    val query = new Query(queryString).limit(offset, offset + 12)
+  def retrieve(q: String, page: Int): ApplicationResult[CourseResponse] = {
+    val itemsPerPage = 6
+    val offset       = (page - 1) * itemsPerPage
+    val queryString  = if (q.isEmpty) "*" else s"$q*"
+    logger.info(s"Retrieving courses with query $queryString and offset $offset")
+    val query = new Query(queryString).limit(offset, offset + itemsPerPage)
     for {
       coursesResp <- EitherT { rediSearchRepository.search(query) }
       courseList  <- EitherT { handleSearchResp(coursesResp) }
     } yield courseList
   }.value
 
-  private def handleSearchResp(documents: List[Document]): ApplicationResult[List[Course]] =
+  private def handleSearchResp(courseResp: (Long, List[Document])): ApplicationResult[CourseResponse] =
     ApplicationResult {
-      documents
-        .map(doc => { decode[Course](redisJsonRepository.formatJson(doc.getString("$"))) })
-        .collect {
-          case Right(decodedCourse) => decodedCourse
-        }
+      CourseResponse(
+        courseResp._1,
+        courseResp._2
+          .map(doc => { decode[Course](redisJsonRepository.formatJson(doc.getString("$"))) })
+          .collect {
+            case Right(decodedCourse) => decodedCourse
+          }
+      )
     }
 
   def retrieveById(courseId: Long): ApplicationResult[Course] =

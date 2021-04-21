@@ -6,6 +6,9 @@ import MailIcon from '@material-ui/icons/Mail';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import { useHistory } from "react-router-dom";
 import LoginModal from './LoginModal';
+import AddIcon from '@material-ui/icons/Add'
+import Tooltip from '@material-ui/core/Tooltip';
+import CreateCourseModal from './CreateCourseModal'
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -43,34 +46,47 @@ const useStyles = makeStyles((theme) => ({
   },
   inputRoot: {
     color: 'inherit',
+    width: '100%'
   },
   inputInput: {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '50ch',
-    },
+
   },
   link: {
     padding: theme.spacing(1, 4, 1, 0),
     '&:hover': {
         textDecoration: "none"
     }
+  },
+  button: {
+    margin: theme.spacing(2)
+  },
+  errorBorder: {
+    border: "red solid 1px",
+    borderRadius: "4px"
   }
 }));
 
 export default function Header() {
-  const classes = useStyles();
-  const history = useHistory();
-  const [loggedIn, setLoggedIn] = useState(false);
+  const classes = useStyles()
+  const history = useHistory()
+  const [loggedIn, setLoggedIn] = useState(true);
   const [openLogin, setOpenLogin] = useState(false);
+  const [openCourseModal, setOpenCourseModal] = useState(false)
+  const [searchError, setSearchError] = useState(false)
 
   const keyPress = (e) => {
+    const value = e.target.value
     if(e.keyCode === 13){
-        history.push("/courses")
+      if(value.length >= 3){
+        setSearchError(false)
+        history.push(`/courses?q=${value}`)
+      }
+      else{
+        setSearchError(true)
+      }
     }
   }
 
@@ -85,20 +101,34 @@ export default function Header() {
                 <div className={classes.searchIcon}>
                     <SearchIcon />
                 </div>
-                <InputBase
-                    placeholder="Search…"
-                    classes={{
-                        root: classes.inputRoot,
-                        input: classes.inputInput,
-                    }}
-                    inputProps={{ 'aria-label': 'search' }}
-                    onChange={() => console.log("change")}
-                    onKeyDown={keyPress}
-                />
+                <Tooltip title="Please use at least 3 characters">
+                  <InputBase
+                      placeholder="Search…"
+                      classes={{
+                          root: classes.inputRoot,
+                          input: classes.inputInput,
+                      }}
+                      className={searchError ? `${classes.errorBorder}` : "" }
+                      inputProps={{ 'aria-label': 'search' }}
+                      onChange={() => {}}
+                      onKeyDown={keyPress}
+                  />
+                </Tooltip>
             </div>
             <div className={classes.grow} />
             {loggedIn ?
+            <>
             <div>
+                <Tooltip title="Create Course" arrow>
+                  <IconButton
+                      color="inherit"
+                      aria-label="create"
+                      className={classes.button}
+                      startIcon={<AddIcon />}
+                      onClick={() => setOpenCourseModal(true)}>
+                    <AddIcon />
+                  </IconButton>
+                </Tooltip>
                 <Link className={classes.link} component="button" onClick={() => history.push("/my/courses")} style={{"padding": "8px 24px 8px 0px"}} color="inherit">My Courses</Link>
                 <IconButton aria-label="show 4 new mails" color="inherit">
                     <Badge badgeContent={4} color="secondary">
@@ -120,12 +150,15 @@ export default function Header() {
                     <AccountCircle />
                 </IconButton>
             </div>
+            <CreateCourseModal open={openCourseModal} setOpen={setOpenCourseModal}></CreateCourseModal>
+            </>
             :
+            <>
             <div>
-                <Link className={classes.link} component="button" onClick={() => history.push("/my/courses")} style={{"padding": "8px 32px 8px 0px"}} color="inherit">My Courses</Link>
                 <Button variant="outlined" color="inherit" onClick={() => setOpenLogin(true)}>Login</Button>
                 <LoginModal open={openLogin} setOpen={setOpenLogin}></LoginModal>
             </div>
+            </>
         }
         </Toolbar>
       </AppBar>

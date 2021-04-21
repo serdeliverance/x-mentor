@@ -9,6 +9,7 @@ import CoursePage from './pages/CoursePage'
 import CourseListPage from './pages/CourseListPage'
 import MyCoursesPage from './pages/MyCoursesPage'
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Home />
         </Route>
       </Switch>
+      <Footer />
     </Router>
     </>
   );
