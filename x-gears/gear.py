@@ -4,11 +4,14 @@ def xlog(*args):
     redisgears.executeCommand('xadd', 'log', '*', 'text', ' '.join(map(str, args)))
 
 def toIA(x):
-	xlog('toIA: ', x)
+	# a simple example
+	redisgears.executeCommand('set', 'ia', x['value']['student'])
 
 def toTimeSeries(x):
-	redisgears.executeCommand('xadd', 'replicator', '*', 'student', x['value']['student'])
+	# a simple example
+	redisgears.executeCommand('set', 'timeseries', x['value']['student'])
 
 gearsCtx('StreamReader').\
     foreach(toTimeSeries).\
+    foreach(toIA).\
     register('course-rated:0', trimStream=False)
