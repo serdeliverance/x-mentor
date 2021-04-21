@@ -31,7 +31,7 @@ class CourseLoader @Inject()(
 
   private val COURSE_JSON_PATH = "conf/data/courses.json"
 
-  def loadJSONCourses(): Future[Done] =
+  def loadCourses(): Future[Done] =
     Future(graph().run()).map(_ => done())
 
   private def graph(): RunnableGraph[NotUsed] =

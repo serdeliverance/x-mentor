@@ -33,7 +33,7 @@ class CourseController @Inject()(
                         topic = request.body.topic)
     courseService
       .create(course)
-      .map(_ => Ok)
+      .map(_ => Created)
   }
 
   def enroll(courseId: Long): Action[CourseEnrollmentRequestDTO] = Action.async(decode[CourseEnrollmentRequestDTO]) {
@@ -48,7 +48,14 @@ class CourseController @Inject()(
     logger.info(s"Retrieving all courses")
     courseService
       .retrieveAll()
-      .map(_ => Ok)
+      .map {
+        case Right(courses) =>
+          logger.info("Courses retrieved successfully")
+          Ok(courses.asJson)
+        case Left(error) =>
+          logger.info("Error retrieving courses")
+          handleError(error)
+      }
   }
 
   def retrieveById(courseId: Long): Action[AnyContent] =

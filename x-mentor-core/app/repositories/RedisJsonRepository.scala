@@ -8,12 +8,10 @@ import io.circe.Decoder
 import models.errors.{ClientError, UnexpectedError}
 import play.api.Logging
 import javax.inject.{Inject, Singleton}
-
+import com.redislabs.modules.rejson.Path
 import scala.util.Try
 import io.circe.parser.decode
 import util.JsonParsingUtils
-import scala.reflect.ClassTag
-import scala.reflect._
 
 @Singleton
 class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonParsingUtils {
@@ -37,29 +35,9 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         }
       )
 
-  def getAll[T: ClassTag](keys: List[String])(implicit decoder: Decoder[T]): ApplicationResult[List[T]] = {
-    Try(redisJson.mget(classTag[T].runtimeClass, keys:_*))
-      .fold(
-        error => {
-          logger.info(s"Error getting keys from redisJSON. $error")
-          ApplicationResult.error(UnexpectedError(error))
-        },
-        jsonArray => {
-          decode[List[T]](jsonArray.toString)
-            .fold(
-              _ => {
-                logger.info(s"Error decoding $jsonArray")
-                ApplicationResult.error(ClientError("Error decoding redisJSON response"))
-              },
-              value => ApplicationResult(value)
-            )
-        }
-      )
-  }
-
   def set(key: String, jsonString: String): ApplicationResult[Done] = {
     logger.info(s"Uploading json with key: $key to redisJson")
-    Try(redisJson.set(key, jsonString))
+    Try(redisJson.set(key, jsonString, new Path("$")))
       .fold(
         error => {
           logger.info(s"Error uploading json to redisJson. Key: $key")
@@ -68,5 +46,7 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         _ => ApplicationResult(done())
       )
   }
+
+  def formatJson(string: String): String = string.replaceAll("^\"'|'\"$|\\\\", "")
 
 }
