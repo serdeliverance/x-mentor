@@ -3,7 +3,8 @@ version: '3.7'
 services:
 
   #x-mentor-core:
-  #  image: xmentor/x-mentor-core
+  #  image: xmentor/x-mentor-core:latest
+  #    restart: always
   #  ports:
   #    - 9000:9000
       
