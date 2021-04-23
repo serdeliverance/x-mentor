@@ -1,23 +1,30 @@
 package jobs.loaders
 
+import akka.Done
+import akka.Done.done
 import akka.actor.ActorSystem
 import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
+import global.ApplicationResult
 import models.Topic
 import play.api.Logging
 import repositories.RedisGraphRepository
 
 import java.nio.file.Paths
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TopicLoader @Inject()(redisGraphRepository: RedisGraphRepository)(implicit system: ActorSystem) extends Logging {
+class TopicLoader @Inject()(
+    redisGraphRepository: RedisGraphRepository
+  )(implicit system: ActorSystem,
+    ec: ExecutionContext)
+    extends Logging {
 
   private val TOPIC_CSV_PATH = "conf/data/topics.csv"
 
-  def loadTopics(): Future[IOResult] = {
+  def loadTopics(): ApplicationResult[Done] = {
     logger.info("Loading topics into the graph")
     FileIO
       .fromPath(Paths.get(TOPIC_CSV_PATH))
@@ -29,5 +36,6 @@ class TopicLoader @Inject()(redisGraphRepository: RedisGraphRepository)(implicit
       .mapAsync(1)(redisGraphRepository.createTopic)
       .to(Sink.ignore)
       .run()
+      .map(_ => Right(done()))
   }
 }
