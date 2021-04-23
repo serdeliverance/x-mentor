@@ -10,14 +10,13 @@ import io.circe.parser.decode
 import io.rebloom.client.Client
 import models.Course
 import play.api.Logging
-import scala.jdk.CollectionConverters._
 import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
-import java.nio.file.Paths
-
-import javax.inject.{Inject, Singleton}
 import util.CourseConverter
 
+import java.nio.file.Paths
+import javax.inject.{Inject, Singleton}
 import scala.concurrent._
+import scala.jdk.CollectionConverters._
 
 @Singleton
 class CourseLoader @Inject()(
@@ -34,6 +33,19 @@ class CourseLoader @Inject()(
 
   def loadCourses(): Future[Done] =
     Future(graph().run()).map(_ => done())
+
+  def loadCoursesToGraph(): Future[Done] =
+    FileIO
+      .fromPath(Paths.get(COURSE_JSON_PATH))
+      .via(JsonFraming.objectScanner(Int.MaxValue))
+      .map(_.utf8String)
+      .map(decode[Course](_))
+      .collect {
+        case Right(course) => course
+      }
+      .filter(course => course.id.nonEmpty)
+      .mapAsync(1)(redisGraphRepository.createCourse)
+      .runWith(Sink.ignore)
 
   private def graph(): RunnableGraph[NotUsed] =
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
@@ -56,9 +68,9 @@ class CourseLoader @Inject()(
         .mapAsync(1)(course => redisBloomRepository.add(course))
         .to(Sink.ignore)
 
-      val redisGraphSink = Flow[Course]
-        .mapAsync(1)(redisGraphRepository.createCourse)
-        .to(Sink.ignore)
+//      val redisGraphSink = Flow[Course]
+//        .mapAsync(1)(redisGraphRepository.createCourse)
+//        .to(Sink.ignore)
 
       val redisJsonSink = Flow[Course]
         .map(course => (s"$COURSE_KEY${course.id.get}", course))
@@ -66,10 +78,10 @@ class CourseLoader @Inject()(
           redisJsonRepository.set(courseIdAndCourse._1, CourseConverter.courseToMap(courseIdAndCourse._2).asJava))
         .to(Sink.ignore)
 
-      val broadcast = builder.add(Broadcast[Course](3))
+      val broadcast = builder.add(Broadcast[Course](2))
 
       source ~> convertToJson ~> broadcast ~> redisBloomSink
-      broadcast ~> redisGraphSink
+//      broadcast ~> redisGraphSink
       broadcast ~> redisJsonSink
       ClosedShape
     })

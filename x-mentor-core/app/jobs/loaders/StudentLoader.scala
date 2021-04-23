@@ -1,7 +1,7 @@
 package jobs.loaders
 
+import akka.Done
 import akka.actor.ActorSystem
-import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
 import models.Student
@@ -21,7 +21,7 @@ class StudentLoader @Inject()(
 
   private val STUDENT_CSV_PATH = "conf/data/students.csv"
 
-  def loadStudents(): Future[IOResult] = {
+  def loadStudents(): Future[Done] = {
     logger.info("Loading students into the graph")
     FileIO
       .fromPath(Paths.get(STUDENT_CSV_PATH))
@@ -31,7 +31,6 @@ class StudentLoader @Inject()(
         Student(slices(0), slices(1))
       })
       .mapAsync(1)(redisGraphRepository.createStudent)
-      .to(Sink.ignore)
-      .run()
+      .runWith(Sink.ignore)
   }
 }
