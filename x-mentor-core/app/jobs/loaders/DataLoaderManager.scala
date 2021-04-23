@@ -13,6 +13,7 @@ class DataLoaderManager @Inject()(
     studentLoader: StudentLoader,
     filterLoader: FilterLoader,
     indexLoader: IndexLoader,
+    interestRelationLoader: InterestRelationLoader,
     hasRelationLoader: HasRelationLoader,
 )(implicit executionContext: ExecutionContext)
     extends Logging {
@@ -28,7 +29,7 @@ class DataLoaderManager @Inject()(
       // _ <- indexLoader.loadIndexes()
       _ <- hasRelationLoader.loadHasRelations()
       _ <- studentLoader.loadStudents()
-      // _ <- loadInterestRelations()
+      _ <- interestRelationLoader.loadInterestRelations()
       // _ <- loadStudyingRelations()
       // _ <- loadRateRelations()
       // _ <- loadTeachers()
