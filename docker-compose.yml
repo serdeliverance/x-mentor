@@ -2,15 +2,16 @@ version: '3.7'
 
 services:
 
-  #x-mentor-core:
-  #  image: xmentor/x-mentor-core
-  #  ports:
-  #    - 9000:9000
+  x-mentor-core:
+    image: xmentor/x-mentor-core:latest
+    restart: always
+    ports:
+      - 9000:9000
       
-  #x-mentor-client:
-  #  image: xmentor/x-mentor-client
-  #  ports:
-  #    - 3000:3000
+  x-mentor-client:
+    image: xmentor/x-mentor-client:latest
+    ports:
+      - 80:80
 
   x-redis:
     image: redislabs/redismod:feature-search-json

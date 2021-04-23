@@ -1,9 +1,8 @@
 name := """x-mentor-core"""
-organization := "io.github.serdeliverance"
+organization := "xmentor"
+version := "0.1.0"
 
-version := "1.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, sbtdocker.DockerPlugin)
 
 scalaVersion := "2.13.3"
 
@@ -48,3 +47,20 @@ scalacOptions ++= Seq(
   "-language:implicitConversions", // Allow definition of implicit functions called views
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.
 )
+
+// imageName:Tag value
+imageNames in docker := Seq(
+  ImageName(s"${organization.value}/${name.value}:latest")
+)
+
+// Dockerfile template
+dockerfile in docker := {
+  val appDir: File = stage.value
+  val targetDir = "/app"
+
+  new Dockerfile {
+    from("openjdk:8-jre-slim")
+    entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+    copy(appDir, targetDir, chown = "daemon:daemon")
+  }
+}
