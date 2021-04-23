@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
+import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Tooltip, Typography } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { useLocation } from "react-router-dom"
+import StarRateIcon from '@material-ui/icons/StarRate'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,6 +42,12 @@ const useStyles = makeStyles((theme) => ({
       float: 'right'
     },
   },
+  star: {
+    float: "right",
+    position: "relative",
+    top: 5,
+    color: "gold"
+  }
 }))
 
 function useQuery() {
@@ -63,6 +70,17 @@ export default function CourseListPage() {
     )
     setCourses(result.data.courses)
     setTotal(Math.round(result.data.total / 6))
+  }
+
+  const enroll = async (courseId) => {
+    console.log(courseId)
+    /*const result = await axios(
+      `http://localhost:9000/${courseId}/enroll`,
+    )*/
+  }
+
+  const showDescription = () => {
+    console.log("Description")
   }
 
   // TODO Arreglar
@@ -90,11 +108,15 @@ export default function CourseListPage() {
       <Grid container classes={{ root: classes.grid }}>
         {courses.map((course) => (
             <Grid item className={classes.tile} key={course.id}>
-                <Card className={classes.card}>
-                    <CardActionArea>
+                <Card className={classes.card} id={course.id}>
+                    <CardActionArea onClick={(e) => showDescription(e.target.closest(".MuiCard-root").id)}>
                         <CardContent>
                             <Typography gutterBottom variant="h6" className={classes.title}>
                               {course.title}
+                              {course.rating > 3 ? 
+                                <Tooltip placement="top" title="Top Course">
+                                  <StarRateIcon className={classes.star} />
+                                </Tooltip> : <></>}
                             </Typography>
                             <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
                               {course.description}
@@ -107,11 +129,8 @@ export default function CourseListPage() {
                         </CardContent>
                     </CardActionArea>
                     <CardActions>
-                      <Button size="small" color="primary">
-                        Share
-                      </Button>
-                      <Button size="small" color="primary">
-                        Learn More
+                      <Button size="small" color="primary" onClick={enroll}>
+                        Enroll
                       </Button>
                     </CardActions>
                 </Card>
