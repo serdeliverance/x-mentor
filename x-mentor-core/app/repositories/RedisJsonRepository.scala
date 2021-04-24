@@ -50,7 +50,4 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         _ => ApplicationResult(done())
       )
   }
-
-  def formatJson(string: String): String = string.replaceAll("^\"'|'\"$|\\\\", "")
-
 }

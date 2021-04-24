@@ -30,6 +30,9 @@ class RedisGraphRepository @Inject()(
     executeQuery[Topic](topicsQuery, TopicTag)
   }
 
+  def getCoursesByStudent(student: String): ApplicationResult[List[CourseNode]] =
+    executeQuery[CourseNode](coursesByStudentQuery(student), CourseTag)
+
   def executeQuery[T](
       query: String,
       entityTag: GraphEntityTag
@@ -80,6 +83,13 @@ class RedisGraphRepository @Inject()(
 
 object RedisGraphRepository {
 
+  private val coursesQuery = "MATCH (course:Course) RETURN course"
+
+  private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
+
+  private val coursesByStudentQuery = (student: String) =>
+    s"MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"
 
@@ -88,10 +98,6 @@ object RedisGraphRepository {
 
   private val createStudentQuery = (student: Student) =>
     s"CREATE (:Student {username: '${student.username}', email: '${student.email}'})"
-
-  private val coursesQuery = "MATCH (course:Course) RETURN course"
-
-  private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
 
   private val createInterestRelationQuery = (interest: Interest) =>
     s"MATCH (s:Student), (t:Topic) WHERE s.username = '${interest.student}' AND t.name = '${interest.topic}' CREATE (s)-[:interested]->(t)"
