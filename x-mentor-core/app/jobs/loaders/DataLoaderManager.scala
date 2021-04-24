@@ -15,7 +15,9 @@ class DataLoaderManager @Inject()(
     indexLoader: IndexLoader,
     interestRelationLoader: InterestRelationLoader,
     hasRelationLoader: HasRelationLoader,
-)(implicit executionContext: ExecutionContext)
+    rateRelationLoader: RateRelationLoader,
+    studyingRelationLoader: StudyingRelationLoader
+  )(implicit executionContext: ExecutionContext)
     extends Logging {
 
   def load(): Future[Done] = {
@@ -26,12 +28,12 @@ class DataLoaderManager @Inject()(
       _ <- courseLoader.loadCoursesToGraph()
       _ <- courseLoader.loadCourses()
       _ <- filterLoader.loadFilters()
-      // _ <- indexLoader.loadIndexes()
+      _ <- indexLoader.loadIndexes()
       _ <- hasRelationLoader.loadHasRelations()
       _ <- studentLoader.loadStudents()
       _ <- interestRelationLoader.loadInterestRelations()
-      // _ <- loadStudyingRelations()
-      // _ <- loadRateRelations()
+      _ <- studyingRelationLoader.loadStudyingRelations()
+      _ <- rateRelationLoader.loadRateRelations()
       // _ <- loadTeachers()
     } yield Done
   }

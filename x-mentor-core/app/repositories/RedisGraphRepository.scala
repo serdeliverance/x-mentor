@@ -4,6 +4,7 @@ import akka.Done
 import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
 import global.ApplicationResult
+import jobs.loaders.Studying
 import models.configurations.RedisGraphConfiguration
 import models.{Course, CourseNode, Has, Interest, Rating, Student, Topic}
 import play.api.Logging
@@ -64,6 +65,9 @@ class RedisGraphRepository @Inject()(
   def createInterestRelation(interest: Interest): ApplicationResult[Done] =
     executeCreateQuery(createInterestRelationQuery(interest))
 
+  def createStudyingRelation(studying: Studying): ApplicationResult[Done] =
+    executeCreateQuery(createStudyingRelationQuery(studying))
+
   private def executeCreateQuery(
       query: String
     )(implicit redisGraphConfiguration: RedisGraphConfiguration
@@ -96,5 +100,8 @@ object RedisGraphRepository {
     s"MATCH (t:Topic), (c:Course) WHERE t.name = '${hasRelation.topic}' AND c.name = '${hasRelation.course}' CREATE (t)-[:has]->(c)"
 
   private val createRatesQuery = (rating: Rating) =>
-    s"MATCH (s:Student), (c:Course) WHERE s.name = '${rating.student}' AND c.name = '${rating.course}' CREATE (s)-[:rates {rating:${rating.stars}}]->(c)"
+    s"MATCH (s:Student), (c:Course) WHERE s.username = '${rating.student}' AND c.name = '${rating.course}' CREATE (s)-[:rates {rating:${rating.stars}}]->(c)"
+
+  private val createStudyingRelationQuery = (studying: Studying) =>
+    s"MATCH (s:Student), (c:Course) WHERE s.username = '${studying.student}' AND c.name = '${studying.course}' CREATE (s)-[:studying]->(c)"
 }
