@@ -26,7 +26,7 @@ class DataLoaderManager @Inject()(
       _ <- courseLoader.loadCoursesToGraph()
       _ <- courseLoader.loadCourses()
       _ <- filterLoader.loadFilters()
-      // _ <- indexLoader.loadIndexes()
+      _ <- indexLoader.loadIndexes()
       _ <- hasRelationLoader.loadHasRelations()
       _ <- studentLoader.loadStudents()
       _ <- interestRelationLoader.loadInterestRelations()

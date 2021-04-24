@@ -21,7 +21,7 @@ class RediSearchRepository @Inject()(rediSearch: Client) extends Logging with Js
     Try(rediSearch.search(query))
       .fold(
         error => {
-          logger.info(s"Error searching with query: ${query.toString}")
+          logger.info(s"Error searching courses")
           ApplicationResult.error(UnexpectedError(error))
         },
         searchResult => {

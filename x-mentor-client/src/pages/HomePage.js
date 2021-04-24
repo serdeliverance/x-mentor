@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Button, Grid } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     button: {
@@ -10,7 +9,6 @@ const useStyles = makeStyles((theme) => ({
 
 const HomePage = () => {
     const classes = useStyles()
-
 
     return (
         <>
