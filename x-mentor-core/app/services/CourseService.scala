@@ -4,22 +4,23 @@ import akka.Done
 import akka.Done.done
 import cats.data.EitherT
 import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
-import global.ApplicationResult
+import global.{ApplicationResult, ApplicationResultExtended, EitherResult}
 import io.rebloom.client.Client
 import io.redisearch.{Document, Query}
+
 import javax.inject.{Inject, Singleton}
 import models.{Course, CourseResponse}
-import models.errors.NotFoundError
+import models.errors.{EmptyResponse, NotFoundError, UnexpectedError}
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import repositories.{RediSearchRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import cats.implicits._
 import io.circe.parser.decode
-import util.{CourseConverter, JsonParsingUtils}
+import util.{ApplicationResultUtils, CourseConverter, JsonParsingUtils, RedisJsonUtils}
 
 import scala.jdk.CollectionConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CourseService @Inject()(
@@ -31,7 +32,9 @@ class CourseService @Inject()(
     rediSearchRepository: RediSearchRepository
   )(implicit ec: ExecutionContext)
     extends Logging
-    with JsonParsingUtils {
+    with JsonParsingUtils
+    with ApplicationResultUtils
+    with RedisJsonUtils {
 
   def create(course: Course): ApplicationResult[Done] =
     ApplicationResult {
@@ -62,12 +65,30 @@ class CourseService @Inject()(
     } yield courseList
   }.value
 
+  // TODO add pagination
+  def getCoursesByStudent(student: String): ApplicationResult[CourseResponse] = {
+    for {
+      coursesFromGraph <- EitherT { redisGraphRepository.getCoursesByStudent(student) }
+      courses          <- EitherT { getMultipleCoursesByName(coursesFromGraph.map(_.name)) }
+    } yield CourseResponse(courses.length, courses)
+  }.value
+
+  private def getMultipleCoursesByName(courses: List[String]): ApplicationResult[Seq[Course]] = {
+    val searchResults = courses
+      .map(course =>
+        rediSearchRepository.get(course).innerMap {
+          case Some(doc) => decodeDocument(doc)
+          case None      => Left(EmptyResponse)
+      })
+    sequence(searchResults)
+  }
+
   private def handleSearchResp(courseResp: (Long, List[Document])): ApplicationResult[CourseResponse] =
     ApplicationResult {
       CourseResponse(
         courseResp._1,
         courseResp._2
-          .map(doc => { decode[Course](redisJsonRepository.formatJson(doc.getString("$"))) })
+          .map(doc => { decode[Course](formatJson(doc.getString("$"))) })
           .collect {
             case Right(decodedCourse) => decodedCourse
           }

@@ -73,7 +73,7 @@
   },
   {
     "id": 9,
-    "title": "HTML, CSV and Javascript",
+    "title": "HTML CSS and Javascript",
     "description": "Nulla commodo irure labore excepteur proident nulla elit. Id commodo reprehenderit dolore tempor. Nulla eiusmod aliquip deserunt sunt ut id dolor ad labore magna ad. Nostrud esse in incididunt reprehenderit ullamco ex veniam do elit non pariatur qui nisi irure. Et deserunt labore aliqua Lorem est ut labore exercitation sint.",
     "content": "",
     "topic": "Web",
@@ -169,5 +169,14 @@
     "topic": "Art",
     "preview": "https://picsum.photos/300/200?random=19",
     "rating": 1
+  },
+  {
+    "id": 20,
+    "title": "Spring Mastering",
+    "description": "Eiusmod ad reprehenderit sunt occaecat fugiat nostrud nulla consequat amet. Ex magna elit eu consectetur incididunt exercitation. Tempor enim consequat aute in velit fugiat elit. Commodo velit sit cupidatat proident irure qui.",
+    "content": "",
+    "topic": "Java",
+    "preview": "https://picsum.photos/300/200?random=19",
+    "rating": 5
   }
 ]
