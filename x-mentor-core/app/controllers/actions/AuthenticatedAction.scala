@@ -3,7 +3,8 @@ package controllers.actions
 import akka.Done
 import cats.data.EitherT
 import cats.implicits._
-import constants.{AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_HEADER, ID_TOKEN_HEADER, STUDENT_USERNAME_ATTRIBUTE}
+import constants.{AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_HEADER, ID_TOKEN_HEADER}
+import models.configurations.AuthConfiguration
 import play.api.Logging
 import play.api.mvc.Results.{BadRequest, Unauthorized}
 import play.api.mvc._
@@ -13,7 +14,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AuthenticatedAction @Inject()(val parser: BodyParsers.Default)(implicit ec: ExecutionContext)
+class AuthenticatedAction @Inject()(
+    val parser: BodyParsers.Default,
+    authConfiguration: AuthConfiguration
+  )(implicit ec: ExecutionContext)
     extends ActionBuilder[UserRequest, AnyContent]
     with ActionRefiner[Request, UserRequest]
     with Logging
@@ -63,11 +67,11 @@ class AuthenticatedAction @Inject()(val parser: BodyParsers.Default)(implicit ec
     request.headers
       .get(ID_TOKEN_HEADER)
       .flatMap(jwt => decode(jwt))
-      .flatMap(json => extractValue[String](json, STUDENT_USERNAME_ATTRIBUTE)) match {
-      case Some(siteId) =>
-        Right(UserRequest(siteId, request))
+      .flatMap(json => extractValue[String](json, authConfiguration.users.usernameAttributeName)) match {
+      case Some(username) =>
+        Right(UserRequest(username, request))
       case None =>
-        logger.error("No site id header provided")
+        logger.error("No username header provided")
         Left(BadRequest)
     }
   }

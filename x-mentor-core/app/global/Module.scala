@@ -7,7 +7,7 @@ import com.redislabs.redisgraph.impl.api.RedisGraph
 import configurations._
 import io.rebloom.client.Client
 import jobs.ApplicationStart
-import models.configurations.{RedisConfiguration, RedisGraphConfiguration}
+import models.configurations._
 import play.api.libs.concurrent.{AkkaGuiceSupport, CustomExecutionContext}
 import play.api.{Configuration, Environment}
 import redis.clients.jedis.util.Pool
@@ -73,4 +73,29 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   @Provides
   def rediSearch(config: RedisConfiguration): io.redisearch.client.Client =
     new io.redisearch.client.Client("courses-idx", redisPool(config))
+
+  @Provides
+  def authConfiguration: AuthConfiguration = new AuthConfiguration(
+    urls = new AuthUrlsConfiguration(
+      base = this.configuration.get[String](AUTH_BASE_URL),
+      token = this.configuration.get[String](AUTH_TOKEN_URL),
+      users = this.configuration.get[String](AUTH_USERS_URL),
+      setPassword = this.configuration.get[String](AUTH_SET_PASSWORD_URL),
+      modifyPassword = this.configuration.get[String](AUTH_MODIFY_PASSWORD_URL),
+      setRoles = this.configuration.get[String](AUTH_SET_ROLES_URL),
+      logout = this.configuration.get[String](AUTH_LOGOUT_URL)
+    ),
+    users = new UsersConfiguration(
+      admin = new UserConfiguration(
+        username = this.configuration.get[String](AUTH_ADMIN_USERNAME),
+        password = this.configuration.get[String](AUTH_ADMIN_PASSWORD)
+      ),
+      usernameAttributeName = this.configuration.get[String](USERNAME_ATTRIBUTE_NAME)
+    ),
+    clientId = this.configuration.get[String](AUTH_CLIENT_ID),
+    clientSecret = this.configuration.get[String](AUTH_CLIENT_SECRET),
+    grantType = this.configuration.get[String](AUTH_GRANT_TYPE),
+    scope = this.configuration.get[String](AUTH_SCOPE),
+    publicKey = this.configuration.get[String](AUTH_PUBLIC_KEY)
+  )
 }

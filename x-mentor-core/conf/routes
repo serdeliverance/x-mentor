@@ -6,4 +6,4 @@ GET     /students/:student/courses             controllers.CourseController.getB
 GET     /courses/:courseId                     controllers.CourseController.retrieveById(courseId: Long)
 POST    /courses/:courseId/enroll              controllers.CourseController.enroll(courseId: Long)
 GET     /topics                                controllers.TopicController.getAll()
-POST    /login                                 controllers.LoginController.login(username: String, password: String)
+POST    /login                                 controllers.LoginController.login()

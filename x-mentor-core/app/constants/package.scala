@@ -10,6 +10,4 @@ package object constants {
   final val ID_TOKEN_HEADER      = "Id-Token"
 
   final val AUTHORIZATION_BEARER_PREFIX = "Bearer "
-
-  final val STUDENT_USERNAME_ATTRIBUTE = "student_username"
 }
