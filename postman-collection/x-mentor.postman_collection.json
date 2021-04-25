@@ -87,7 +87,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": ""
+					"raw": "http://localhost:9000/students/benito.cala/courses?page=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"students",
+						"benito.cala",
+						"courses"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						}
+					]
 				}
 			},
 			"response": []
