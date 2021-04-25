@@ -1,14 +1,11 @@
 package jobs.loaders
 
-import akka.Done
 import akka.actor.ActorSystem
-import global.ApplicationResult
+import constants.{COURSE_IDS_FILTER, USERS_FILTER}
 import io.rebloom.client.Client
+import play.api.Logging
 
 import javax.inject.{Inject, Singleton}
-import play.api.Logging
-import constants.{COURSE_IDS_FILTER, USERS_FILTER}
-
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

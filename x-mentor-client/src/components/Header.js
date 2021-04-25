@@ -124,7 +124,6 @@ export default function Header() {
                       color="inherit"
                       aria-label="create"
                       className={classes.button}
-                      startIcon={<AddIcon />}
                       onClick={() => setOpenCourseModal(true)}>
                     <AddIcon />
                   </IconButton>
