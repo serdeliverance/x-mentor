@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Button, makeStyles, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Switch, Box } from '@material-ui/core'
 import axios from 'axios'
+import Snackbar from '@material-ui/core/Snackbar'
+import MuiAlert from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles(() => ({
     preview: {
@@ -13,33 +15,69 @@ const useStyles = makeStyles(() => ({
         minWidth: 600
     }
 }));
-  
+
+function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 export default function CreateCourseModal({open, setOpen}) {
     const classes = useStyles()
-    const [preview, setPreview] = useState("")
-    const [content, setContent] = useState("")
+    const [courseForm, setCourseForm] = useState({
+        title: "",
+        description: "",
+        topic: "",
+        preview: "",
+        content: ""
+    })
+    const [alert, setAlert] = useState({
+        open: false,
+        severity: "",
+        message: ""
+    })
     const [isContentUrl, setIsContentUrl] = useState(false)
 
     const handleCreate = async () => {
-        setOpen(false)
-        const result = await axios.post(
-            `http://localhost:9000/courses`
-        )
+        console.log(courseForm)
+        if(courseForm.title && courseForm.description && courseForm.preview && courseForm.content){
+            try {
+                const response = await axios.post(
+                    `http://localhost:9000/courses`,
+                    courseForm
+                )
+                console.log(response)
+                setAlert({open: true, severity: "success", message: "Course created!"})
+                //setOpen(false)
+              } catch (error) {
+                console.error(error)
+                setAlert({open: true, severity: "error", message: "There was an error"})
+              }
+        }
     }
 
     const handleClose = () => {
         setOpen(false)
-        setPreview("")
-        setContent("")
+        setCourseForm({
+            title: "",
+            description: "",
+            topic: "",
+            preview: "",
+            content: ""
+        })
         setIsContentUrl(false)
+    }
+
+    const handleTextField = (event) => {
+        setCourseForm({
+            ...courseForm,
+            [event.target.id]: event.target.value
+        })
     }
 
     const handlePreview = (event) => {
         const file = event.target.files[0]
         if(file){
             const base64 = toBase64(file).then(image => {
-                setPreview(image)
+                setCourseForm({ ...courseForm, preview: image})
             })
         }
     }
@@ -49,23 +87,23 @@ export default function CreateCourseModal({open, setOpen}) {
             const video = event.target.value
             if(video.match("youtube.com")){
                 const videoId = youtube_parser(video)
-                setContent(`https://www.youtube.com/embed/${videoId}`)
+                setCourseForm({...courseForm, content: `https://www.youtube.com/embed/${videoId}`})
             }
         }
         else {
             const file = event.target.files[0]
             if(file){
                 const base64 = toBase64(file).then(image => {
-                    setContent(image)
+                    setCourseForm({...courseForm, content: image})
                 })
             }
         }
     }
 
     function youtube_parser(url){
-        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        var match = url.match(regExp);
-        return (match&&match[7].length==11)? match[7] : false;
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match&&match[7].length === 11)? match[7] : false;
     }
 
     const toBase64 = file => new Promise((resolve, reject) => {
@@ -76,6 +114,7 @@ export default function CreateCourseModal({open, setOpen}) {
     });
 
     return (
+        <>
         <Dialog open={open} onClose={handleClose} classes={{paperWidthSm: classes.paper}} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Course</DialogTitle>
             <DialogContent dividers>
@@ -87,6 +126,8 @@ export default function CreateCourseModal({open, setOpen}) {
                     type="text"
                     fullWidth
                     inputProps={{ maxLength: 50 }}
+                    onChange={handleTextField}
+                    required
                 />
                 <TextField
                     autoFocus
@@ -97,6 +138,20 @@ export default function CreateCourseModal({open, setOpen}) {
                     multiline
                     fullWidth
                     inputProps={{ maxLength: 256 }}
+                    onChange={handleTextField}
+                    required
+                />
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="topic"
+                    label="Topic"
+                    type="text"
+                    multiline
+                    fullWidth
+                    inputProps={{ maxLength: 30 }}
+                    onChange={handleTextField}
+                    required
                 />
                 <TextField
                     autoFocus
@@ -109,8 +164,9 @@ export default function CreateCourseModal({open, setOpen}) {
                     tabIndex="-1"
                     onChange={handlePreview}
                     fullWidth
+                    required
                 />
-                {preview !== "" && <img alt="preview" className={classes.preview} src={`${preview}`}></img>}
+                {courseForm.preview && <img alt="preview" className={classes.preview} src={`${courseForm.preview}`}></img>}
                 <Box display="flex" alignItems="center">
                     {
                         isContentUrl ?
@@ -143,15 +199,15 @@ export default function CreateCourseModal({open, setOpen}) {
                         checked={isContentUrl}
                         onChange={() => {
                             setIsContentUrl(!isContentUrl)
-                            setContent("")
+                            setCourseForm({content: "", ...courseForm})
                         }}
                         name="contentSwitch"
                         inputProps={{ 'aria-label': 'secondary checkbox' }}
                     />
                 </Box>
-                {content && content.startsWith("data:image") && !isContentUrl && <img alt="content" className={classes.content} src={`${content}`}></img>}
-                {content && content.startsWith("data:video") && !isContentUrl && <video alt="content" className={classes.content} src={`${content}`} controls></video>}
-                {content && isContentUrl && <iframe className={classes.content} src={`${content}`}></iframe>}
+                {courseForm.content && courseForm.content.startsWith("data:image") && !isContentUrl && <img alt="content" className={classes.content} src={`${courseForm.content}`}></img>}
+                {courseForm.content && courseForm.content.startsWith("data:video") && !isContentUrl && <video alt="content" className={classes.content} src={`${courseForm.content}`} controls></video>}
+                {courseForm.content && isContentUrl && <iframe title="Content" className={classes.content} src={`${courseForm.content}`}></iframe>}
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose} color="primary">
@@ -162,5 +218,11 @@ export default function CreateCourseModal({open, setOpen}) {
                 </Button>
             </DialogActions>
         </Dialog>
+        <Snackbar open={alert.open} autoHideDuration={6000} onClose={() => setAlert({...alert, open: false})}>
+            <Alert onClose={() => setAlert({...alert, open: false})} severity={alert.severity}>
+                {alert.message}
+            </Alert>
+        </Snackbar>
+        </>
     )
 }

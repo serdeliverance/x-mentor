@@ -50,7 +50,7 @@ class CourseLoader @Inject()(
   private def graph(): RunnableGraph[NotUsed] =
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
-      redisRepository.set(COURSE_LAST_ID_KEY, "19")
+      redisRepository.set(COURSE_LAST_ID_KEY, "20")
 
       val source = FileIO
         .fromPath(Paths.get(COURSE_JSON_PATH))
