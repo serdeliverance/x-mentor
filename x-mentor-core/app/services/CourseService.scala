@@ -17,7 +17,7 @@ import redis.clients.jedis.util.Pool
 import repositories.{RediSearchRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import cats.implicits._
 import io.circe.parser.decode
-import util.{ApplicationResultUtils, CourseConverter, JsonParsingUtils, RedisJsonUtils}
+import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ class CourseService @Inject()(
     rediSearchRepository: RediSearchRepository
   )(implicit ec: ExecutionContext)
     extends Logging
-    with JsonParsingUtils
+    with JsonUtils
     with ApplicationResultUtils
     with RedisJsonUtils {
 

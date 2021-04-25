@@ -8,7 +8,7 @@ import io.redisearch.client.Client.IndexOptions
 import io.redisearch.{Document, Query, Schema}
 import models.errors.UnexpectedError
 import play.api.Logging
-import util.JsonParsingUtils
+import util.JsonUtils
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -16,9 +16,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 @Singleton
-class RediSearchRepository @Inject()(rediSearch: Client)(implicit ec: ExecutionContext)
-    extends Logging
-    with JsonParsingUtils {
+class RediSearchRepository @Inject()(rediSearch: Client)(implicit ec: ExecutionContext) extends Logging with JsonUtils {
 
   def search(query: Query): ApplicationResult[(Long, List[Document])] =
     Try(rediSearch.search(query))
