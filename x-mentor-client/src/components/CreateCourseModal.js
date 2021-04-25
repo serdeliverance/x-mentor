@@ -28,8 +28,11 @@ export default function CreateCourseModal({open, setOpen}) {
         )
     }
 
-    const handleCancel = () => {
+    const handleClose = () => {
         setOpen(false)
+        setPreview("")
+        setContent("")
+        setIsContentUrl(false)
     }
 
     const handlePreview = (event) => {
@@ -42,12 +45,27 @@ export default function CreateCourseModal({open, setOpen}) {
     }
 
     const handleContent = (event) => {
-        const file = event.target.files[0]
-        if(file){
-            const base64 = toBase64(file).then(image => {
-                setContent(image)
-            })
+        if(isContentUrl){
+            const video = event.target.value
+            if(video.match("youtube.com")){
+                const videoId = youtube_parser(video)
+                setContent(`https://www.youtube.com/embed/${videoId}`)
+            }
         }
+        else {
+            const file = event.target.files[0]
+            if(file){
+                const base64 = toBase64(file).then(image => {
+                    setContent(image)
+                })
+            }
+        }
+    }
+
+    function youtube_parser(url){
+        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        var match = url.match(regExp);
+        return (match&&match[7].length==11)? match[7] : false;
     }
 
     const toBase64 = file => new Promise((resolve, reject) => {
@@ -58,7 +76,7 @@ export default function CreateCourseModal({open, setOpen}) {
     });
 
     return (
-        <Dialog open={open} onClose={handleCancel} classes={{paperWidthSm: classes.paper}} aria-labelledby="form-dialog-title">
+        <Dialog open={open} onClose={handleClose} classes={{paperWidthSm: classes.paper}} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Course</DialogTitle>
             <DialogContent dividers>
                 <TextField
@@ -80,7 +98,20 @@ export default function CreateCourseModal({open, setOpen}) {
                     fullWidth
                     inputProps={{ maxLength: 256 }}
                 />
-                <Box display="flex">
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="preview"
+                    label="Preview"
+                    type="file"
+                    accept="image/*"
+                    autoComplete="off"
+                    tabIndex="-1"
+                    onChange={handlePreview}
+                    fullWidth
+                />
+                {preview !== "" && <img alt="preview" className={classes.preview} src={`${preview}`}></img>}
+                <Box display="flex" alignItems="center">
                     {
                         isContentUrl ?
                             <TextField
@@ -90,6 +121,7 @@ export default function CreateCourseModal({open, setOpen}) {
                                 label="Content"
                                 type="text"
                                 placeholder="Youtube video"
+                                onChange={handleContent}
                                 fullWidth
                             /> : 
                         <>
@@ -100,8 +132,8 @@ export default function CreateCourseModal({open, setOpen}) {
                             label="Content"
                             type="file"
                             accept="image/*"
-                            autocomplete="off"
-                            tabindex="-1"
+                            autoComplete="off"
+                            tabIndex="-1"
                             onChange={handleContent}
                             fullWidth
                         />
@@ -109,28 +141,20 @@ export default function CreateCourseModal({open, setOpen}) {
                     }
                     <Switch
                         checked={isContentUrl}
-                        onChange={() => setIsContentUrl(!isContentUrl)}
+                        onChange={() => {
+                            setIsContentUrl(!isContentUrl)
+                            setContent("")
+                        }}
                         name="contentSwitch"
                         inputProps={{ 'aria-label': 'secondary checkbox' }}
                     />
                 </Box>
-                {(content !== "" && !isContentUrl) && <img alt="content" className={classes.content} src={`${content}`}></img>}
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="preview"
-                    label="Preview"
-                    type="file"
-                    accept="image/*"
-                    autocomplete="off"
-                    tabindex="-1"
-                    onChange={handlePreview}
-                    fullWidth
-                />
-                {preview !== "" && <img alt="preview" className={classes.preview} src={`${preview}`}></img>}
+                {content && content.startsWith("data:image") && !isContentUrl && <img alt="content" className={classes.content} src={`${content}`}></img>}
+                {content && content.startsWith("data:video") && !isContentUrl && <video alt="content" className={classes.content} src={`${content}`} controls></video>}
+                {content && isContentUrl && <iframe className={classes.content} src={`${content}`}></iframe>}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancel} color="primary">
+                <Button onClick={handleClose} color="primary">
                     Cancel
                 </Button>
                 <Button onClick={handleCreate} color="primary">
