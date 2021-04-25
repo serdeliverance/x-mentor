@@ -13,10 +13,10 @@ import com.redislabs.modules.rejson.Path
 
 import scala.util.Try
 import io.circe.parser.decode
-import util.JsonParsingUtils
+import util.JsonUtils
 
 @Singleton
-class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonParsingUtils {
+class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonUtils {
 
   def get[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[T] =
     Try(redisJson.get[String](key))
@@ -50,7 +50,4 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
         _ => ApplicationResult(done())
       )
   }
-
-  def formatJson(string: String): String = string.replaceAll("^\"'|'\"$|\\\\", "")
-
 }

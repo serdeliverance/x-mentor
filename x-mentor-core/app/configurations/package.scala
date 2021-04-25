@@ -1,4 +1,7 @@
 package object configurations {
+
+  final val AUTH_PUBLIC_KEY = "auth.pulicKey"
+
   final val MESSAGING_DISPATCHER      = "x-mentor.dispatchers.messaging"
   val REDIS_HOST                      = "redis.host"
   val REDIS_PORT                      = "redis.port"

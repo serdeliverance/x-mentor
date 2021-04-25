@@ -3,7 +3,9 @@ package repositories
 import akka.Done
 import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
+import constants.ITEMS_PER_PAGE
 import global.ApplicationResult
+import jobs.loaders.Studying
 import models.configurations.RedisGraphConfiguration
 import models.{Course, CourseNode, Has, Interest, Rating, Student, Topic}
 import play.api.Logging
@@ -27,6 +29,11 @@ class RedisGraphRepository @Inject()(
   def getTopics(): ApplicationResult[List[Topic]] = {
     import models.Topic._
     executeQuery[Topic](topicsQuery, TopicTag)
+  }
+
+  def getCoursesByStudent(student: String, page: Int): ApplicationResult[List[CourseNode]] = {
+    val offset = (page - 1) * ITEMS_PER_PAGE
+    executeQuery[CourseNode](paginated(coursesByStudentQuery(student), offset, ITEMS_PER_PAGE), CourseTag)
   }
 
   def executeQuery[T](
@@ -64,6 +71,9 @@ class RedisGraphRepository @Inject()(
   def createInterestRelation(interest: Interest): ApplicationResult[Done] =
     executeCreateQuery(createInterestRelationQuery(interest))
 
+  def createStudyingRelation(studying: Studying): ApplicationResult[Done] =
+    executeCreateQuery(createStudyingRelationQuery(studying))
+
   private def executeCreateQuery(
       query: String
     )(implicit redisGraphConfiguration: RedisGraphConfiguration
@@ -76,6 +86,15 @@ class RedisGraphRepository @Inject()(
 
 object RedisGraphRepository {
 
+  private val coursesQuery = "MATCH (course:Course) RETURN course"
+
+  private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
+
+  private val paginated = (query: String, offset: Int, limit: Int) => s"$query SKIP $offset LIMIT $limit"
+
+  private val coursesByStudentQuery = (student: String) =>
+    s"MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"
 
@@ -85,10 +104,6 @@ object RedisGraphRepository {
   private val createStudentQuery = (student: Student) =>
     s"CREATE (:Student {username: '${student.username}', email: '${student.email}'})"
 
-  private val coursesQuery = "MATCH (course:Course) RETURN course"
-
-  private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
-
   private val createInterestRelationQuery = (interest: Interest) =>
     s"MATCH (s:Student), (t:Topic) WHERE s.username = '${interest.student}' AND t.name = '${interest.topic}' CREATE (s)-[:interested]->(t)"
 
@@ -96,5 +111,8 @@ object RedisGraphRepository {
     s"MATCH (t:Topic), (c:Course) WHERE t.name = '${hasRelation.topic}' AND c.name = '${hasRelation.course}' CREATE (t)-[:has]->(c)"
 
   private val createRatesQuery = (rating: Rating) =>
-    s"MATCH (s:Student), (c:Course) WHERE s.name = '${rating.student}' AND c.name = '${rating.course}' CREATE (s)-[:rates {rating:${rating.stars}}]->(c)"
+    s"MATCH (s:Student), (c:Course) WHERE s.username = '${rating.student}' AND c.name = '${rating.course}' CREATE (s)-[:rates {rating:${rating.stars}}]->(c)"
+
+  private val createStudyingRelationQuery = (studying: Studying) =>
+    s"MATCH (s:Student), (c:Course) WHERE s.username = '${studying.student}' AND c.name = '${studying.course}' CREATE (s)-[:studying]->(c)"
 }
