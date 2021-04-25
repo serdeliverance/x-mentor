@@ -5,4 +5,11 @@ package object constants {
   final val USERS_FILTER       = "users"
 
   final val ITEMS_PER_PAGE = 6
+
+  final val AUTHORIZATION_HEADER = "Authorization"
+  final val ID_TOKEN_HEADER      = "Id-Token"
+
+  final val AUTHORIZATION_BEARER_PREFIX = "Bearer "
+
+  final val STUDENT_USERNAME_ATTRIBUTE = "student_username"
 }
