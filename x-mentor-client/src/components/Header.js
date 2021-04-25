@@ -101,7 +101,7 @@ export default function Header() {
                 <div className={classes.searchIcon}>
                     <SearchIcon />
                 </div>
-                <Tooltip title="Please use at least 3 characters">
+                <Tooltip title="Please use at least 3 characters" placement="bottom-start">
                   <InputBase
                       placeholder="Search…"
                       classes={{
