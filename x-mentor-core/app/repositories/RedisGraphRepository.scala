@@ -3,6 +3,7 @@ package repositories
 import akka.Done
 import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
+import constants.ITEMS_PER_PAGE
 import global.ApplicationResult
 import jobs.loaders.Studying
 import models.configurations.RedisGraphConfiguration
@@ -30,8 +31,10 @@ class RedisGraphRepository @Inject()(
     executeQuery[Topic](topicsQuery, TopicTag)
   }
 
-  def getCoursesByStudent(student: String): ApplicationResult[List[CourseNode]] =
-    executeQuery[CourseNode](coursesByStudentQuery(student), CourseTag)
+  def getCoursesByStudent(student: String, page: Int): ApplicationResult[List[CourseNode]] = {
+    val offset = (page - 1) * ITEMS_PER_PAGE
+    executeQuery[CourseNode](paginated(coursesByStudentQuery(student), offset, ITEMS_PER_PAGE), CourseTag)
+  }
 
   def executeQuery[T](
       query: String,
@@ -86,6 +89,8 @@ object RedisGraphRepository {
   private val coursesQuery = "MATCH (course:Course) RETURN course"
 
   private val topicsQuery = "MATCH (topic:Topic) RETURN topic"
+
+  private val paginated = (query: String, offset: Int, limit: Int) => s"$query SKIP $offset LIMIT $limit"
 
   private val coursesByStudentQuery = (student: String) =>
     s"MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"

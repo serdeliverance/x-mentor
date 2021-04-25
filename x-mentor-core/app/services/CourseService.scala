@@ -3,7 +3,7 @@ package services
 import akka.Done
 import akka.Done.done
 import cats.data.EitherT
-import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY}
+import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY, ITEMS_PER_PAGE}
 import global.{ApplicationResult, ApplicationResultExtended, EitherResult}
 import io.rebloom.client.Client
 import io.redisearch.{Document, Query}
@@ -54,21 +54,19 @@ class CourseService @Inject()(
   def enroll(courseId: Long): ApplicationResult[Done] = ???
 
   def retrieve(q: String, page: Int): ApplicationResult[CourseResponse] = {
-    val itemsPerPage = 6
-    val offset       = (page - 1) * itemsPerPage
-    val queryString  = if (q.isEmpty) "*" else s"$q*"
+    val offset      = (page - 1) * ITEMS_PER_PAGE
+    val queryString = if (q.isEmpty) "*" else s"$q*"
     logger.info(s"Retrieving courses with query $queryString and offset $offset")
-    val query = new Query(queryString).limit(offset, offset + itemsPerPage)
+    val query = new Query(queryString).limit(offset, offset + ITEMS_PER_PAGE)
     for {
       coursesResp <- EitherT { rediSearchRepository.search(query) }
       courseList  <- EitherT { handleSearchResp(coursesResp) }
     } yield courseList
   }.value
 
-  // TODO add pagination
-  def getCoursesByStudent(student: String): ApplicationResult[CourseResponse] = {
+  def getCoursesByStudent(student: String, page: Int): ApplicationResult[CourseResponse] = {
     for {
-      coursesFromGraph <- EitherT { redisGraphRepository.getCoursesByStudent(student) }
+      coursesFromGraph <- EitherT { redisGraphRepository.getCoursesByStudent(student, page) }
       courses          <- EitherT { getMultipleCoursesByName(coursesFromGraph.map(_.name)) }
     } yield CourseResponse(courses.length, courses)
   }.value
