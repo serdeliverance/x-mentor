@@ -73,10 +73,10 @@ class CourseController @Inject()(
         }
     }
 
-  def getByStudent(student: String): Action[AnyContent] = Action.async { _ =>
+  def getByStudent(student: String, page: Int): Action[AnyContent] = Action.async { _ =>
     logger.info(s"Retrieving courses by student: $student")
     courseService
-      .getCoursesByStudent(student)
+      .getCoursesByStudent(student, page)
       .map {
         case Right(course) =>
           logger.info(s"Courses retrieved successfully")
