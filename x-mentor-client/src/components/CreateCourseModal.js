@@ -76,9 +76,7 @@ export default function CreateCourseModal({open, setOpen}) {
     const handlePreview = (event) => {
         const file = event.target.files[0]
         if(file){
-            const base64 = toBase64(file).then(image => {
-                setCourseForm({ ...courseForm, preview: image})
-            })
+            toBase64(file).then(image => setCourseForm({ ...courseForm, preview: image}))
         }
     }
 
@@ -93,9 +91,7 @@ export default function CreateCourseModal({open, setOpen}) {
         else {
             const file = event.target.files[0]
             if(file){
-                const base64 = toBase64(file).then(image => {
-                    setCourseForm({...courseForm, content: image})
-                })
+                toBase64(file).then(image => setCourseForm({...courseForm, content: image}))
             }
         }
     }

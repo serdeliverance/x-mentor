@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Box, Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Tooltip, Typography } from '@material-ui/core'
+import { Box, Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Tooltip, Typography, Badge } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { useLocation } from "react-router-dom"
@@ -18,9 +18,10 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
   },
   media: {
-    height: 180,
+    height: 165,
     padding: "45px 0",
-    margin: "20px 0 0"
+    margin: "20px 0 0",
+    backgroundSize: "auto 100%"
   },
   tile: {
     padding: theme.spacing(4),
@@ -61,6 +62,13 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     padding: "16px 16px 0"
+  },
+  topic: {
+    justifyContent: "center",
+    marginBottom: 10
+  },
+  topicBadge: {
+    right: "auto"
   }
 }))
 
@@ -81,19 +89,19 @@ export default function CourseListPage() {
   const handleChange = (event, value) => setPage(value)
 
   const fetchData = async () => {
-    const result = await axios(
+    const response = await axios(
       `http://localhost:9000/courses?q=${query.get('q')}&page=${page}`,
     )
-    setCourses(result.data.courses)
-    setTotal(Math.round(result.data.total / 6))
+    setCourses(response.data.courses)
+    setTotal(Math.round(response.data.total / 6))
   }
 
   const enroll = async (courseId) => {
     console.log(courseId)
-    const result = await axios.post(
+    const response = await axios.post(
       `http://localhost:9000/courses/${courseId}/enroll`,
     )
-    console.log(result)
+    console.log(response)
   }
 
   const handleCourseModal = (course) => {
@@ -127,35 +135,37 @@ export default function CourseListPage() {
       <Grid container classes={{ root: classes.grid }}>
         {courses.map((course) => (
           <Grid item className={classes.tile} key={course.id}>
-              <Card className={classes.card} id={course.id}>
-                  <CardActionArea onClick={() => handleCourseModal(course)}>
-                      <CardContent className={classes.content}>
-                          <Typography gutterBottom variant="h6" className={classes.title}>
-                            {course.title}
-                            {course.rating >= 4 ? 
-                              <Tooltip placement="top" title="Top Course">
-                                <EmojiEventsIcon className={classes.star} />
-                              </Tooltip> : <></>}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
-                            {course.description}
-                          </Typography>
-                          <CardMedia
-                            className={classes.media}
-                            image={course.preview}
-                            title={course.title}
-                          />
-                      </CardContent>
-                  </CardActionArea>
-                  <CardActions className={classes.actions}>
-                    <Button color="primary" className={classes.enroll} onClick={(e) => enroll(e.target.closest(".MuiCard-root").id)}>
-                      Enroll
-                    </Button>
-                    <Box component="fieldset" pb={0.2} borderColor="transparent">
-                      <Rating name="read-only" value={course.rating} readOnly />
-                    </Box>
-                  </CardActions>
-              </Card>
+            <Card className={classes.card} id={course.id}>
+                <CardActionArea onClick={() => handleCourseModal(course)}>
+                    <CardContent className={classes.content}>
+                      <Badge classes={{root: classes.topic, badge: classes.topicBadge}} badgeContent={course.topic} color="secondary"></Badge>
+                        <Typography gutterBottom variant="h6" className={classes.title}>
+                          {course.title}
+                          {course.rating >= 4 ? 
+                            <Tooltip placement="top" title="Top Course">
+                              <EmojiEventsIcon className={classes.star} />
+                            </Tooltip> : <></>}
+                        </Typography>
+
+                        <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
+                          {course.description}
+                        </Typography>
+                        <CardMedia
+                          className={classes.media}
+                          image={course.preview}
+                          title={course.title}
+                        />
+                    </CardContent>
+                </CardActionArea>
+                <CardActions className={classes.actions}>
+                  <Button color="primary" className={classes.enroll} onClick={(e) => enroll(e.target.closest(".MuiCard-root").id)}>
+                    Enroll
+                  </Button>
+                  <Box component="fieldset" pb={0.2} borderColor="transparent">
+                    <Rating name="read-only" value={course.rating} readOnly />
+                  </Box>
+                </CardActions>
+            </Card>
           </Grid>
         ))}
       </Grid>
