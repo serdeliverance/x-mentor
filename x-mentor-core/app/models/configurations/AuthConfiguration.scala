@@ -4,6 +4,7 @@ class AuthConfiguration(
     val urls: AuthUrlsConfiguration,
     val users: UsersConfiguration,
     val clientId: String,
+    val adminClientId: String,
     val clientSecret: String,
     val grantType: String,
     val scope: String,
@@ -11,11 +12,14 @@ class AuthConfiguration(
 
 class AuthUrlsConfiguration(
     base: String,
+    adminToken: String,
     token: String,
     users: String,
     logout: String) {
 
   private val idLabel = ":id"
+
+  val adminTokenUrl = s"$base$adminToken"
 
   val tokenUrl = s"$base$token"
 

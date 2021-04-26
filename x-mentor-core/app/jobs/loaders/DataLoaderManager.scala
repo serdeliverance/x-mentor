@@ -30,6 +30,7 @@ class DataLoaderManager @Inject()(
       _ <- filterLoader.loadFilters()
       _ <- indexLoader.loadIndexes()
       _ <- hasRelationLoader.loadHasRelations()
+      _ <- studentLoader.loadStudentsToGraph()
       _ <- studentLoader.loadStudents()
       _ <- interestRelationLoader.loadInterestRelations()
       _ <- studyingRelationLoader.loadStudyingRelations()

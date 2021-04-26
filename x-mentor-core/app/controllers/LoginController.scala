@@ -5,7 +5,7 @@ import controllers.converters.ErrorToResultConverter
 import io.circe.syntax._
 import models.dtos.requests.LoginRequestDTO
 import play.api.mvc.{Action, BaseController, ControllerComponents}
-import services.LoginService
+import services.UserService
 import util.MapMarkerContext
 
 import javax.inject.{Inject, Singleton}
@@ -14,8 +14,8 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class LoginController @Inject()(
-    val loginService: LoginService,
-    val controllerComponents: ControllerComponents
+                                 val loginService: UserService,
+                                 val controllerComponents: ControllerComponents
   )(implicit executionContext: ExecutionContext)
     extends BaseController
     with Decodable
@@ -39,5 +39,18 @@ class LoginController @Inject()(
           logger.info("Login failed")
           handleError(error)
       }
+  }
+
+  def signup: Action[LoginRequestDTO] = Action.async(decode[LoginRequestDTO]) { implicit request =>
+    val username = request.body.username
+    val password = request.body.password
+
+    implicit val markerContext: MapMarkerContext = MapMarkerContext.fromRequest(
+      MMap(MapMarkerContext.USERNAME -> username)
+    )
+
+    loginService
+      .signup(username, password)
+      .map(_ => Created)
   }
 }

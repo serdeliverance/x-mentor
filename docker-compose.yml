@@ -29,9 +29,12 @@ services:
        
   x-keycloak:
     image: jboss/keycloak
+    volumes:
+      - ./realm-export.json:/tmp/realm-export.json
     environment:
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin
+      - KEYCLOAK_IMPORT=/tmp/realm-export.json
     ports:
       - 8880:8080
 

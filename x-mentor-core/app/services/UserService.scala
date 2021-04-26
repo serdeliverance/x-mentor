@@ -1,5 +1,7 @@
 package services
 
+import akka.Done
+import akka.Done.done
 import cats.data.EitherT
 import global.ApplicationResult
 import io.circe.parser.decode
@@ -19,18 +21,18 @@ import scala.concurrent.ExecutionContext
 import cats.implicits._
 
 @Singleton
-class LoginService @Inject()(sender: Sender, configuration: AuthConfiguration)(implicit ec: ExecutionContext)
+class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(implicit ec: ExecutionContext)
     extends Logging
     with CirceImplicits {
 
   def login(
-      username: String,
-      password: String
-    )(implicit mapMarkerContext: MapMarkerContext
-    ): ApplicationResult[AccessData] = {
+    username: String,
+    password: String
+  )(implicit mapMarkerContext: MapMarkerContext
+  ): ApplicationResult[AccessData] = {
     logger.info(s"login in user: $username")
 
-    val reqBody    = createAuthRequestBody(username, password)
+    val reqBody    = createAuthRequestBody(username, password, this.configuration.clientId)
     val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
     val result = for {
@@ -40,6 +42,30 @@ class LoginService @Inject()(sender: Sender, configuration: AuthConfiguration)(i
 
     result.value
   }
+
+  // TODO
+  def signup(
+    username: String,
+    password: String
+  )(implicit mapMarkerContext: MapMarkerContext
+  ): ApplicationResult[Done] =
+    ApplicationResult {
+      logger.info(s"Creating user: $username")
+
+      val reqBody    = createAuthRequestBody(username, password, this.configuration.adminClientId)
+      val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
+
+      val reqBody2    = createAuthRequestBody(username, password, this.configuration.adminClientId)
+      val reqHeaders2 = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
+
+      val result = for {
+        adminToken   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, reqBody, reqHeaders) }
+        creationResponse <- EitherT { sender.post(this.configuration.urls.usersUrl, reqBody2, reqHeaders2) }
+      } yield creationResponse
+
+      result.value
+      done()
+    }
 
   /**
     * Handles the response from Auth service and matches it with the corresponding [[ApplicationResult]]
@@ -78,11 +104,11 @@ class LoginService @Inject()(sender: Sender, configuration: AuthConfiguration)(i
         ApplicationResult.error(EmptyResponse)
     }
 
-  private def createAuthRequestBody(username: String, password: String) =
+  private def createAuthRequestBody(username: String, password: String, clientId: String) =
     formUrlEncodedBody(
       username,
       password,
-      this.configuration.clientId,
+      clientId,
       this.configuration.clientSecret,
       this.configuration.grantType,
       this.configuration.scope

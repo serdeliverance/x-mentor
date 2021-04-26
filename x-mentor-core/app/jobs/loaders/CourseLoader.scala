@@ -5,7 +5,7 @@ import akka.actor.ActorSystem
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.{Broadcast, FileIO, Flow, GraphDSL, JsonFraming, RunnableGraph, Sink}
 import akka.{Done, NotUsed}
-import constants.{COURSE_KEY, COURSE_LAST_ID_KEY}
+import constants._
 import io.circe.parser.decode
 import io.rebloom.client.Client
 import models.Course
@@ -65,7 +65,7 @@ class CourseLoader @Inject()(
         .filter(course => course.id.nonEmpty)
 
       val redisBloomSink = Flow[Course]
-        .mapAsync(1)(course => redisBloomRepository.add(course))
+        .mapAsync(1)(course => redisBloomRepository.add(COURSE_IDS_FILTER, course.id.get.toString))
         .to(Sink.ignore)
 
 //      val redisGraphSink = Flow[Course]

@@ -1,7 +1,7 @@
 package controllers.circe
 
 import cats.data.NonEmptyList
-import controllers.constants._
+import constants._
 import io.circe._
 import models.validations.ValidationError
 import play.api.Logging
