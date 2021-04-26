@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -14,21 +14,11 @@ const CoursePage = () => {
     const classes = styles()
     const [value, setValue] = useState("")
 
-    useEffect(() => {
-        fetch(`http:///text`)
-            .then(response => response.text())
-            .then(data => setValue(data))
-    }, [])
     
     const handleChange = (event) => setValue(event.target.value)
 
     const handleBlur = (event) => {
         const { value } = event.target;
-        fetch(`http:///text`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: value
-        })
         setValue(value)
     }    
     
