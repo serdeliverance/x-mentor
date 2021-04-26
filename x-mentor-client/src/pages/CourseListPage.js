@@ -7,6 +7,7 @@ import { useLocation } from "react-router-dom"
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents'
 import Rating from '@material-ui/lab/Rating'
 import CourseModal from '../components/CourseModal';
+import { API_URL } from '../environment'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -90,7 +91,7 @@ export default function CourseListPage() {
 
   const fetchData = async () => {
     const response = await axios(
-      `http://localhost:9000/courses?q=${query.get('q')}&page=${page}`,
+      `${API_URL}/courses?q=${query.get('q')}&page=${page}`,
     )
     setCourses(response.data.courses)
     setTotal(Math.round(response.data.total / 6))
@@ -99,7 +100,7 @@ export default function CourseListPage() {
   const enroll = async (courseId) => {
     console.log(courseId)
     const response = await axios.post(
-      `http://localhost:9000/courses/${courseId}/enroll`,
+      `${API_URL}/courses/${courseId}/enroll`,
     )
     console.log(response)
   }

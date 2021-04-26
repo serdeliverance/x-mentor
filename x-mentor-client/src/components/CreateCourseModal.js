@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { Button, makeStyles, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Switch, Box } from '@material-ui/core'
+import { Button, makeStyles, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Switch, Box, Snackbar } from '@material-ui/core'
 import axios from 'axios'
-import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
+import { API_URL } from '../environment'
 
 const useStyles = makeStyles(() => ({
     preview: {
@@ -41,12 +41,12 @@ export default function CreateCourseModal({open, setOpen}) {
         if(courseForm.title && courseForm.description && courseForm.preview && courseForm.content){
             try {
                 const response = await axios.post(
-                    `http://localhost:9000/courses`,
+                    `${API_URL}/courses`,
                     courseForm
                 )
                 console.log(response)
                 setAlert({open: true, severity: "success", message: "Course created!"})
-                //setOpen(false)
+                setOpen(false)
               } catch (error) {
                 console.error(error)
                 setAlert({open: true, severity: "error", message: "There was an error"})
@@ -99,7 +99,7 @@ export default function CreateCourseModal({open, setOpen}) {
     function youtube_parser(url){
         const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
         const match = url.match(regExp);
-        return (match&&match[7].length === 11)? match[7] : false;
+        return (match && match[7].length === 11)? match[7] : false;
     }
 
     const toBase64 = file => new Promise((resolve, reject) => {

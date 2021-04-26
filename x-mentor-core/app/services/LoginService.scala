@@ -13,10 +13,9 @@ import play.api.libs.ws.WSResponse
 import sender.Request.formUrlEncodedBody
 import sender.Sender
 import util.MapMarkerContext
-
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
 
+import scala.concurrent.ExecutionContext
 import cats.implicits._
 
 @Singleton
@@ -43,7 +42,7 @@ class LoginService @Inject()(sender: Sender, configuration: AuthConfiguration)(i
   }
 
   /**
-    * Handles the response from Auth service and matches it with the corresponding [[IOApplicationResult]]
+    * Handles the response from Auth service and matches it with the corresponding [[ApplicationResult]]
     *
     * @param response wsResponse
     * @return

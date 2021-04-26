@@ -80,9 +80,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
       base = this.configuration.get[String](AUTH_BASE_URL),
       token = this.configuration.get[String](AUTH_TOKEN_URL),
       users = this.configuration.get[String](AUTH_USERS_URL),
-      setPassword = this.configuration.get[String](AUTH_SET_PASSWORD_URL),
-      modifyPassword = this.configuration.get[String](AUTH_MODIFY_PASSWORD_URL),
-      setRoles = this.configuration.get[String](AUTH_SET_ROLES_URL),
       logout = this.configuration.get[String](AUTH_LOGOUT_URL)
     ),
     users = new UsersConfiguration(

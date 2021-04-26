@@ -5,7 +5,7 @@ import play.api.MarkerContext
 import play.api.mvc.Request
 
 import java.util.UUID
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.{Map => MMap}
 
 class MapMarkerContext(val map: MMap[String, String], val uow: String) extends MarkerContext {
