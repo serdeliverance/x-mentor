@@ -4,7 +4,7 @@ import akka.Done
 import cats.data.EitherT
 import cats.implicits._
 import global.ApplicationResult
-import models.{Interest, Student, Topic}
+import models.{Interest, Topic}
 import play.api.Logging
 import repositories.RedisGraphRepository
 
@@ -12,7 +12,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class InterestService @Inject()(redisGraphRepository: RedisGraphRepository)(implicit ec: ExecutionContext)
+class InterestService @Inject()(
+    redisGraphRepository: RedisGraphRepository,
+    notificationService: NotificationService
+  )(implicit ec: ExecutionContext)
     extends Logging {
 
   def registerInterest(student: String, interests: List[Interest]): ApplicationResult[Done] = {
@@ -21,6 +24,7 @@ class InterestService @Inject()(redisGraphRepository: RedisGraphRepository)(impl
       registeredInterests       <- EitherT { mapToInterest(student, persistedTopicsOfInterest) }
       interestsToRegister       <- EitherT { filterNotRegisteredInterests(registeredInterests, interests) }
       _                         <- EitherT { redisGraphRepository.createInterestRelationInBulk(interestsToRegister) }
+      _                         <- EitherT { notificationService.notifyInterestInBulk(interestsToRegister) }
     } yield Done
   }.value
 
