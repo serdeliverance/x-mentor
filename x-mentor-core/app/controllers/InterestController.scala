@@ -21,10 +21,10 @@ class InterestController @Inject()(
     with Decodable
     with Logging {
 
-  def interest(): Action[InterestRequestDTO] = Action.async(decode[InterestRequestDTO]) { request =>
+  def registerInterest(): Action[InterestRequestDTO] = Action.async(decode[InterestRequestDTO]) { request =>
     logger.info(s"Registering ${request.body.student} interests")
     interestService
-      .interest(request.body.student, request.body.interests.map(topic => Interest(request.body.student, topic)))
+      .registerInterest(request.body.student, request.body.topics.map(topic => Interest(request.body.student, topic)))
       .map {
         case Right(_) =>
           logger.info("Interest registered successfully")

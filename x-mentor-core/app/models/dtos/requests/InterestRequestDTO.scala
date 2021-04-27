@@ -4,7 +4,7 @@ import io.circe.Decoder
 import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 import models.json.CirceImplicits
 
-case class InterestRequestDTO(student: String, interests: List[String])
+case class InterestRequestDTO(student: String, topics: List[String])
 
 object InterestRequestDTO extends CirceImplicits {
 

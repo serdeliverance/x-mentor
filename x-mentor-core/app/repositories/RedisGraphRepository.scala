@@ -44,8 +44,8 @@ class RedisGraphRepository @Inject()(
   def getCoursesRatedByStudent(student: String): ApplicationResult[List[CourseNode]] =
     executeQuery[CourseNode](coursesRatedByStudent(student), CourseTag)
 
-  // TODO
-  def getInterestsByStudent(student: String): ApplicationResult[List[Interest]] = ???
+  def getInterestTopicsByStudent(student: String): ApplicationResult[List[Topic]] =
+    executeQuery[Topic](interestsByStudent(student), TopicTag)
 
   def existsRatesRelation(student: String, course: String): ApplicationResult[Boolean] =
     getCoursesRatedByStudent(student).innerMap(result => Right(result.exists(_.name == course)))
@@ -119,6 +119,9 @@ object RedisGraphRepository {
 
   private val coursesRatedByStudent = (student: String) =>
     s"MATCH (student)-[:rates]->(course) where student.username ='$student' RETURN course"
+
+  private val interestsByStudent = (student: String) =>
+    s"MATCH (student)-[:interested]->(topic) where student.username ='$student' RETURN topic"
 
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"

@@ -4,7 +4,7 @@ import akka.Done
 import cats.data.EitherT
 import cats.implicits._
 import global.ApplicationResult
-import models.Interest
+import models.{Interest, Student, Topic}
 import play.api.Logging
 import repositories.RedisGraphRepository
 
@@ -15,13 +15,17 @@ import scala.concurrent.ExecutionContext
 class InterestService @Inject()(redisGraphRepository: RedisGraphRepository)(implicit ec: ExecutionContext)
     extends Logging {
 
-  def interest(student: String, interests: List[Interest]): ApplicationResult[Done] = {
+  def registerInterest(student: String, interests: List[Interest]): ApplicationResult[Done] = {
     for {
-      registeredInterests <- EitherT { redisGraphRepository.getInterestsByStudent(student) }
-      interestsToRegister <- EitherT { filterNotRegisteredInterests(registeredInterests, interests) }
-      _                   <- EitherT { redisGraphRepository.createInterestRelationInBulk(interestsToRegister) }
+      persistedTopicsOfInterest <- EitherT { redisGraphRepository.getInterestTopicsByStudent(student) }
+      registeredInterests       <- EitherT { convertToInterest(student, persistedTopicsOfInterest) }
+      interestsToRegister       <- EitherT { filterNotRegisteredInterests(registeredInterests, interests) }
+      _                         <- EitherT { redisGraphRepository.createInterestRelationInBulk(interestsToRegister) }
     } yield Done
   }.value
+
+  private def convertToInterest(student: String, topics: List[Topic]): ApplicationResult[List[Interest]] =
+    ApplicationResult(topics.map(topic => Interest(student, topic.name)))
 
   private def filterNotRegisteredInterests(
       registeredInterests: List[Interest],
