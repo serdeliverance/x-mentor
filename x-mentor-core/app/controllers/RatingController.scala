@@ -27,6 +27,13 @@ class RatingController @Inject()(
     logger.info(s"Rating course: ${rating.course}")
     ratingService
       .rate(rating)
-      .map(_ => Ok)
+      .map {
+        case Right(_) =>
+          logger.info(s"Course ${rating.course} rated successfully")
+          Ok
+        case Left(error) =>
+          logger.info(s"Error rating course ${rating.course}")
+          handleError(error)
+      }
   }
 }
