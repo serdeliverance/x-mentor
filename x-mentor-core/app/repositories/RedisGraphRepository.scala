@@ -11,6 +11,7 @@ import models._
 import play.api.Logging
 import repositories.RedisGraphRepository._
 import repositories.graph._
+import util.ApplicationResultUtils
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -21,7 +22,8 @@ class RedisGraphRepository @Inject()(
 )(implicit redisGraphConfiguration: RedisGraphConfiguration,
     ec: ExecutionContext)
     extends Logging
-    with ResultDecoder {
+    with ResultDecoder
+    with ApplicationResultUtils {
 
   def getCourses(): ApplicationResult[List[CourseNode]] =
     executeQuery[CourseNode](coursesQuery, CourseTag)
@@ -41,6 +43,9 @@ class RedisGraphRepository @Inject()(
 
   def getCoursesRatedByStudent(student: String): ApplicationResult[List[CourseNode]] =
     executeQuery[CourseNode](coursesRatedByStudent(student), CourseTag)
+
+  // TODO
+  def getInterestsByStudent(student: String): ApplicationResult[List[Interest]] = ???
 
   def existsRatesRelation(student: String, course: String): ApplicationResult[Boolean] =
     getCoursesRatedByStudent(student).innerMap(result => Right(result.exists(_.name == course)))
@@ -82,6 +87,11 @@ class RedisGraphRepository @Inject()(
 
   def createStudyingRelation(studying: Studying): ApplicationResult[Done] =
     executeCreateQuery(createStudyingRelationQuery(studying))
+
+  def createInterestRelationInBulk(interests: List[Interest]): ApplicationResult[Done] =
+    sequence {
+      interests.map(interest => createInterestRelation(interest))
+    }.map(_ => Right(done()))
 
   def existsStudyingRelation(student: String, course: String): ApplicationResult[Boolean] =
     getCoursesByStudent(student).innerMap(result => Right(result.exists(_.name == course)))

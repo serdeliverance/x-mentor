@@ -2,9 +2,10 @@ package controllers
 
 import controllers.circe.Decodable
 import controllers.converters.ErrorToResultConverter
+import models.Interest
 import models.dtos.requests.InterestRequestDTO
 import play.api.Logging
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import play.api.mvc.{Action, BaseController, ControllerComponents}
 import services.InterestService
 
 import javax.inject.{Inject, Singleton}
@@ -22,14 +23,16 @@ class InterestController @Inject()(
 
   def interest(): Action[InterestRequestDTO] = Action.async(decode[InterestRequestDTO]) { request =>
     logger.info(s"Registering ${request.body.student} interests")
-    interestService.interest(request.body.student, request.body.interests).map {
-      case Right(_) =>
-        logger.info("Interest registered successfully")
-        Ok
-      case Left(error) =>
-        logger.info("Error registering interest")
-        handleError(error)
-    }
+    interestService
+      .interest(request.body.student, request.body.interests.map(topic => Interest(request.body.student, topic)))
+      .map {
+        case Right(_) =>
+          logger.info("Interest registered successfully")
+          Ok
+        case Left(error) =>
+          logger.info("Error registering interest")
+          handleError(error)
+      }
   }
 
 }
