@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Box, Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Tooltip, Typography } from '@material-ui/core'
+import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { useLocation } from "react-router-dom"
-import EmojiEventsIcon from '@material-ui/icons/EmojiEvents'
-import Rating from '@material-ui/lab/Rating'
-import CourseModal from '../components/CourseModal';
+import { API_URL } from '../environment'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -18,9 +16,10 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
   },
   media: {
-    height: 180,
+    height: 165,
     padding: "45px 0",
-    margin: "20px 0 0"
+    margin: "20px 0 0",
+    backgroundSize: "auto 100%"
   },
   tile: {
     padding: theme.spacing(4),
@@ -75,14 +74,13 @@ export default function CourseListPage() {
   const [courses, setCourses] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
-  const [openCourseModal, setOpenCourseModal] = useState(false)
   const [currentCourse, setCurrentCourse] = useState()
 
   const handleChange = (event, value) => setPage(value)
 
   const fetchData = async () => {
     const response = await axios(
-      `http://localhost:9000/courses?q=${query.get('q')}&page=${page}`,
+      `${API_URL}/courses?q=${query.get('q')}&page=${page}`,
     )
     setCourses(response.data.courses)
     setTotal(Math.round(response.data.total / 6))
@@ -91,14 +89,13 @@ export default function CourseListPage() {
   const enroll = async (courseId) => {
     console.log(courseId)
     const response = await axios.post(
-      `http://localhost:9000/courses/${courseId}/enroll`,
+      `${API_URL}/courses/${courseId}/enroll`,
     )
     console.log(response)
   }
 
-  const handleCourseModal = (course) => {
-    setCurrentCourse(course)
-    setOpenCourseModal(true)
+  const startCourse = (courseId) => {
+    console.log("Start course: " + courseId)
   }
 
   // TODO Arreglar
@@ -117,7 +114,6 @@ export default function CourseListPage() {
   }, [page])
 
   return (
-    <>
     <div className={classes.root}>
       {courses.length > 0 ?
       <>
@@ -128,17 +124,10 @@ export default function CourseListPage() {
         {courses.map((course) => (
           <Grid item className={classes.tile} key={course.id}>
               <Card className={classes.card} id={course.id}>
-                  <CardActionArea onClick={() => handleCourseModal(course)}>
+                  <CardActionArea onClick={(e) => startCourse(e.target.closest(".MuiCard-root").id)}>
                       <CardContent className={classes.content}>
                           <Typography gutterBottom variant="h6" className={classes.title}>
                             {course.title}
-                            {course.rating >= 4 ? 
-                              <Tooltip placement="top" title="Top Course">
-                                <EmojiEventsIcon className={classes.star} />
-                              </Tooltip> : <></>}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
-                            {course.description}
                           </Typography>
                           <CardMedia
                             className={classes.media}
@@ -148,12 +137,9 @@ export default function CourseListPage() {
                       </CardContent>
                   </CardActionArea>
                   <CardActions className={classes.actions}>
-                    <Button color="primary" className={classes.enroll} onClick={(e) => enroll(e.target.closest(".MuiCard-root").id)}>
-                      Enroll
+                    <Button color="primary" className={classes.enroll} onClick={(e) => startCourse(e.target.closest(".MuiCard-root").id)}>
+                      Start Course
                     </Button>
-                    <Box component="fieldset" pb={0.2} borderColor="transparent">
-                      <Rating name="read-only" value={course.rating} readOnly />
-                    </Box>
                   </CardActions>
               </Card>
           </Grid>
@@ -167,7 +153,5 @@ export default function CourseListPage() {
       </Grid>
     }
   </div>
-  <CourseModal course={currentCourse} open={openCourseModal} setOpen={setOpenCourseModal} />
-  </>
   );
 }

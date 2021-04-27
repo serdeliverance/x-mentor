@@ -1,7 +1,5 @@
 package object configurations {
 
-  final val AUTH_PUBLIC_KEY = "auth.pulicKey"
-
   final val MESSAGING_DISPATCHER      = "x-mentor.dispatchers.messaging"
   val REDIS_HOST                      = "redis.host"
   val REDIS_PORT                      = "redis.port"
@@ -13,7 +11,22 @@ package object configurations {
 
   val REDIS_GRAPH = "redis.graph"
 
+  val AUTH_BASE_URL            = "auth.urls.base"
+  val AUTH_TOKEN_URL           = "auth.urls.token"
+  val AUTH_ADMIN_TOKEN_URL     = "auth.urls.admin-token"
+  val AUTH_USERS_URL           = "auth.urls.users"
+  val AUTH_ADMIN_USERNAME      = "auth.users.admin.username"
+  val AUTH_ADMIN_PASSWORD      = "auth.users.admin.password"
+  val USERNAME_ATTRIBUTE_NAME  = "auth.users.usernameAttributeName"
+  val AUTH_CLIENT_ID           = "auth.clientId"
+  val AUTH_ADMIN_CLIENT_ID     = "auth.adminClientId"
+  val AUTH_CLIENT_SECRET       = "auth.clientSecret"
+  val AUTH_SCOPE               = "auth.scope"
+  val AUTH_GRANT_TYPE          = "auth.grantType"
+  val AUTH_LOGOUT_URL          = "auth.urls.logout"
+  val AUTH_PUBLIC_KEY          = "auth.publicKey"
+
   // TODO delete those variables if not used
-  final val COURSE_RATED_TOPIC       = "course-rated-topic"
-  final val COURSE_RECOMMENDED_TOPIC = "course-recommended-topic"
+  val COURSE_RATED_TOPIC       = "course-rated-topic"
+  val COURSE_RECOMMENDED_TOPIC = "course-recommended-topic"
 }

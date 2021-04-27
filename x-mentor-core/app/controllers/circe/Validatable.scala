@@ -1,6 +1,6 @@
 package controllers.circe
 
-import controllers.constants._
+import constants._
 import io.circe.Json
 import io.circe.syntax._
 import models.json.CirceImplicits

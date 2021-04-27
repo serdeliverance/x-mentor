@@ -1,9 +1,11 @@
 package jobs.loaders
 
 import akka.Done
+import constants.COURSE_LAST_ID_KEY
 import play.api.Logging
-
 import javax.inject.{Inject, Singleton}
+import repositories.RedisRepository
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -16,7 +18,8 @@ class DataLoaderManager @Inject()(
     interestRelationLoader: InterestRelationLoader,
     hasRelationLoader: HasRelationLoader,
     rateRelationLoader: RateRelationLoader,
-    studyingRelationLoader: StudyingRelationLoader
+    studyingRelationLoader: StudyingRelationLoader,
+    redisRepository: RedisRepository
   )(implicit executionContext: ExecutionContext)
     extends Logging {
 
@@ -25,11 +28,13 @@ class DataLoaderManager @Inject()(
 
     for {
       _ <- topicLoader.loadTopics()
-      _ <- courseLoader.loadCoursesToGraph()
+      coursesLength <- courseLoader.loadCoursesToGraph()
+      _ <- redisRepository.set(COURSE_LAST_ID_KEY, coursesLength.toString)
       _ <- courseLoader.loadCourses()
       _ <- filterLoader.loadFilters()
       _ <- indexLoader.loadIndexes()
       _ <- hasRelationLoader.loadHasRelations()
+      _ <- studentLoader.loadStudentsToGraph()
       _ <- studentLoader.loadStudents()
       _ <- interestRelationLoader.loadInterestRelations()
       _ <- studyingRelationLoader.loadStudyingRelations()

@@ -72,7 +72,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Header() {
   const classes = useStyles()
   const history = useHistory()
-  const [loggedIn, setLoggedIn] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [openLogin, setOpenLogin] = useState(false);
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [searchError, setSearchError] = useState(false)
@@ -101,7 +101,7 @@ export default function Header() {
                 <div className={classes.searchIcon}>
                     <SearchIcon />
                 </div>
-                <Tooltip title="Please use at least 3 characters">
+                <Tooltip title="Please use at least 3 characters" placement="bottom-start">
                   <InputBase
                       placeholder="Search…"
                       classes={{
@@ -145,8 +145,9 @@ export default function Header() {
                     aria-controls='primary-search-account-menu'
                     aria-haspopup="true"
                     color="inherit"
+                    onClick={() => setLoggedIn(false)}
                 >
-                    <AccountCircle />
+                  <AccountCircle />
                 </IconButton>
             </div>
             <CreateCourseModal open={openCourseModal} setOpen={setOpenCourseModal}></CreateCourseModal>
@@ -155,7 +156,7 @@ export default function Header() {
             <>
             <div>
                 <Button variant="outlined" color="inherit" onClick={() => setOpenLogin(true)}>Login</Button>
-                <LoginModal open={openLogin} setOpen={setOpenLogin}></LoginModal>
+                <LoginModal open={openLogin} setOpen={setOpenLogin} setLoggedIn={setLoggedIn}></LoginModal>
             </div>
             </>
         }

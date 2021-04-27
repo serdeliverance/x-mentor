@@ -5,16 +5,18 @@ import akka.actor.ActorSystem
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.{Broadcast, FileIO, Flow, GraphDSL, JsonFraming, RunnableGraph, Sink}
 import akka.{Done, NotUsed}
-import constants.{COURSE_KEY, COURSE_LAST_ID_KEY}
+import constants._
 import io.circe.parser.decode
 import io.rebloom.client.Client
 import models.Course
 import play.api.Logging
 import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import util.CourseConverter
-
 import java.nio.file.Paths
+
+import global.EitherResult
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent._
 import scala.jdk.CollectionConverters._
 
@@ -34,7 +36,7 @@ class CourseLoader @Inject()(
   def loadCourses(): Future[Done] =
     Future(graph().run()).map(_ => done())
 
-  def loadCoursesToGraph(): Future[Done] =
+  def loadCoursesToGraph(): Future[Int] =
     FileIO
       .fromPath(Paths.get(COURSE_JSON_PATH))
       .via(JsonFraming.objectScanner(Int.MaxValue))
@@ -45,7 +47,9 @@ class CourseLoader @Inject()(
       }
       .filter(course => course.id.nonEmpty)
       .mapAsync(1)(redisGraphRepository.createCourse)
-      .runWith(Sink.ignore)
+      .runWith(Sink.seq[EitherResult[Done]])
+      .map(list => list.size)
+
 
   private def graph(): RunnableGraph[NotUsed] =
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
@@ -65,7 +69,7 @@ class CourseLoader @Inject()(
         .filter(course => course.id.nonEmpty)
 
       val redisBloomSink = Flow[Course]
-        .mapAsync(1)(course => redisBloomRepository.add(course))
+        .mapAsync(1)(course => redisBloomRepository.add(COURSE_IDS_FILTER, course.id.get.toString))
         .to(Sink.ignore)
 
 //      val redisGraphSink = Flow[Course]
