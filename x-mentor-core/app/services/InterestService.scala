@@ -18,13 +18,13 @@ class InterestService @Inject()(redisGraphRepository: RedisGraphRepository)(impl
   def registerInterest(student: String, interests: List[Interest]): ApplicationResult[Done] = {
     for {
       persistedTopicsOfInterest <- EitherT { redisGraphRepository.getInterestTopicsByStudent(student) }
-      registeredInterests       <- EitherT { convertToInterest(student, persistedTopicsOfInterest) }
+      registeredInterests       <- EitherT { mapToInterest(student, persistedTopicsOfInterest) }
       interestsToRegister       <- EitherT { filterNotRegisteredInterests(registeredInterests, interests) }
       _                         <- EitherT { redisGraphRepository.createInterestRelationInBulk(interestsToRegister) }
     } yield Done
   }.value
 
-  private def convertToInterest(student: String, topics: List[Topic]): ApplicationResult[List[Interest]] =
+  private def mapToInterest(student: String, topics: List[Topic]): ApplicationResult[List[Interest]] =
     ApplicationResult(topics.map(topic => Interest(student, topic.name)))
 
   private def filterNotRegisteredInterests(
