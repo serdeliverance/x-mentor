@@ -66,7 +66,7 @@ class CourseService @Inject()(
 
   def getCoursesByStudent(student: String, page: Int): ApplicationResult[CourseResponse] = {
     for {
-      coursesFromGraph <- EitherT { redisGraphRepository.getCoursesByStudent(student, page) }
+      coursesFromGraph <- EitherT { redisGraphRepository.getCoursesByStudentPaginated(student, page) }
       courses          <- EitherT { getMultipleCoursesByName(coursesFromGraph.map(_.name)) }
     } yield CourseResponse(courses.length, courses)
   }.value
