@@ -7,5 +7,5 @@ GET     /courses/:courseId                     controllers.CourseController.retr
 POST    /courses/:courseId/enroll              controllers.CourseController.enroll(courseId: Long)
 GET     /topics                                controllers.TopicController.getAll()
 POST    /interests                             controllers.InterestController.registerInterest()
-POST    /login                                 controllers.LoginController.login()
-POST    /signup                                controllers.LoginController.signup()
+POST    /login                                 controllers.UserController.login()
+POST    /signup                                controllers.UserController.signup()

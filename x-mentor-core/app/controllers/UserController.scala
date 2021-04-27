@@ -13,9 +13,9 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class UserController @Inject()(
-                                 val loginService: UserService,
-                                 val controllerComponents: ControllerComponents
-  )(implicit executionContext: ExecutionContext, markerContext: MapMarkerContext)
+    val loginService: UserService,
+    val controllerComponents: ControllerComponents
+  )(implicit executionContext: ExecutionContext)
     extends BaseController
     with Decodable
     with ErrorToResultConverter {
@@ -23,6 +23,8 @@ class UserController @Inject()(
   def login: Action[LoginRequestDTO] = Action.async(decode[LoginRequestDTO]) { implicit request =>
     val username = request.body.username
     val password = request.body.password
+
+    implicit val mmc = MapMarkerContext.fromRequest()
 
     loginService
       .login(username, password)
@@ -39,6 +41,8 @@ class UserController @Inject()(
   def signup: Action[LoginRequestDTO] = Action.async(decode[LoginRequestDTO]) { implicit request =>
     val username = request.body.username
     val password = request.body.password
+
+    implicit val mmc = MapMarkerContext.fromRequest()
 
     loginService
       .signup(username, password)
