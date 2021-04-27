@@ -4,13 +4,13 @@ import akka.Done
 import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
 import constants.ITEMS_PER_PAGE
-import global.ApplicationResult
+import global.{ApplicationResult, ApplicationResultExtended}
 import jobs.loaders.Studying
 import models.configurations.RedisGraphConfiguration
-import models.{Course, CourseNode, Has, Interest, Rating, Student, Topic}
+import models._
 import play.api.Logging
 import repositories.RedisGraphRepository._
-import repositories.graph.{CourseTag, GraphEntityTag, NodeDecoder, ResultDecoder, TopicTag}
+import repositories.graph._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -31,10 +31,19 @@ class RedisGraphRepository @Inject()(
     executeQuery[Topic](topicsQuery, TopicTag)
   }
 
-  def getCoursesByStudent(student: String, page: Int): ApplicationResult[List[CourseNode]] = {
+  def getCoursesByStudentPaginated(student: String, page: Int): ApplicationResult[List[CourseNode]] = {
     val offset = (page - 1) * ITEMS_PER_PAGE
     executeQuery[CourseNode](paginated(coursesByStudentQuery(student), offset, ITEMS_PER_PAGE), CourseTag)
   }
+
+  def getCoursesByStudent(student: String): ApplicationResult[List[CourseNode]] =
+    executeQuery[CourseNode](coursesByStudentQuery(student), CourseTag)
+
+  def getCoursesRatedByStudent(student: String): ApplicationResult[List[CourseNode]] =
+    executeQuery[CourseNode](coursesRatedByStudent(student), CourseTag)
+
+  def existsRatesRelation(student: String, course: String): ApplicationResult[Boolean] =
+    getCoursesRatedByStudent(student).innerMap(result => Right(result.exists(_.name == course)))
 
   def executeQuery[T](
       query: String,
@@ -74,6 +83,9 @@ class RedisGraphRepository @Inject()(
   def createStudyingRelation(studying: Studying): ApplicationResult[Done] =
     executeCreateQuery(createStudyingRelationQuery(studying))
 
+  def existsStudyingRelation(student: String, course: String): ApplicationResult[Boolean] =
+    getCoursesByStudent(student).innerMap(result => Right(result.exists(_.name == course)))
+
   private def executeCreateQuery(
       query: String
     )(implicit redisGraphConfiguration: RedisGraphConfiguration
@@ -94,6 +106,9 @@ object RedisGraphRepository {
 
   private val coursesByStudentQuery = (student: String) =>
     s"MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+
+  private val coursesRatedByStudent = (student: String) =>
+    s"MATCH (student)-[:rates]->(course) where student.username ='$student' RETURN course"
 
   private val createTopicQuery = (topic: Topic) =>
     s"CREATE (:Topic {name: '${topic.name}', description: '${topic.description}'})"
