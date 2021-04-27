@@ -7,6 +7,7 @@ import models.dtos.requests.LoginRequestDTO
 import play.api.mvc.{Action, BaseController, ControllerComponents}
 import services.UserService
 import util.MapMarkerContext
+import scala.collection.mutable.{Map => MMap}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -15,7 +16,7 @@ import scala.concurrent.ExecutionContext
 class UserController @Inject()(
                                  val loginService: UserService,
                                  val controllerComponents: ControllerComponents
-  )(implicit executionContext: ExecutionContext, markerContext: MapMarkerContext)
+  )(implicit executionContext: ExecutionContext)
     extends BaseController
     with Decodable
     with ErrorToResultConverter {
@@ -23,6 +24,10 @@ class UserController @Inject()(
   def login: Action[LoginRequestDTO] = Action.async(decode[LoginRequestDTO]) { implicit request =>
     val username = request.body.username
     val password = request.body.password
+
+    implicit val markerContext: MapMarkerContext = MapMarkerContext.fromRequest(
+      MMap(MapMarkerContext.USERNAME -> username)
+    )
 
     loginService
       .login(username, password)
@@ -40,8 +45,19 @@ class UserController @Inject()(
     val username = request.body.username
     val password = request.body.password
 
+    implicit val markerContext: MapMarkerContext = MapMarkerContext.fromRequest(
+      MMap(MapMarkerContext.USERNAME -> username)
+    )
+
     loginService
       .signup(username, password)
-      .map(_ => Created)
+      .map {
+        case Right(_) =>
+          logger.info("Signup success")
+          Created
+        case Left(error) =>
+          logger.info("Signup failed")
+          handleError(error)
+      }
   }
 }

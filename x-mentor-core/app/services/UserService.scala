@@ -1,13 +1,12 @@
 package services
 
 import akka.Done
-import akka.Done.done
 import cats.data.EitherT
 import global.ApplicationResult
 import io.circe.parser.decode
 import models.auth.{AccessData, AuthErrorResponse}
 import models.configurations.AuthConfiguration
-import models.errors.{AuthenticationError, ClientError, EmptyResponse}
+import models.errors.{AuthenticationError, ClientError, EmptyResponse, UserAlreadyExistsError}
 import models.json.CirceImplicits
 import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
@@ -40,7 +39,6 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
       authResponse <- EitherT { sender.post(this.configuration.urls.tokenUrl, reqBody, reqHeaders) }
       accessData   <- EitherT { handleAuthResponse(authResponse) }
     } yield accessData
-
     result.value
   }
 
@@ -48,28 +46,29 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
     username: String,
     password: String
   )(implicit mapMarkerContext: MapMarkerContext
-  ): ApplicationResult[Done] =
-    ApplicationResult {
+  ): ApplicationResult[Done] = {
       logger.info(s"Creating user: $username")
 
-      val requestTokenBody    = createAuthRequestBody(username, password, this.configuration.adminClientId)
+      val requestTokenBody    = createAuthRequestBody(this.configuration.users.admin.username, this.configuration.users.admin.password, this.configuration.adminClientId)
       val requestTokenHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
       val createUserBody    = Json.obj(
         "username" -> username,
-        "enabled" -> "true",
-        "credentials" -> s"[{'type':'password','value':'$username','temporary':false}]"
+        "enabled" -> true,
+        "credentials" -> Json.arr(Json.obj("type" -> "password","value" -> username, "temporary" -> false))
       )
       val createUserHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
 
       logger.info(s"$createUserBody")
 
       val result = for {
-        adminToken   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders) }
-        creationResponse <- EitherT { sender.post(this.configuration.urls.usersUrl, createUserBody, createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer $adminToken"))) }
-      } yield creationResponse
-      Done
-    }
+        authResponse   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders) }
+        adminToken <- EitherT { handleAuthResponse(authResponse) }
+        creationResponse <- EitherT { sender.post(this.configuration.urls.usersUrl, createUserBody, createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer ${adminToken.accessToken}"))) }
+        response <- EitherT { handleCreationResponse(creationResponse) }
+      } yield response
+      result.value
+  }
 
   /**
     * Handles the response from Auth service and matches it with the corresponding [[ApplicationResult]]
@@ -117,5 +116,34 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
       this.configuration.grantType,
       this.configuration.scope
     )
+
+  private def handleCreationResponse(response: WSResponse): ApplicationResult[Done] = {
+    logger.info(s"$response")
+    response.status match {
+      case 201 =>
+        logger.info(s"Success signup")
+        ApplicationResult(Done)
+      case 400 =>
+        logger.info(s"Invalid payload or data mismatch")
+        decode[AuthErrorResponse](response.json.toString) match {
+          case Left(_) => ApplicationResult.error(ClientError("Decoding error"))
+          case Right(error) if error.errorDescription == "Account disabled" =>
+            ApplicationResult.error(ClientError("Account disabled"))
+        }
+      case 401 =>
+        logger.info(s"Failing login into Auth server: Unauthorized.")
+        decode[AuthErrorResponse](response.json.toString) match {
+          case Left(_) => ApplicationResult.error(AuthenticationError("Decoding error"))
+          case Right(error) if error.errorDescription == "Invalid user credentials" =>
+            ApplicationResult.error(AuthenticationError("Invalid credentials"))
+        }
+      case 409 =>
+        logger.info("User already exists")
+        ApplicationResult.error(UserAlreadyExistsError("User already exists"))
+      case _ =>
+        logger.info("Failing connecting with auth server")
+        ApplicationResult.error(EmptyResponse)
+    }
+  }
 
 }

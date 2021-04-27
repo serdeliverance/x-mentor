@@ -1,7 +1,6 @@
 package repositories
 
 import akka.Done
-import akka.Done.done
 import global.ApplicationResult
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.params.SetParams
@@ -41,7 +40,7 @@ class RedisRepository @Inject()(val pool: Pool[Jedis]) extends RedisExecution wi
           logger.info(s"Error adding hash to redis for key: $key.")
           ApplicationResult.error(EmptyResponse)
         },
-        _ => ApplicationResult(done())
+        _ => ApplicationResult(Done)
       )
   }
 }

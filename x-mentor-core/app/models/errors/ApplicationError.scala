@@ -23,3 +23,5 @@ case class GenericError(msg: String) extends ApplicationError
 case class NotFoundError(msg: String) extends ApplicationError
 
 case class InvalidOperationError(msg: String) extends ApplicationError
+
+case class UserAlreadyExistsError(msg: String) extends ApplicationError
