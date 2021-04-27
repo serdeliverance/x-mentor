@@ -4,13 +4,13 @@ import akka.Done
 import akka.Done.done
 import cats.data.EitherT
 import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY, ITEMS_PER_PAGE}
-import global.{ApplicationResult, ApplicationResultExtended, EitherResult}
+import global.{ApplicationResult, ApplicationResultExtended}
 import io.rebloom.client.Client
 import io.redisearch.{Document, Query}
 
 import javax.inject.{Inject, Singleton}
 import models.{Course, CourseResponse}
-import models.errors.{EmptyResponse, NotFoundError, UnexpectedError}
+import models.errors.{EmptyResponse, NotFoundError}
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
@@ -20,7 +20,7 @@ import io.circe.parser.decode
 import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
 
 import scala.jdk.CollectionConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CourseService @Inject()(

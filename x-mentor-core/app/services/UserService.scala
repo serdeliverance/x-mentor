@@ -19,6 +19,7 @@ import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 import cats.implicits._
+import play.api.libs.json._
 
 @Singleton
 class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(implicit ec: ExecutionContext)
@@ -43,7 +44,6 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
     result.value
   }
 
-  // TODO
   def signup(
     username: String,
     password: String
@@ -52,19 +52,23 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
     ApplicationResult {
       logger.info(s"Creating user: $username")
 
-      val reqBody    = createAuthRequestBody(username, password, this.configuration.adminClientId)
-      val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
+      val requestTokenBody    = createAuthRequestBody(username, password, this.configuration.adminClientId)
+      val requestTokenHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
-      val reqBody2    = createAuthRequestBody(username, password, this.configuration.adminClientId)
-      val reqHeaders2 = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
+      val createUserBody    = Json.obj(
+        "username" -> username,
+        "enabled" -> "true",
+        "credentials" -> s"[{'type':'password','value':'$username','temporary':false}]"
+      )
+      val createUserHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
+
+      logger.info(s"$createUserBody")
 
       val result = for {
-        adminToken   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, reqBody, reqHeaders) }
-        creationResponse <- EitherT { sender.post(this.configuration.urls.usersUrl, reqBody2, reqHeaders2) }
+        adminToken   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders) }
+        creationResponse <- EitherT { sender.post(this.configuration.urls.usersUrl, createUserBody, createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer $adminToken"))) }
       } yield creationResponse
-
-      result.value
-      done()
+      Done
     }
 
   /**
