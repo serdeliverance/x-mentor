@@ -7,19 +7,21 @@ class AuthConfiguration(
     val adminClientId: String,
     val clientSecret: String,
     val grantType: String,
-    val scope: String,
-    val publicKey: String)
+    val scope: String)
 
 class AuthUrlsConfiguration(
     base: String,
     adminToken: String,
     token: String,
     users: String,
+    realm: String,
     logout: String) {
 
   private val idLabel = ":id"
 
   val adminTokenUrl = s"$base$adminToken"
+
+  val realmUrl = s"$base$realm"
 
   val tokenUrl = s"$base$token"
 

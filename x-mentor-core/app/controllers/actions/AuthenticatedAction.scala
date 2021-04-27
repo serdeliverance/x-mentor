@@ -9,15 +9,15 @@ import play.api.Logging
 import play.api.mvc.Results.{BadRequest, Unauthorized}
 import play.api.mvc._
 import util.{JsonUtils, JwtUtil}
-
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{CanAwait, ExecutionContext, Future}
 
 @Singleton
 class AuthenticatedAction @Inject()(
     val parser: BodyParsers.Default,
     authConfiguration: AuthConfiguration
-  )(implicit ec: ExecutionContext)
+  )(implicit ec: ExecutionContext, ca: CanAwait)
     extends ActionBuilder[UserRequest, AnyContent]
     with ActionRefiner[Request, UserRequest]
     with Logging

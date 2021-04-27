@@ -5,6 +5,7 @@ import constants.COURSE_LAST_ID_KEY
 import play.api.Logging
 import javax.inject.{Inject, Singleton}
 import repositories.RedisRepository
+import util.MapMarkerContext
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,8 +20,9 @@ class DataLoaderManager @Inject()(
     hasRelationLoader: HasRelationLoader,
     rateRelationLoader: RateRelationLoader,
     studyingRelationLoader: StudyingRelationLoader,
-    redisRepository: RedisRepository
-  )(implicit executionContext: ExecutionContext)
+    redisRepository: RedisRepository,
+    identityLoader: IdentityLoader
+  )(implicit executionContext: ExecutionContext, markerContext: MapMarkerContext)
     extends Logging {
 
   def load(): Future[Done] = {
@@ -39,6 +41,7 @@ class DataLoaderManager @Inject()(
       _ <- interestRelationLoader.loadInterestRelations()
       _ <- studyingRelationLoader.loadStudyingRelations()
       _ <- rateRelationLoader.loadRateRelations()
+      _ <- identityLoader.loadPublicKey()
       // _ <- loadTeachers()
     } yield Done
   }
