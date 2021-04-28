@@ -2,21 +2,26 @@ package controllers.actions
 
 import akka.Done
 import cats.data.EitherT
-import cats.implicits._
-import constants.{AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_HEADER, ID_TOKEN_HEADER}
+import constants.{AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_HEADER, ID_TOKEN_HEADER, PUBLIC_KEY}
+import global.ApplicationResult
 import models.configurations.AuthConfiguration
 import play.api.Logging
 import play.api.mvc.Results.{BadRequest, Unauthorized}
 import play.api.mvc._
 import util.{JsonUtils, JwtUtil}
 import javax.inject.{Inject, Singleton}
+import models.errors.{ApplicationError, GenericError}
+import repositories.RedisRepository
 
 import scala.concurrent.{CanAwait, ExecutionContext, Future}
+import cats.implicits._
+import cats.syntax._
 
 @Singleton
 class AuthenticatedAction @Inject()(
     val parser: BodyParsers.Default,
-    authConfiguration: AuthConfiguration
+    authConfiguration: AuthConfiguration,
+    redisRepository: RedisRepository
   )(implicit ec: ExecutionContext, ca: CanAwait)
     extends ActionBuilder[UserRequest, AnyContent]
     with ActionRefiner[Request, UserRequest]
@@ -26,17 +31,19 @@ class AuthenticatedAction @Inject()(
 
   def refine[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = {
     for {
-      _           <- EitherT(accessTokenValidation(request))
-      _           <- EitherT(idTokenValidation(request))
-      userRequest <- EitherT(userAction(request))
+      response    <- EitherT{redisRepository.get(PUBLIC_KEY)}
+      publicKey   <- EitherT(handleResponse(response))
+      _           <- EitherT(accessTokenValidation(request, publicKey))
+      _           <- EitherT(idTokenValidation(request, publicKey))
+      userRequest <- EitherT(userAction(request, publicKey))
     } yield userRequest
   }.value
 
-  private def accessTokenValidation[A](request: Request[A]): Future[Either[Result, Done]] = Future.successful {
+  private def accessTokenValidation[A](request: Request[A], publicKey: String): Future[Either[Result, Done]] = Future.successful {
     request.headers
       .get(AUTHORIZATION_HEADER)
       .map(extractJwt) match {
-      case Some(tokenValue) if hasValidSignature(tokenValue) =>
+      case Some(tokenValue) if hasValidSignature(tokenValue, publicKey) =>
         logger.info("Access token validation success.")
         Right(Done)
       case None =>
@@ -48,10 +55,10 @@ class AuthenticatedAction @Inject()(
     }
   }
 
-  private def idTokenValidation[A](request: Request[A]): Future[Either[Result, Done]] = Future.successful {
+  private def idTokenValidation[A](request: Request[A], publicKey: String): Future[Either[Result, Done]] = Future.successful {
     request.headers
       .get(ID_TOKEN_HEADER) match {
-      case Some(tokenValue) if hasValidSignature(tokenValue) =>
+      case Some(tokenValue) if hasValidSignature(tokenValue, publicKey) =>
         logger.info("The Id-Token validation was success.")
         Right(Done)
       case None =>
@@ -63,16 +70,25 @@ class AuthenticatedAction @Inject()(
     }
   }
 
-  private def userAction[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = Future.successful {
+  private def userAction[A](request: Request[A], publicKey: String): Future[Either[Result, UserRequest[A]]] = Future.successful {
     request.headers
       .get(ID_TOKEN_HEADER)
-      .flatMap(jwt => decode(jwt))
+      .flatMap(jwt => decode(jwt, publicKey))
       .flatMap(json => extractValue[String](json, authConfiguration.users.usernameAttributeName)) match {
       case Some(username) =>
         Right(UserRequest(username, request))
       case None =>
         logger.error("No username header provided")
         Left(BadRequest)
+    }
+  }
+
+  private def handleResponse(response: Option[String]): Future[Either[Result, String]] = {
+    response match {
+      case Some(publicKey) => Future(Right(publicKey))
+      case _ =>
+        logger.info("Error retrieving public key")
+        Future(Left(Unauthorized))
     }
   }
 
