@@ -25,7 +25,7 @@ class RatingController @Inject()(
 
   def rate(): Action[RatingRequestDTO] = authenticatedAction.async(decode[RatingRequestDTO]) { request =>
     val rating = Rating(student = request.student, course = request.body.course, stars = request.body.stars)
-    logger.info(s"Rating course: ${rating.course}")
+    logger.info(s"Rating course: ${rating.course}, student: ${rating.student}")
     ratingService
       .rate(rating)
       .map {
