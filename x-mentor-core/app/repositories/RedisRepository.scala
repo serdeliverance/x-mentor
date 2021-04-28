@@ -6,15 +6,17 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.params.SetParams
 import redis.clients.jedis.util.Pool
 import javax.inject.{Inject, Singleton}
-import models.errors.EmptyResponse
+import models.errors.{ApplicationError, EmptyResponse}
 import play.api.Logging
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 @Singleton
-class RedisRepository @Inject()(val pool: Pool[Jedis]) extends RedisExecution with Logging {
+class RedisRepository @Inject()(val pool: Pool[Jedis])(implicit ec: ExecutionContext)
+    extends RedisExecution
+    with Logging {
 
   private val OK = "OK"
 
@@ -28,7 +30,8 @@ class RedisRepository @Inject()(val pool: Pool[Jedis]) extends RedisExecution wi
     execute(false)(jedis => Option(jedis.set(key, value, params)).contains(OK))
   }
 
-  def get(key: String): Future[Option[String]] = execute[Option[String]](None)(jedis => Option(jedis.get(key)))
+  def get(key: String): Future[Option[String]] =
+    execute[Option[String]](None)(jedis => Option(jedis.get(key)))
 
   def remove(key: String): Future[Boolean] = execute(false)(_.del(key) > 0)
 
