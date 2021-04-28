@@ -1,19 +1,20 @@
 package controllers
 
+import controllers.actions.AuthenticatedAction
 import controllers.circe.Decodable
 import controllers.converters.ErrorToResultConverter
+import io.circe.syntax._
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.TopicService
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import io.circe.syntax._
-import repositories.RedisGraphRepository
 
 @Singleton
 class TopicController @Inject()(
     val controllerComponents: ControllerComponents,
+    authenticatedAction: AuthenticatedAction,
     topicService: TopicService
   )(implicit ec: ExecutionContext)
     extends BaseController
@@ -21,7 +22,7 @@ class TopicController @Inject()(
     with Decodable
     with ErrorToResultConverter {
 
-  def getAll(): Action[AnyContent] = Action.async { _ =>
+  def getAll(): Action[AnyContent] = authenticatedAction.async { _ =>
     logger.info("Getting all topics")
     topicService.getAll().map {
       case Right(topics) =>
