@@ -1,5 +1,6 @@
 package controllers
 
+import controllers.actions.AuthenticatedAction
 import controllers.circe.Decodable
 import controllers.converters.ErrorToResultConverter
 
@@ -9,7 +10,6 @@ import models.dtos.requests.{CourseCreationRequestDTO, CourseEnrollmentRequestDT
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.CourseService
-
 import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext
@@ -17,6 +17,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class CourseController @Inject()(
     val controllerComponents: ControllerComponents,
+    authenticatedAction: AuthenticatedAction,
     courseService: CourseService
   )(implicit ec: ExecutionContext)
     extends BaseController
@@ -24,25 +25,26 @@ class CourseController @Inject()(
     with ErrorToResultConverter
     with Logging {
 
-  def create(): Action[CourseCreationRequestDTO] = Action.async(decode[CourseCreationRequestDTO]) { request =>
-    logger.info(s"Creating course")
-    val course = Course(title = request.body.title,
-                        description = request.body.description,
-                        content = request.body.content,
-                        preview = request.body.preview,
-                        topic = request.body.topic)
-    courseService
-      .create(course)
-      .map(_ => Created)
+  def create(): Action[CourseCreationRequestDTO] = authenticatedAction.async(decode[CourseCreationRequestDTO]) {
+    request =>
+      logger.info(s"Creating course")
+      val course = Course(title = request.body.title,
+                          description = request.body.description,
+                          content = request.body.content,
+                          preview = request.body.preview,
+                          topic = request.body.topic)
+      courseService
+        .create(course)
+        .map(_ => Created)
   }
 
-  def enroll(courseId: Long): Action[CourseEnrollmentRequestDTO] = Action.async(decode[CourseEnrollmentRequestDTO]) {
-    request =>
+  def enroll(courseId: Long): Action[CourseEnrollmentRequestDTO] =
+    authenticatedAction.async(decode[CourseEnrollmentRequestDTO]) { request =>
       logger.info(s"Enroll in course $courseId")
       courseService
         .enroll(courseId)
         .map(_ => Ok)
-  }
+    }
 
   def retrieve(q: String, page: Int): Action[AnyContent] = Action.async { _ =>
     logger.info(s"Retrieving courses")
@@ -59,7 +61,7 @@ class CourseController @Inject()(
   }
 
   def retrieveById(courseId: Long): Action[AnyContent] =
-    Action.async { _ =>
+    authenticatedAction.async { _ =>
       logger.info(s"Retrieve course $courseId")
       courseService
         .retrieveById(courseId)
@@ -73,7 +75,7 @@ class CourseController @Inject()(
         }
     }
 
-  def getByStudent(student: String, page: Int): Action[AnyContent] = Action.async { _ =>
+  def getByStudent(student: String, page: Int): Action[AnyContent] = authenticatedAction.async { _ =>
     logger.info(s"Retrieving courses by student: $student")
     courseService
       .getCoursesByStudent(student, page)
