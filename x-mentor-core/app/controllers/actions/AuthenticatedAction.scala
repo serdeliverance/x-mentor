@@ -3,19 +3,16 @@ package controllers.actions
 import akka.Done
 import cats.data.EitherT
 import constants.{AUTHORIZATION_BEARER_PREFIX, AUTHORIZATION_HEADER, ID_TOKEN_HEADER, PUBLIC_KEY}
-import global.ApplicationResult
 import models.configurations.AuthConfiguration
 import play.api.Logging
 import play.api.mvc.Results.{BadRequest, Unauthorized}
 import play.api.mvc._
 import util.{JsonUtils, JwtUtil}
 import javax.inject.{Inject, Singleton}
-import models.errors.{ApplicationError, GenericError}
 import repositories.RedisRepository
 
 import scala.concurrent.{CanAwait, ExecutionContext, Future}
 import cats.implicits._
-import cats.syntax._
 
 @Singleton
 class AuthenticatedAction @Inject()(
