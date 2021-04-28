@@ -28,6 +28,9 @@ class InterestService @Inject()(
     } yield Done
   }.value
 
+  def getInterests(student: String): ApplicationResult[List[Topic]] =
+    redisGraphRepository.getInterestTopicsByStudent(student)
+
   private def mapToInterest(student: String, topics: List[Topic]): ApplicationResult[List[Interest]] =
     ApplicationResult(topics.map(topic => Interest(student, topic.name)))
 
