@@ -15,7 +15,9 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 @Singleton
-class RedisRepository @Inject()(val pool: Pool[Jedis])(implicit ec: ExecutionContext) extends RedisExecution with Logging {
+class RedisRepository @Inject()(val pool: Pool[Jedis])(implicit ec: ExecutionContext)
+    extends RedisExecution
+    with Logging {
 
   private val OK = "OK"
 
@@ -29,7 +31,8 @@ class RedisRepository @Inject()(val pool: Pool[Jedis])(implicit ec: ExecutionCon
     execute(false)(jedis => Option(jedis.set(key, value, params)).contains(OK))
   }
 
-  def get(key: String): Future[Either[ApplicationError, Option[String]]] = execute[Option[String]](None)(jedis => Option(jedis.get(key))).map(Right(_))
+  def get(key: String): Future[Option[String]] =
+    execute[Option[String]](None)(jedis => Option(jedis.get(key)))
 
   def remove(key: String): Future[Boolean] = execute(false)(_.del(key) > 0)
 
