@@ -14,8 +14,8 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class UserController @Inject()(
-                                 val loginService: UserService,
-                                 val controllerComponents: ControllerComponents
+    loginService: UserService,
+    val controllerComponents: ControllerComponents
   )(implicit executionContext: ExecutionContext)
     extends BaseController
     with Decodable
