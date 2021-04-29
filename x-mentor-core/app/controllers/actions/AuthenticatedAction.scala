@@ -11,7 +11,7 @@ import util.{JsonUtils, JwtUtil}
 import javax.inject.{Inject, Singleton}
 import repositories.RedisRepository
 
-import scala.concurrent.{CanAwait, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
 
 @Singleton
@@ -19,8 +19,7 @@ class AuthenticatedAction @Inject()(
     val parser: BodyParsers.Default,
     authConfiguration: AuthConfiguration,
     redisRepository: RedisRepository
-  )(implicit ec: ExecutionContext,
-    ca: CanAwait)
+  )(implicit ec: ExecutionContext)
     extends ActionBuilder[UserRequest, AnyContent]
     with ActionRefiner[Request, UserRequest]
     with Logging
@@ -29,14 +28,14 @@ class AuthenticatedAction @Inject()(
 
   def refine[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = {
     for {
-      publicKey   <- EitherT { getKey() }
+      publicKey   <- EitherT{getKey}
       _           <- EitherT(accessTokenValidation(request, publicKey))
       _           <- EitherT(idTokenValidation(request, publicKey))
       userRequest <- EitherT(userAction(request, publicKey))
     } yield userRequest
   }.value
 
-  private def getKey(): Future[Either[Result, String]] =
+  private def getKey: Future[Either[Result, String]] =
     redisRepository.get(PUBLIC_KEY).map {
       case Some(publicKey) => Right(publicKey)
       case None            => Left(BadRequest)
