@@ -33,10 +33,8 @@ class UserController @Inject()(
       .login(username, password)
       .map {
         case Right(accessData) =>
-          logger.info("Login success")
           Ok(accessData.asJson)
         case Left(error) =>
-          logger.info("Login failed")
           handleError(error)
       }
   }
@@ -53,10 +51,8 @@ class UserController @Inject()(
       .signup(username, password)
       .map {
         case Right(_) =>
-          logger.info("Signup success")
           Created
         case Left(error) =>
-          logger.info("Signup failed")
           handleError(error)
       }
   }

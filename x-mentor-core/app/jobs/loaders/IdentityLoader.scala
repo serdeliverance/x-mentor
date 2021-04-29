@@ -25,7 +25,7 @@ class IdentityLoader @Inject()(sender: Sender, configuration: AuthConfiguration,
     } match {
       case response: WSResponse => response.status match {
         case 200 =>
-          logger.info(s"Success login")
+          logger.info(s"Public key retrieved")
           decode[RealmResponse](response.body)
             .fold(
               error => {

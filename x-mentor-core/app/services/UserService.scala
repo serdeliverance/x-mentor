@@ -59,8 +59,6 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
       )
       val createUserHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
 
-      logger.info(s"$createUserBody")
-
       val result = for {
         authResponse   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders) }
         adminToken <- EitherT { handleAuthResponse(authResponse) }
@@ -89,21 +87,21 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
             accessData => ApplicationResult(accessData)
           )
       case 400 =>
-        logger.info(s"Invalid payload or data mismatch")
+        logger.warn(s"Invalid payload or data mismatch")
         decode[AuthErrorResponse](response.json.toString) match {
           case Left(_) => ApplicationResult.error(ClientError("Decoding error"))
           case Right(error) if error.errorDescription == "Account disabled" =>
             ApplicationResult.error(ClientError("Account disabled"))
         }
       case 401 =>
-        logger.info(s"Failing login into Auth server: Unauthorized.")
+        logger.warn(s"Failing login into Auth server: Unauthorized.")
         decode[AuthErrorResponse](response.json.toString) match {
           case Left(_) => ApplicationResult.error(AuthenticationError("Decoding error"))
           case Right(error) if error.errorDescription == "Invalid user credentials" =>
             ApplicationResult.error(AuthenticationError("Invalid credentials"))
         }
       case _ =>
-        logger.info("Failing connecting with auth server")
+        logger.warn("Failing connecting with auth server")
         ApplicationResult.error(EmptyResponse)
     }
 
@@ -118,30 +116,29 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
     )
 
   private def handleCreationResponse(response: WSResponse): ApplicationResult[Done] = {
-    logger.info(s"$response")
     response.status match {
       case 201 =>
         logger.info(s"Success signup")
         ApplicationResult(Done)
       case 400 =>
-        logger.info(s"Invalid payload or data mismatch")
+        logger.warn(s"Invalid payload or data mismatch")
         decode[AuthErrorResponse](response.json.toString) match {
           case Left(_) => ApplicationResult.error(ClientError("Decoding error"))
           case Right(error) if error.errorDescription == "Account disabled" =>
             ApplicationResult.error(ClientError("Account disabled"))
         }
       case 401 =>
-        logger.info(s"Failing login into Auth server: Unauthorized.")
+        logger.warn(s"Failing login into Auth server: Unauthorized.")
         decode[AuthErrorResponse](response.json.toString) match {
           case Left(_) => ApplicationResult.error(AuthenticationError("Decoding error"))
           case Right(error) if error.errorDescription == "Invalid user credentials" =>
             ApplicationResult.error(AuthenticationError("Invalid credentials"))
         }
       case 409 =>
-        logger.info("User already exists")
+        logger.warn("User already exists")
         ApplicationResult.error(UserAlreadyExistsError("User already exists"))
       case _ =>
-        logger.info("Failing connecting with auth server")
+        logger.warn("Failing connecting with auth server")
         ApplicationResult.error(EmptyResponse)
     }
   }
