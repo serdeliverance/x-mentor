@@ -8,17 +8,17 @@ import models.configurations.AuthConfiguration
 import play.api.Logging
 import play.api.libs.ws.WSResponse
 import sender.Sender
-import util.MapMarkerContext
 import io.circe.parser.decode
 import repositories.RedisRepository
+import util.MapMarkerContext
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class IdentityLoader @Inject()(sender: Sender, configuration: AuthConfiguration, redisRepository: RedisRepository)(implicit system: ActorSystem, ec: ExecutionContext) extends Logging {
 
-  def loadPublicKey()(implicit mapMarkerContext: MapMarkerContext
-  ): Future[Boolean] =
+  def loadPublicKey(): Future[Boolean] = {
+    implicit val markerContext: MapMarkerContext = MapMarkerContext.apply()
     Future {
       logger.info("Getting public key")
       sender.get(this.configuration.urls.realmUrl)
@@ -39,4 +39,5 @@ class IdentityLoader @Inject()(sender: Sender, configuration: AuthConfiguration,
           Future(false)
       }
     }
+  }
 }

@@ -1,14 +1,37 @@
 import React, { useState } from 'react'
-import { Button, Dialog, TextField, DialogActions, DialogContent, DialogTitle, Snackbar } from '@material-ui/core'
+import { Button, Dialog, TextField, DialogActions, DialogContent, Snackbar, Typography, Box, IconButton, makeStyles } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
 import MuiAlert from '@material-ui/lab/Alert'
+import ArrowBackIcon from '@material-ui/icons/ArrowBack'
 
 function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
+  return <MuiAlert elevation={6} variant="filled" {...props} />
 }
 
+const useStyles = makeStyles(() => ({
+
+  arrowF: {
+    animation: "$rotate 0.7s forwards"
+  },
+
+  arrowB: {
+    animation: "$rotate 0.7s backwards"
+  },
+
+  "@keyframes rotate": {
+    "0%": {
+      transform: "rotate(0)"
+    },
+    "100%": {
+      transform: "rotate(540deg)"
+    }
+  }
+}))
+
 export default function LoginModal({open, setOpen, setLoggedIn}) {
+  const classes = useStyles()
+
   const [loginForm, setLoginForm] = useState({
     username: "",
     password: ""
@@ -18,15 +41,17 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
     severity: "",
     message: ""
   })
+  const [isLogin, setIsLogin] = useState(false)
+  const [loginClass, setLoginClass] = useState("")
 
-  const handleLogin = async () => {
+  const handleAuth = async () => {
     try{
+      const endpoint = isLogin ? "/login" : "/signup"
       const response = await axios.post(
-        `${API_URL}/login`,
+        `${API_URL}${endpoint}`,
         loginForm
       )
       console.log(response)
-      setAlert({open: true, severity: "success", message: "Course created!"})
       setLoggedIn(true)
       setOpen(false)
     }
@@ -34,6 +59,17 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
       console.error(error)
       setAlert({open: true, severity: "error", message: "There was an error"})
     }
+  }
+
+  const handleArrow = () => {
+    console.log(loginClass)
+    if(!loginClass || loginClass === "arrowB"){
+      setLoginClass("arrowF")
+    }
+    else if(loginClass === "arrowF") {
+      setLoginClass("arrowB")
+    }
+    console.log(loginClass)
 
   }
   
@@ -51,7 +87,13 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
   return (
     <>
     <Dialog open={open} onClose={handleCancel} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Login</DialogTitle>
+        <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
+          <Typography>Login</Typography>
+          <IconButton color="inherit" className={loginClass} onClick={handleArrow}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography>Sign Up</Typography>
+        </Box>
         <DialogContent>
             <TextField
                 autoFocus
@@ -76,8 +118,8 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
             <Button onClick={handleCancel} color="primary">
                 Cancel
             </Button>
-            <Button onClick={handleLogin} color="primary">
-                Login
+            <Button onClick={handleAuth} color="primary">
+                { isLogin ? "Sign up" : "Login" }
             </Button>
         </DialogActions>
     </Dialog>
