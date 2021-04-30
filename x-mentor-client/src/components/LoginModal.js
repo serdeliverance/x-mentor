@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
-import { Button, Dialog, TextField, DialogActions, DialogContent, Snackbar, Typography, Box, IconButton, makeStyles } from '@material-ui/core'
+import { Button, Dialog, TextField, DialogActions, DialogContent, Snackbar, Typography, Box, makeStyles } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
 import MuiAlert from '@material-ui/lab/Alert'
-import ArrowBackIcon from '@material-ui/icons/ArrowBack'
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />
