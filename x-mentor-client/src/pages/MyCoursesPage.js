@@ -3,7 +3,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
-import { useLocation } from "react-router-dom"
 import { API_URL } from '../environment'
 
 const useStyles = makeStyles((theme) => ({
@@ -74,33 +73,47 @@ export default function CourseListPage() {
     severity: "",
     message: ""
   })
-  
+
   const handleChange = (event, value) => setPage(value)
 
   const fetchData = async () => {
-    const response = await axios(
-      `${API_URL}/student/courses?page=${page}`,
-      {
-        headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+    try{
+      const response = await axios(
+        `${API_URL}/student/courses?page=${page}`,
+        {
+          headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+          }
         }
-      }
-    )
-    setCourses(response.data.courses)
-    setTotal(Math.round(response.data.total / 6))
+      )
+      setCourses(response.data.courses)
+      setTotal(Math.round(response.data.total / 6))
+      setAlert({open: true, severity: "success", message: "Course created!"})
+    }
+    catch(error){
+      console.error(error)
+      setAlert({open: true, severity: "error", message: "There was an error"})
+    }
   }
 
   const enroll = async (courseId) => {
     console.log(courseId)
-    const response = await axios.post(
-      `${API_URL}/courses/${courseId}/enroll`,
-      {
-        headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+    try{
+      const response = await axios.post(
+        `${API_URL}/courses/${courseId}/enroll`,
+        {
+          headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+          }
         }
-      }
-    )
-    console.log(response)
+      )
+      console.log(response)
+      setAlert({open: true, severity: "success", message: "Enroll successfully"})
+    }
+    catch(error){
+      console.error(error)
+      setAlert({open: true, severity: "error", message: "There was an error"})
+    }
   }
 
   const startCourse = (courseId) => {

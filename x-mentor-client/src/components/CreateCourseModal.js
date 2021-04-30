@@ -47,10 +47,10 @@ export default function CreateCourseModal({open, setOpen}) {
                 console.log(response)
                 setAlert({open: true, severity: "success", message: "Course created!"})
                 setOpen(false)
-              } catch (error) {
+            } catch (error) {
                 console.error(error)
                 setAlert({open: true, severity: "error", message: "There was an error"})
-              }
+            }
         }
     }
 
