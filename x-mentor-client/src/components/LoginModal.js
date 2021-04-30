@@ -10,7 +10,6 @@ function Alert(props) {
 }
 
 const useStyles = makeStyles(() => ({
-
   arrowF: {
     animation: "$rotate 0.7s forwards"
   },
@@ -42,7 +41,6 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
     message: ""
   })
   const [isLogin, setIsLogin] = useState(false)
-  const [loginClass, setLoginClass] = useState("")
 
   const handleAuth = async () => {
     try{
@@ -52,6 +50,7 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
         loginForm
       )
       console.log(response)
+      localStorage.set("token", response)
       setLoggedIn(true)
       setOpen(false)
     }
@@ -61,18 +60,6 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
     }
   }
 
-  const handleArrow = () => {
-    console.log(loginClass)
-    if(!loginClass || loginClass === "arrowB"){
-      setLoginClass("arrowF")
-    }
-    else if(loginClass === "arrowF") {
-      setLoginClass("arrowB")
-    }
-    console.log(loginClass)
-
-  }
-  
   const handleTextField = (event) => {
     setLoginForm({
         ...loginForm,
@@ -89,9 +76,6 @@ export default function LoginModal({open, setOpen, setLoggedIn}) {
     <Dialog open={open} onClose={handleCancel} aria-labelledby="form-dialog-title">
         <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
           <Typography>Login</Typography>
-          <IconButton color="inherit" className={loginClass} onClick={handleArrow}>
-            <ArrowBackIcon />
-          </IconButton>
           <Typography>Sign Up</Typography>
         </Box>
         <DialogContent>

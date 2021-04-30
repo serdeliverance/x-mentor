@@ -42,7 +42,7 @@ class CourseController @Inject()(
     authenticatedAction.async(decode[CourseEnrollmentRequestDTO]) { request =>
       logger.info(s"Enroll in course $courseId")
       courseService
-        .enroll(courseId)
+        .enroll(courseId, request.student)
         .map(_ => Ok)
     }
 
@@ -75,7 +75,8 @@ class CourseController @Inject()(
         }
     }
 
-  def getByStudent(student: String, page: Int): Action[AnyContent] = authenticatedAction.async { _ =>
+  def getByStudent(page: Int): Action[AnyContent] = authenticatedAction.async { request =>
+    val student = request.student
     logger.info(s"Retrieving courses by student: $student")
     courseService
       .getCoursesByStudent(student, page)

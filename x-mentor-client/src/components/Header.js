@@ -90,6 +90,11 @@ export default function Header() {
     }
   }
 
+  const handleLogout = () => {
+    setLoggedIn(false)
+    localStorage.removeItem("token")
+  }
+
   return (
     <div className={classes.grow}>
       <AppBar position="static">
@@ -145,7 +150,7 @@ export default function Header() {
                     aria-controls='primary-search-account-menu'
                     aria-haspopup="true"
                     color="inherit"
-                    onClick={() => setLoggedIn(false)}
+                    onClick={() => handleLogout()}
                 >
                   <AccountCircle />
                 </IconButton>

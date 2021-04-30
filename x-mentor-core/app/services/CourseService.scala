@@ -3,18 +3,16 @@ package services
 import akka.Done
 import akka.Done.done
 import cats.data.EitherT
-import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY, ITEMS_PER_PAGE}
+import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY, ITEMS_PER_PAGE, USERS_FILTER}
 import global.{ApplicationResult, ApplicationResultExtended}
-import io.rebloom.client.Client
 import io.redisearch.{Document, Query}
-
 import javax.inject.{Inject, Singleton}
-import models.{Course, CourseResponse}
-import models.errors.{EmptyResponse, NotFoundError}
+import models.{Course, CourseResponse, Studying}
+import models.errors.EmptyResponse
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
-import repositories.{RediSearchRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
+import repositories.{RediSearchRepository, RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import cats.implicits._
 import io.circe.parser.decode
 import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
@@ -24,12 +22,12 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class CourseService @Inject()(
-    redisBloom: Client,
     redisJsonRepository: RedisJsonRepository,
     redisRepository: RedisRepository,
     redisGraphRepository: RedisGraphRepository,
     redisPool: Pool[Jedis],
-    rediSearchRepository: RediSearchRepository
+    rediSearchRepository: RediSearchRepository,
+    redisBloomRepository: RedisBloomRepository
   )(implicit ec: ExecutionContext)
     extends Logging
     with JsonUtils
@@ -48,10 +46,18 @@ class CourseService @Inject()(
       redisJsonRepository.set(key, CourseConverter.courseToMap(updatedCourse).asJava)
       redisInstance.incr(COURSE_LAST_ID_KEY)
       // Insert into bloom filter
-      redisBloom.add(COURSE_IDS_FILTER, currentIndex.toString)
+      redisBloomRepository.add(COURSE_IDS_FILTER, currentIndex.toString)
     }.map(_ => Right(done()))
 
-  def enroll(courseId: Long): ApplicationResult[Done] = ???
+  def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
+    logger.info(s"Enrolling user $username in course $courseId")
+    for {
+      _ <- EitherT(redisBloomRepository.exists(COURSE_IDS_FILTER, courseId.toString))
+      _ <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
+      course <- EitherT(retrieveById(courseId))
+      _ <- EitherT(redisGraphRepository.createStudyingRelation(Studying(username, course.title)))
+    } yield Done
+  }.value
 
   def retrieve(q: String, page: Int): ApplicationResult[CourseResponse] = {
     val offset      = (page - 1) * ITEMS_PER_PAGE
@@ -93,10 +99,10 @@ class CourseService @Inject()(
       )
     }
 
-  def retrieveById(courseId: Long): ApplicationResult[Course] =
-    if (redisBloom.exists(COURSE_IDS_FILTER, courseId.toString)) {
-      redisJsonRepository.get[Course](s"$COURSE_KEY$courseId")
-    } else {
-      ApplicationResult.error(NotFoundError("Course not found"))
-    }
+  def retrieveById(courseId: Long): ApplicationResult[Course] = {
+    for {
+      _      <- EitherT(redisBloomRepository.exists(COURSE_IDS_FILTER, courseId.toString))
+      course <- EitherT(redisJsonRepository.get[Course](s"$COURSE_KEY$courseId"))
+    } yield course
+  }.value
 }

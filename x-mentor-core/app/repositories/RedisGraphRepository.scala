@@ -5,15 +5,14 @@ import akka.Done.done
 import com.redislabs.redisgraph.impl.api.RedisGraph
 import constants.ITEMS_PER_PAGE
 import global.{ApplicationResult, ApplicationResultExtended}
-import jobs.loaders.Studying
 import models.configurations.RedisGraphConfiguration
-import models._
+import models.{Studying, _}
 import play.api.Logging
 import repositories.RedisGraphRepository._
 import repositories.graph._
 import util.ApplicationResultUtils
-
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.ExecutionContext
 
 @Singleton

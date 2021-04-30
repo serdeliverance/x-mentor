@@ -63,24 +63,28 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
-
 export default function CourseListPage() {
   const classes = useStyles()
-  const query = useQuery()
-  const prevQueryParam = useRef()
   const [courses, setCourses] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
   const [currentCourse, setCurrentCourse] = useState()
-
+  const [alert, setAlert] = useState({
+    open: false,
+    severity: "",
+    message: ""
+  })
+  
   const handleChange = (event, value) => setPage(value)
 
   const fetchData = async () => {
     const response = await axios(
-      `${API_URL}/courses?q=${query.get('q')}&page=${page}`,
+      `${API_URL}/student/courses?page=${page}`,
+      {
+        headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+        }
+      }
     )
     setCourses(response.data.courses)
     setTotal(Math.round(response.data.total / 6))
@@ -90,6 +94,11 @@ export default function CourseListPage() {
     console.log(courseId)
     const response = await axios.post(
       `${API_URL}/courses/${courseId}/enroll`,
+      {
+        headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+        }
+      }
     )
     console.log(response)
   }
@@ -97,23 +106,13 @@ export default function CourseListPage() {
   const startCourse = (courseId) => {
     console.log("Start course: " + courseId)
   }
-
-  // TODO Arreglar
-  useEffect(() => {
-    if(query.get('q') !== prevQueryParam.current){
-      fetchData()
-      setPage(1)
-      prevQueryParam.current = query.get('q')
-    }
-  }, [query])
   
   useEffect(() => {
-    if(query.get('q') === prevQueryParam.current){
-      fetchData()
-    }
+    fetchData()
   }, [page])
 
   return (
+    <>
     <div className={classes.root}>
       {courses.length > 0 ?
       <>
@@ -153,5 +152,11 @@ export default function CourseListPage() {
       </Grid>
     }
   </div>
+  <Snackbar open={alert.open} autoHideDuration={6000} onClose={() => setAlert({...alert, open: false})}>
+      <Alert onClose={() => setAlert({...alert, open: false})} severity={alert.severity}>
+          {alert.message}
+      </Alert>
+  </Snackbar>
+  </>
   );
 }

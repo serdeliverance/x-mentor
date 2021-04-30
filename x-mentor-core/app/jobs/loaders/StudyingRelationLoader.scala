@@ -6,9 +6,11 @@ import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
 import play.api.Logging
 import repositories.RedisGraphRepository
-
 import java.nio.file.Paths
+
 import javax.inject.{Inject, Singleton}
+import models.Studying
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

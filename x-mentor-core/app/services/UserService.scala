@@ -18,55 +18,69 @@ import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 import cats.implicits._
+import constants.USERS_FILTER
 import play.api.libs.json._
+import repositories.RedisBloomRepository
 
 @Singleton
-class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(implicit ec: ExecutionContext)
+class UserService @Inject()(
+    sender: Sender,
+    configuration: AuthConfiguration,
+    redisBloomRepository: RedisBloomRepository
+  )(implicit ec: ExecutionContext)
     extends Logging
     with CirceImplicits {
 
   def login(
-    username: String,
-    password: String
-  )(implicit mapMarkerContext: MapMarkerContext
-  ): ApplicationResult[AccessData] = {
+      username: String,
+      password: String
+    )(implicit mapMarkerContext: MapMarkerContext
+    ): ApplicationResult[AccessData] = {
     logger.info(s"login in user: $username")
 
     val reqBody    = createAuthRequestBody(username, password, this.configuration.clientId)
     val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
-    val result = for {
+    for {
+      _            <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       authResponse <- EitherT { sender.post(this.configuration.urls.tokenUrl, reqBody, reqHeaders) }
       accessData   <- EitherT { handleAuthResponse(authResponse) }
     } yield accessData
-    result.value
-  }
+  }.value
 
   def signup(
-    username: String,
-    password: String
-  )(implicit mapMarkerContext: MapMarkerContext
-  ): ApplicationResult[Done] = {
-      logger.info(s"Creating user: $username")
+      username: String,
+      password: String
+    )(implicit mapMarkerContext: MapMarkerContext
+    ): ApplicationResult[Done] = {
+    logger.info(s"Creating user: $username")
 
-      val requestTokenBody    = createAuthRequestBody(this.configuration.users.admin.username, this.configuration.users.admin.password, this.configuration.adminClientId)
-      val requestTokenHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
+    val requestTokenBody = createAuthRequestBody(this.configuration.users.admin.username,
+                                                 this.configuration.users.admin.password,
+                                                 this.configuration.adminClientId)
+    val requestTokenHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
-      val createUserBody    = Json.obj(
-        "username" -> username,
-        "enabled" -> true,
-        "credentials" -> Json.arr(Json.obj("type" -> "password","value" -> username, "temporary" -> false))
-      )
-      val createUserHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
+    val createUserBody = Json.obj(
+      "username"    -> username,
+      "enabled"     -> true,
+      "credentials" -> Json.arr(Json.obj("type" -> "password", "value" -> username, "temporary" -> false))
+    )
+    val createUserHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
 
-      val result = for {
-        authResponse   <- EitherT { sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders) }
-        adminToken <- EitherT { handleAuthResponse(authResponse) }
-        creationResponse <- EitherT { sender.post(this.configuration.urls.usersUrl, createUserBody, createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer ${adminToken.accessToken}"))) }
-        response <- EitherT { handleCreationResponse(creationResponse) }
-      } yield response
-      result.value
-  }
+    for {
+      _ <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
+      authResponse <- EitherT {
+        sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders)
+      }
+      adminToken <- EitherT { handleAuthResponse(authResponse) }
+      creationResponse <- EitherT {
+        sender.post(this.configuration.urls.usersUrl,
+                    createUserBody,
+                    createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer ${adminToken.accessToken}")))
+      }
+      response <- EitherT { handleCreationResponse(creationResponse) }
+    } yield response
+  }.value
 
   /**
     * Handles the response from Auth service and matches it with the corresponding [[ApplicationResult]]
@@ -115,7 +129,7 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
       this.configuration.scope
     )
 
-  private def handleCreationResponse(response: WSResponse): ApplicationResult[Done] = {
+  private def handleCreationResponse(response: WSResponse): ApplicationResult[Done] =
     response.status match {
       case 201 =>
         logger.info(s"Success signup")
@@ -141,6 +155,5 @@ class UserService @Inject()(sender: Sender, configuration: AuthConfiguration)(im
         logger.warn("Failing connecting with auth server")
         ApplicationResult.error(EmptyResponse)
     }
-  }
 
 }
