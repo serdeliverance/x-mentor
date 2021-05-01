@@ -4,7 +4,7 @@ import com.redislabs.redisgraph.graph_entities.Node
 import io.circe.Encoder
 import io.circe.generic.extras.semiauto.deriveConfiguredEncoder
 import models.json.CirceImplicits
-import repositories.graph.NodeDecoder
+import repositories.graph.decoder.NodeDecoder
 
 /**
   * Represents a course in the context of graph. This difference was created to avoid conflicts with Course model,

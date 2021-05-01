@@ -4,7 +4,7 @@ import com.redislabs.redisgraph.graph_entities.Node
 import io.circe.Encoder
 import io.circe.generic.extras.semiauto.deriveConfiguredEncoder
 import models.json.CirceImplicits
-import repositories.graph.NodeDecoder
+import repositories.graph.decoder.NodeDecoder
 
 // TODO analyze if id field is really needed
 case class Topic(id: Option[Long], name: String, description: String)

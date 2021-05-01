@@ -1,8 +1,8 @@
-package repositories.graph
+package repositories.graph.decoder
 
 import com.redislabs.redisgraph.ResultSet
 import com.redislabs.redisgraph.graph_entities.Node
-import repositories.graph.NodeDecoderSyntax.NodeDecoderOps
+import NodeDecoderSyntax.NodeDecoderOps
 
 import scala.collection.mutable.{ListBuffer => MList}
 
