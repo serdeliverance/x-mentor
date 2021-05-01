@@ -100,6 +100,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides
   def recommendationConfig(): RecommendationConfig = RecommendationConfig(
-    coursesToRecommend = configuration.get[Int](MAX_COURSES_TO_RECOMMEND)
+    enrolledRecommendationSize = configuration.get[Int](ENROLLED_RECOMMENDATION_SIZE),
+    interestRecommendationSize = configuration.get[Int](INTEREST_RECOMMENDATION_SIZE),
+    discoveryRecommendationSize = configuration.get[Int](DISCOVER_RECOMMENDATION_SIZE)
   )
 }

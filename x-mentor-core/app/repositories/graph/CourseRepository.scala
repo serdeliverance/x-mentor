@@ -29,6 +29,9 @@ class CourseRepository @Inject()(
   def getCoursesByStudent(student: String): ApplicationResult[List[CourseNode]] =
     redisGraphRepository.executeQuery[CourseNode](coursesByStudentQuery(student), CourseTag)
 
+  def getCoursesByTopic(topic: Topic): ApplicationResult[List[CourseNode]] =
+    redisGraphRepository.executeQuery[CourseNode](coursesByTopicQuery(topic), CourseTag)
+
   def getCoursesByStudentPaginated(student: String, page: Int): ApplicationResult[List[CourseNode]] = {
     val offset = (page - 1) * ITEMS_PER_PAGE
     redisGraphRepository
@@ -44,7 +47,7 @@ class CourseRepository @Inject()(
   def getCoursesByStudentAndTopicInBulk(students: List[Student], topic: Topic): ApplicationResult[Seq[CourseNode]] =
     sequence {
       students.map(student => getCoursesByStudentAndTopic(student, topic))
-    }.innerMap(result => Right(result.flatten))
+    }.innerMap(result => Right(result.flatten.distinct))
 
   def createCourse(course: Course): ApplicationResult[Done] = {
     logger.info(s"Creating course: $course")
@@ -58,6 +61,9 @@ object CourseRepository {
 
   private val coursesByStudentQuery = (student: String) =>
     s"MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+
+  private val coursesByTopicQuery = (topic: Topic) =>
+    s"MATCH (topic)-[:has]->(course) WHERE topic.name = '${topic.name}' RETURN course"
 
   private val coursesRatedByStudent = (student: String) =>
     s"MATCH (student)-[:rates]->(course) where student.username ='$student' RETURN course"

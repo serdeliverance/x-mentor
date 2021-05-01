@@ -27,5 +27,7 @@ package object configurations {
   val AUTH_LOGOUT_URL         = "auth.urls.logout"
   val AUTH_PUBLIC_KEY         = "auth.publicKey"
 
-  val MAX_COURSES_TO_RECOMMEND = "recommendations.max-courses-to-recommend"
+  val ENROLLED_RECOMMENDATION_SIZE = "recommendations.enrolled-recommendation-size"
+  val INTEREST_RECOMMENDATION_SIZE = "recommendations.interest-recommendation-size"
+  val DISCOVER_RECOMMENDATION_SIZE = "recommendations.discover-recommendation-size"
 }

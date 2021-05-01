@@ -1,5 +1,7 @@
 package util
 
+import global.ApplicationResult
+
 import scala.util.Random
 
 trait RandomUtils {
@@ -9,4 +11,7 @@ trait RandomUtils {
     val random = new Random()
     min + random.nextInt((maxValue - min) + 1)
   }
+
+  def takeRandomFromList[T](list: List[T]): ApplicationResult[T] =
+    ApplicationResult(list(randomInt(list.length - 1)))
 }

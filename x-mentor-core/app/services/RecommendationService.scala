@@ -1,9 +1,16 @@
 package services
 
+import cats.data.EitherT
+import cats.implicits._
 import global.ApplicationResult
-import models.CourseNode
+import models.dtos.responses.RecommendationResponseDTO
 import play.api.Logging
-import services.recommendations.RecommendationTopicStrategy
+import repositories.graph.StudentRepository
+import services.recommendations.{
+  DiscoverRecommendationStrategy,
+  EnrolledRecommendationStrategy,
+  InterestRecommendationStrategy
+}
 import util.RandomUtils
 
 import javax.inject.{Inject, Singleton}
@@ -11,28 +18,20 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class RecommendationService @Inject()(
-    recommendationTopicStrategy: RecommendationTopicStrategy
+    studentRepository: StudentRepository,
+    enrolledRecommendationStrategy: EnrolledRecommendationStrategy,
+    discoverRecommendationStrategy: DiscoverRecommendationStrategy,
+    interestRecommendationStrategy: InterestRecommendationStrategy
   )(implicit ec: ExecutionContext)
     extends Logging
     with RandomUtils {
 
-  def getRecommendation(student: String): ApplicationResult[Seq[CourseNode]] =
-    recommendationTopicStrategy
-      .recommendationBasedOnEnrolledTopic(student)
-//      .recoverWith { _ =>
-//        logger.info("fallback strategy one: get recommendation based on interests")
-//        recommendationBasedOnInterest(student)
-//      }
-//      .recoverWith { _ =>
-//        logger.info("fallback strategy two: get recommendation based on random topic")
-//        recommendationBasedOnRandomTopic(student)
-//      }
-//      .recover { _ =>
-//        logger.info("no recommendations could be found. Return empty response")
-//        Right(List.empty[CourseNode])
-//      }
-
-  def recommendationBasedOnInterest(student: String): ApplicationResult[List[CourseNode]] = ???
-
-  def recommendationBasedOnRandomTopic(student: String): ApplicationResult[List[CourseNode]] = ???
+  def getRecommendation(username: String): ApplicationResult[RecommendationResponseDTO] = {
+    for {
+      student                     <- EitherT { studentRepository.getStudent(username) }
+      enrolledBasedRecommendation <- EitherT { enrolledRecommendationStrategy.recommend(student) }
+      interestBasedRecommendation <- EitherT { interestRecommendationStrategy.recommend(student) }
+      discoverRecommendation      <- EitherT { discoverRecommendationStrategy.recommend(student) }
+    } yield RecommendationResponseDTO(enrolledBasedRecommendation, interestBasedRecommendation, discoverRecommendation)
+  }.value
 }
