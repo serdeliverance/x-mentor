@@ -1,14 +1,25 @@
 import React, { useState } from 'react'
-import { Button, Dialog, TextField, DialogActions, DialogContent, Snackbar, Typography, Box } from '@material-ui/core'
+import { Button, Dialog, TextField, DialogActions, DialogContent, Snackbar, DialogTitle, Tooltip, makeStyles } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
 import MuiAlert from '@material-ui/lab/Alert'
+import HelpIcon from '@material-ui/icons/Help'
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />
 }
 
+const useStyles = makeStyles(() => ({
+  title: {
+    textAlign: "center"
+  },
+  tooltip: {
+    maxWidth: "42ch"
+  }
+}))
+
 export default function LoginModal({settings, setSettings, setLoggedIn}) {
+  const classes = useStyles()
 
   const [loginForm, setLoginForm] = useState({
     username: "",
@@ -27,7 +38,7 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
         loginForm
       )
       console.log(response)
-      localStorage.setItem("token", response)
+      localStorage.setItem("token", JSON.stringify(response.data))
       setLoggedIn(true)
       setSettings({...settings, open: false})
     }
@@ -51,9 +62,13 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
   return (
     <>
     <Dialog open={settings.open} onClose={handleCancel} aria-labelledby="form-dialog-title">
-        <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
-          <Typography>{settings.title}</Typography>
-        </Box>
+        <DialogTitle className={classes.title}>
+          {settings.title}
+          <Tooltip fontSize="small" classes={{ tooltip: classes.tooltip }} placement="right"
+            title="Psst... you can create an user or use this one username: codi.sipes	 / password: codi.sipes	">
+            <HelpIcon/>
+          </Tooltip>
+        </DialogTitle>
         <DialogContent>
             <TextField
                 autoFocus

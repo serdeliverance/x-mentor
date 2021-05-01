@@ -2,7 +2,7 @@ GET     /healthcheck                           controllers.HealthcheckController
 POST    /ratings                               controllers.RatingController.rate()
 GET     /courses                               controllers.CourseController.retrieve(q: String, page: Int)
 POST    /courses                               controllers.CourseController.create()
-GET     /student/courses                      controllers.CourseController.getByStudent(page: Int)
+GET     /student/courses                       controllers.CourseController.getByStudent(page: Int)
 GET     /courses/:courseId                     controllers.CourseController.retrieveById(courseId: Long)
 POST    /courses/:courseId/enroll              controllers.CourseController.enroll(courseId: Long)
 GET     /topics                                controllers.TopicController.getAll()

@@ -17,7 +17,7 @@ class RedisBloomRepository @Inject()(redisBloom: Client) extends Logging {
     Try(redisBloom.add(filter, value))
       .fold(
         _ => {
-          logger.error(s"Error adding value to redis blooms.")
+          logger.error(s"Error adding value to bloom filter.")
           ApplicationResult.error(EmptyResponse)
         },
         _ => ApplicationResult(done())
@@ -27,7 +27,7 @@ class RedisBloomRepository @Inject()(redisBloom: Client) extends Logging {
     Try(redisBloom.exists(filter, value))
       .fold(
         _ => {
-          logger.error(s"Error adding value to redis blooms.")
+          logger.error(s"Error looking for value in bloom filter.")
           ApplicationResult.error(EmptyResponse)
         },
         response =>

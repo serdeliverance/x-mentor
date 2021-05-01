@@ -12,7 +12,13 @@ import models.errors.EmptyResponse
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
-import repositories.{RediSearchRepository, RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
+import repositories.{
+  RediSearchRepository,
+  RedisBloomRepository,
+  RedisGraphRepository,
+  RedisJsonRepository,
+  RedisRepository
+}
 import cats.implicits._
 import io.circe.parser.decode
 import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
@@ -52,10 +58,9 @@ class CourseService @Inject()(
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
     logger.info(s"Enrolling user $username in course $courseId")
     for {
-      _ <- EitherT(redisBloomRepository.exists(COURSE_IDS_FILTER, courseId.toString))
-      _ <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
+      _      <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       course <- EitherT(retrieveById(courseId))
-      _ <- EitherT(redisGraphRepository.createStudyingRelation(Studying(username, course.title)))
+      _      <- EitherT(redisGraphRepository.createStudyingRelation(Studying(username, course.title)))
     } yield Done
   }.value
 

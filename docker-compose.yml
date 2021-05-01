@@ -16,8 +16,8 @@ services:
   x-redis:
     image: redislabs/redismod:feature-search-json
     restart: always
-    volumes:
-      - ./redis-data:/data
+    #volumes:
+    #  - ./redis-data:/data
     ports:
       - 6379:6379
 

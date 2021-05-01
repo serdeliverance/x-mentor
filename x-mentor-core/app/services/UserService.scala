@@ -36,7 +36,7 @@ class UserService @Inject()(
       password: String
     )(implicit mapMarkerContext: MapMarkerContext
     ): ApplicationResult[AccessData] = {
-    logger.info(s"login in user: $username")
+    logger.info(s"login with user: $username")
 
     val reqBody    = createAuthRequestBody(username, password, this.configuration.clientId)
     val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
@@ -90,7 +90,7 @@ class UserService @Inject()(
   private def handleAuthResponse(response: WSResponse): ApplicationResult[AccessData] =
     response.status match {
       case 200 =>
-        logger.info(s"Success login")
+        logger.info(s"Login Successful")
         decode[AccessData](response.body)
           .fold(
             error => {

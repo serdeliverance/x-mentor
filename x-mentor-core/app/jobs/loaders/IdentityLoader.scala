@@ -1,7 +1,9 @@
 package jobs.loaders
 
 import akka.actor.ActorSystem
+import cats.data.EitherT
 import constants.PUBLIC_KEY
+import global.ApplicationResult
 import javax.inject.{Inject, Singleton}
 import models.auth.RealmResponse
 import models.configurations.AuthConfiguration
@@ -11,6 +13,7 @@ import sender.Sender
 import io.circe.parser.decode
 import repositories.RedisRepository
 import util.MapMarkerContext
+import cats.implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,25 +22,31 @@ class IdentityLoader @Inject()(sender: Sender, configuration: AuthConfiguration,
 
   def loadPublicKey(): Future[Boolean] = {
     implicit val markerContext: MapMarkerContext = MapMarkerContext.apply()
-    Future {
-      logger.info("Getting public key")
-      sender.get(this.configuration.urls.realmUrl)
-    } match {
-      case response: WSResponse => response.status match {
+    logger.info("Getting public key")
+
+    for {
+      response <- EitherT(sender.get(this.configuration.urls.realmUrl))
+      result <- EitherT(handleResponse(response))
+    } yield result
+  }.value.map(_.getOrElse(false))
+
+    def handleResponse(response: WSResponse): ApplicationResult[Boolean] =
+      response.status match {
         case 200 =>
           logger.info(s"Public key retrieved")
           decode[RealmResponse](response.body)
             .fold(
               error => {
                 logger.error(s"Error parsing auth server response $error")
-                Future(false)
+                ApplicationResult(false)
               },
-              realmResponse => redisRepository.set(PUBLIC_KEY, realmResponse.publicKey)
+              realmResponse => redisRepository.set(PUBLIC_KEY, realmResponse.publicKey).map {
+                case result => Right(result)
+                case _ => Right(false)
+              }
             )
         case _ =>
-          logger.info("Failing connecting with auth server")
-          Future(false)
+          logger.error("Failing connecting with auth server")
+          ApplicationResult(false)
       }
-    }
-  }
 }
