@@ -73,10 +73,6 @@ class CourseLoader @Inject()(
         .mapAsync(1)(course => redisBloomRepository.add(COURSE_IDS_FILTER, course.id.get.toString))
         .to(Sink.ignore)
 
-//      val redisGraphSink = Flow[Course]
-//        .mapAsync(1)(redisGraphRepository.createCourse)
-//        .to(Sink.ignore)
-
       val redisJsonSink = Flow[Course]
         .map(course => (s"$COURSE_KEY${course.id.get}", course))
         .mapAsync(1)(courseIdAndCourse =>
@@ -86,7 +82,6 @@ class CourseLoader @Inject()(
       val broadcast = builder.add(Broadcast[Course](2))
 
       source ~> convertToJson ~> broadcast ~> redisBloomSink
-//      broadcast ~> redisGraphSink
       broadcast ~> redisJsonSink
       ClosedShape
     })

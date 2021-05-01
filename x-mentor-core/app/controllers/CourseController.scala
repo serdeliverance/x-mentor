@@ -61,7 +61,7 @@ class CourseController @Inject()(
   }
 
   def retrieveById(courseId: Long): Action[AnyContent] =
-    authenticatedAction.async { _ =>
+    Action.async { _ =>
       logger.info(s"Retrieve course $courseId")
       courseService
         .retrieveById(courseId)

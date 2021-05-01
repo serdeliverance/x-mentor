@@ -52,7 +52,6 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1, 1, 1, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create('width'),
-
   },
   link: {
     padding: theme.spacing(1, 4, 1, 0),
@@ -66,6 +65,9 @@ const useStyles = makeStyles((theme) => ({
   errorBorder: {
     border: "red solid 1px",
     borderRadius: "4px"
+  },
+  loginBtn: {
+    marginRight: "2rem"
   }
 }));
 
@@ -73,9 +75,13 @@ export default function Header() {
   const classes = useStyles()
   const history = useHistory()
   const [loggedIn, setLoggedIn] = useState(false);
-  const [openLogin, setOpenLogin] = useState(false);
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [searchError, setSearchError] = useState(false)
+  const [authSettings, setAuthSettings] = useState({
+    open: false,
+    endpoint: "",
+    title: ""
+  })
 
   const keyPress = (e) => {
     const value = e.target.value
@@ -93,6 +99,22 @@ export default function Header() {
   const handleLogout = () => {
     setLoggedIn(false)
     localStorage.removeItem("token")
+  }
+
+  const handleLogin = () => {
+    setAuthSettings({
+      open: true,
+      endpoint: "/login",
+      title: "Login"
+    })
+  }
+
+  const handleSignup = () => {
+    setAuthSettings({
+      open: true,
+      endpoint: "/signup",
+      title: "Sign Up"
+    })
   }
 
   return (
@@ -160,8 +182,9 @@ export default function Header() {
             :
             <>
             <div>
-                <Button variant="outlined" color="inherit" onClick={() => setOpenLogin(true)}>Login</Button>
-                <LoginModal open={openLogin} setOpen={setOpenLogin} setLoggedIn={setLoggedIn}></LoginModal>
+                <Button variant="outlined" color="inherit" onClick={handleLogin} className={classes.loginBtn}>Login</Button>
+                <Button variant="outlined" color="inherit" onClick={handleSignup}>Sign Up</Button>
+                <LoginModal settings={authSettings} setSettings={setAuthSettings} setLoggedIn={setLoggedIn}></LoginModal>
             </div>
             </>
         }

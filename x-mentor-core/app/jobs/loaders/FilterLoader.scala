@@ -13,10 +13,13 @@ class FilterLoader @Inject()(redisBloom: Client)(implicit system: ActorSystem, e
 
   def loadFilters(): Future[Unit] =
     Future {
-      logger.info("Creating bloom filters")
-      redisBloom.delete(COURSE_IDS_FILTER)
-      redisBloom.delete(USERS_FILTER)
+      logger.info("Deleting bloom filters")
+      val result = redisBloom.delete(COURSE_IDS_FILTER)
+      logger.info(s"$COURSE_IDS_FILTER filter removed: $result")
+      val result2 = redisBloom.delete(USERS_FILTER)
+      logger.info(s"$USERS_FILTER filter removed: $result2")
 
+      logger.info("Creating bloom filters")
       redisBloom.createFilter(COURSE_IDS_FILTER, 10000, 0.0001)
       redisBloom.createFilter(USERS_FILTER, 10000, 0.0001)
     }

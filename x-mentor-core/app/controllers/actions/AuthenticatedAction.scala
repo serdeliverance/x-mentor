@@ -28,7 +28,7 @@ class AuthenticatedAction @Inject()(
 
   def refine[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = {
     for {
-      publicKey   <- EitherT{getKey}
+      publicKey   <- EitherT(getKey)
       _           <- EitherT(accessTokenValidation(request, publicKey))
       _           <- EitherT(idTokenValidation(request, publicKey))
       userRequest <- EitherT(userAction(request, publicKey))

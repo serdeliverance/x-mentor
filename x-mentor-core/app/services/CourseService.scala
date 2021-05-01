@@ -3,29 +3,38 @@ package services
 import akka.Done
 import akka.Done.done
 import cats.data.EitherT
-import cats.implicits._
-import constants._
+import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY, ITEMS_PER_PAGE, USERS_FILTER}
 import global.{ApplicationResult, ApplicationResultExtended}
-import io.circe.parser.decode
 import io.redisearch.{Document, Query}
-import models.errors.EmptyResponse
+
+import javax.inject.{Inject, Singleton}
 import models.{Course, CourseResponse, Studying}
+import models.errors.EmptyResponse
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
+import repositories.{
+  RediSearchRepository,
+  RedisBloomRepository,
+  RedisGraphRepository,
+  RedisJsonRepository,
+  RedisRepository
+}
+import cats.implicits._
+import io.circe.parser.decode
 import repositories.graph.{CourseRepository, RelationsRepository}
-import repositories._
 import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class CourseService @Inject()(
     courseRepository: CourseRepository,
     relationsRepository: RelationsRepository,
     redisJsonRepository: RedisJsonRepository,
+    redisRepository: RedisRepository,
+    redisGraphRepository: RedisGraphRepository,
     redisPool: Pool[Jedis],
     rediSearchRepository: RediSearchRepository,
     redisBloomRepository: RedisBloomRepository
@@ -53,7 +62,6 @@ class CourseService @Inject()(
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
     logger.info(s"Enrolling user $username in course $courseId")
     for {
-      _      <- EitherT(redisBloomRepository.exists(COURSE_IDS_FILTER, courseId.toString))
       _      <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       course <- EitherT(retrieveById(courseId))
       _      <- EitherT(relationsRepository.createStudyingRelation(Studying(username, course.title)))

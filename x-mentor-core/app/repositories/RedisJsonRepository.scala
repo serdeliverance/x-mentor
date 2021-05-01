@@ -2,14 +2,12 @@ package repositories
 
 import akka.Done
 import akka.Done.done
-import com.google.gson.Gson
 import com.redislabs.modules.rejson.JReJSON
 import global.ApplicationResult
 import io.circe.Decoder
 import models.errors.{ClientError, UnexpectedError}
 import play.api.Logging
 import javax.inject.{Inject, Singleton}
-import com.redislabs.modules.rejson.Path
 
 import scala.util.Try
 import io.circe.parser.decode
@@ -19,17 +17,18 @@ import util.JsonUtils
 class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonUtils {
 
   def get[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[T] =
-    Try(redisJson.get[String](key))
+    Try(redisJson.get[T](key))
       .fold(
         error => {
-          logger.info(s"Error getting key: $key from redisJSON")
+          logger.error(s"Error getting key: $key from redisJSON. Error: $error")
           ApplicationResult.error(UnexpectedError(error))
         },
         jsonString => {
-          decode[T](formatJsonResponse(jsonString))
+          logger.info(s"$jsonString")
+          decode[T](formatJsonResponse(jsonString.toString))
             .fold(
               _ => {
-                logger.info(s"Error decoding $jsonString")
+                logger.error(s"Error decoding $jsonString")
                 ApplicationResult.error(ClientError("Error decoding redisJSON response"))
               },
               value => ApplicationResult(value)
@@ -38,10 +37,8 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
       )
 
   def set(key: String, jsonString: Object): ApplicationResult[Done] = {
-    val gson: Gson = new Gson
-
     logger.info(s"Uploading json with key: $key to redisJson")
-    Try(redisJson.set(key, jsonString, new Path("$")))
+    Try(redisJson.set(key, jsonString))
       .fold(
         error => {
           logger.info(s"Error uploading json to redisJson. Key: $key")

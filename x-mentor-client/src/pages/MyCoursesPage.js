@@ -87,13 +87,13 @@ export default function CourseListPage() {
         `${API_URL}/student/courses?page=${page}`,
         {
           headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))["access_token"]}`,
+            "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
           }
         }
       )
       setCourses(response.data.courses)
       setTotal(Math.round(response.data.total / 6))
-      setAlert({open: true, severity: "success", message: "Course created!"})
     }
     catch(error){
       console.error(error)
@@ -101,28 +101,26 @@ export default function CourseListPage() {
     }
   }
 
-  const enroll = async (courseId) => {
-    console.log(courseId)
+  const startCourse = async (courseId) => {
+    console.log("Start course: " + courseId)
     try{
-      const response = await axios.post(
+      /*const response = await axios.post(
         `${API_URL}/courses/${courseId}/enroll`,
+        data,
         {
           headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")["accessToken"]}`
+            Authorization: `Bearer ${localStorage.getItem("token")["access_token"]}`,
+            "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
+            "Content-Type": "application/json"
           }
         }
       )
-      console.log(response)
-      setAlert({open: true, severity: "success", message: "Enroll successfully"})
+      console.log(response)*/
     }
     catch(error){
       console.error(error)
       setAlert({open: true, severity: "error", message: "There was an error"})
     }
-  }
-
-  const startCourse = (courseId) => {
-    console.log("Start course: " + courseId)
   }
   
   useEffect(() => {
