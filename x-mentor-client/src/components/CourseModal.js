@@ -14,7 +14,7 @@ export default function CourseModal({open, setOpen, course}) {
 
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">{course?.title}</DialogTitle>
+        <DialogTitle id="form-dialog-title"><strong>{course?.title}</strong></DialogTitle>
         <DialogContent dividers>
             <Typography>{course?.description}</Typography>
         </DialogContent>

@@ -78,6 +78,7 @@ export default function Header() {
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [searchError, setSearchError] = useState(false)
   const [authSettings, setAuthSettings] = useState({
+    mode: "",
     open: false,
     endpoint: "",
     title: ""
@@ -86,13 +87,8 @@ export default function Header() {
   const keyPress = (e) => {
     const value = e.target.value
     if(e.keyCode === 13){
-      if(value.length >= 3){
-        setSearchError(false)
-        history.push(`/courses?q=${value}`)
-      }
-      else{
-        setSearchError(true)
-      }
+      setSearchError(false)
+      history.push(`/courses?q=${value}`)
     }
   }
 
@@ -103,6 +99,7 @@ export default function Header() {
 
   const handleLogin = () => {
     setAuthSettings({
+      mode: "login",
       open: true,
       endpoint: "/login",
       title: "Login"
@@ -111,6 +108,7 @@ export default function Header() {
 
   const handleSignup = () => {
     setAuthSettings({
+      mode: "signup",
       open: true,
       endpoint: "/signup",
       title: "Sign Up"
@@ -128,19 +126,17 @@ export default function Header() {
                 <div className={classes.searchIcon}>
                     <SearchIcon />
                 </div>
-                <Tooltip title="Please use at least 3 characters" placement="bottom-start">
-                  <InputBase
-                      placeholder="Search…"
-                      classes={{
-                          root: classes.inputRoot,
-                          input: classes.inputInput,
-                      }}
-                      className={searchError ? `${classes.errorBorder}` : "" }
-                      inputProps={{ 'aria-label': 'search' }}
-                      onChange={() => {}}
-                      onKeyDown={keyPress}
-                  />
-                </Tooltip>
+                <InputBase
+                    placeholder="Search…"
+                    classes={{
+                        root: classes.inputRoot,
+                        input: classes.inputInput,
+                    }}
+                    className={searchError ? `${classes.errorBorder}` : "" }
+                    inputProps={{ 'aria-label': 'search' }}
+                    onChange={() => {}}
+                    onKeyDown={keyPress}
+                />
             </div>
             <div className={classes.grow} />
             {loggedIn ?
@@ -156,7 +152,7 @@ export default function Header() {
                   </IconButton>
                 </Tooltip>
                 <Link className={classes.link} component="button" onClick={() => history.push("/my/courses")} style={{"padding": "8px 24px 8px 0px"}} color="inherit">My Courses</Link>
-                <IconButton aria-label="show 4 new mails" color="inherit">
+                {false && <><IconButton aria-label="show 4 new mails" color="inherit">
                     <Badge badgeContent={4} color="secondary">
                         <MailIcon />
                     </Badge>
@@ -165,7 +161,7 @@ export default function Header() {
                     <Badge badgeContent={17} color="secondary">
                         <NotificationsIcon />
                     </Badge>
-                </IconButton>
+                </IconButton></>}
                 <IconButton
                     edge="end"
                     aria-label="account of current user"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography, Snackbar } from '@material-ui/core'
 import axios from 'axios'
@@ -72,7 +72,6 @@ export default function CourseListPage() {
   const [courses, setCourses] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
-  const [currentCourse, setCurrentCourse] = useState()
   const [alert, setAlert] = useState({
     open: false,
     severity: "",

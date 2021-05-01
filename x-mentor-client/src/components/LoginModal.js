@@ -31,13 +31,18 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
     message: ""
   })
 
+  const keyPress = (e) => {
+    if(e.keyCode === 13 && loginForm.username && loginForm.password){
+      handleAuth()
+    }
+  }
+
   const handleAuth = async () => {
     try{
       const response = await axios.post(
         `${API_URL}${settings.endpoint}`,
         loginForm
       )
-      console.log(response)
       localStorage.setItem("token", JSON.stringify(response.data))
       setLoggedIn(true)
       setSettings({...settings, open: false})
@@ -64,10 +69,10 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
     <Dialog open={settings.open} onClose={handleCancel} aria-labelledby="form-dialog-title">
         <DialogTitle className={classes.title}>
           {settings.title}
-          <Tooltip fontSize="small" classes={{ tooltip: classes.tooltip }} placement="right"
+          {settings.mode === "login" && <Tooltip fontSize="small" classes={{ tooltip: classes.tooltip }} placement="right"
             title="Psst... you can create an user or use this one username: codi.sipes	 / password: codi.sipes	">
             <HelpIcon/>
-          </Tooltip>
+          </Tooltip>}
         </DialogTitle>
         <DialogContent>
             <TextField
@@ -77,15 +82,16 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
                 label="Username"
                 type="text"
                 onChange={handleTextField}
+                onKeyDown={keyPress}
                 fullWidth
             />
             <TextField
-                autoFocus
                 margin="dense"
                 id="password"
                 label="Password"
                 type="password"
                 onChange={handleTextField}
+                onKeyDown={keyPress}
                 fullWidth
             />
         </DialogContent>

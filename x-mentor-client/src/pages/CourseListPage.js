@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
   },
   tile: {
     padding: theme.spacing(4),
-    width: "30%"
+    width: "30%",
   },
   description: {
     WebkitLineClamp: 3,
@@ -43,7 +43,11 @@ const useStyles = makeStyles((theme) => ({
     height: '50vh'
   },
   title: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    WebkitLineClamp: 1,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+    display: '-webkit-box'
   },
   pagination: {
     '& > *': {
@@ -64,7 +68,8 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center"
   },
   enroll: {
-    padding: 16
+    padding: 10,
+    marginLeft: 10
   },
   content: {
     padding: "16px 16px 0"
@@ -119,13 +124,12 @@ export default function CourseListPage() {
           }
         }
       )
-      console.log(response)
       setAlert({open: true, severity: "success", message: "Enroll successfully"})
     }
     catch(error){
       const status = error.response.status
       if(status === 401)
-        setAlert({open: true, severity: "error", message: "You need to be registered to enroll a course"})
+        setAlert({open: true, severity: "error", message: "You need to sign in to enroll on a course"})
     }
   }
 
@@ -186,9 +190,11 @@ export default function CourseListPage() {
                   <Button color="primary" className={classes.enroll} onClick={(e) => enroll(e.target.closest(".MuiCard-root").id)}>
                     Enroll
                   </Button>
-                  <Box component="fieldset" pb={0.2} borderColor="transparent">
-                    <Rating name="read-only" value={course.rating} readOnly />
-                  </Box>
+                  <Tooltip title={course.rating} placement="left">
+                    <Box component="fieldset" pb={0.2} borderColor="transparent">
+                        <Rating name="read-only" value={course.rating} precision={0.5} readOnly />
+                    </Box>
+                  </Tooltip>
                 </CardActions>
             </Card>
           </Grid>

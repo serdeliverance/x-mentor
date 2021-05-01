@@ -37,14 +37,12 @@ export default function CreateCourseModal({open, setOpen}) {
     const [isContentUrl, setIsContentUrl] = useState(false)
 
     const handleCreate = async () => {
-        console.log(courseForm)
         if(courseForm.title && courseForm.description && courseForm.preview && courseForm.content){
             try {
-                const response = await axios.post(
+                await axios.post(
                     `${API_URL}/courses`,
                     courseForm
                 )
-                console.log(response)
                 setAlert({open: true, severity: "success", message: "Course created!"})
                 setOpen(false)
             } catch (error) {

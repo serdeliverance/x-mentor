@@ -2,6 +2,7 @@ package repositories
 
 import akka.Done
 import akka.Done.done
+import com.google.gson.Gson
 import com.redislabs.modules.rejson.JReJSON
 import global.ApplicationResult
 import io.circe.Decoder
@@ -16,6 +17,8 @@ import util.JsonUtils
 @Singleton
 class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with JsonUtils {
 
+  val gson = new Gson()
+
   def get[T](key: String)(implicit decoder: Decoder[T]): ApplicationResult[T] =
     Try(redisJson.get[T](key))
       .fold(
@@ -24,8 +27,7 @@ class RedisJsonRepository @Inject()(redisJson: JReJSON) extends Logging with Jso
           ApplicationResult.error(UnexpectedError(error))
         },
         jsonString => {
-          logger.info(s"$jsonString")
-          decode[T](formatJsonResponse(jsonString.toString))
+          decode[T](gson.toJson(jsonString))
             .fold(
               _ => {
                 logger.error(s"Error decoding $jsonString")

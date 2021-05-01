@@ -2,7 +2,8 @@ import React from "react";
 import {
   BrowserRouter as Router,
   Switch,
-  Route
+  Route,
+  Redirect
 } from "react-router-dom";
 import Home from './pages/HomePage'
 import CoursePage from './pages/CoursePage'
@@ -23,9 +24,9 @@ export default function App() {
         <Route path="/courses">
           <CourseListPage />
         </Route>
-        <Route path="/my/courses">
+        <PrivateRoute path="/my/courses">
           <MyCoursesPage />
-        </Route>
+        </PrivateRoute>
         <Route path="/">
           <Home />
         </Route>
@@ -33,5 +34,25 @@ export default function App() {
       <Footer />
     </Router>
     </>
+  );
+}
+
+function PrivateRoute({ children, ...rest }) {
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        localStorage.getItem("token") ? (
+          children
+        ) : (
+          <Redirect
+            to={{
+              pathname: "/",
+              state: { from: location }
+            }}
+          />
+        )
+      }
+    />
   );
 }
