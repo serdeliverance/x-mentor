@@ -6,7 +6,7 @@ import global.ApplicationResult
 import io.circe.parser.decode
 import models.auth.{AccessData, AuthErrorResponse}
 import models.configurations.AuthConfiguration
-import models.errors.{AuthenticationError, ClientError, EmptyResponse, UserAlreadyExistsError}
+import models.errors.{AuthenticationError, ClientError, EmptyResponse, NotFoundError, UserAlreadyExistsError}
 import models.json.CirceImplicits
 import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
@@ -42,8 +42,8 @@ class UserService @Inject()(
     val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
     for {
-      _            <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
-      authResponse <- EitherT { sender.post(this.configuration.urls.tokenUrl, reqBody, reqHeaders) }
+      exists       <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
+      authResponse <- EitherT { if(exists) sender.post(this.configuration.urls.tokenUrl, reqBody, reqHeaders) else ApplicationResult.error(NotFoundError("User does not exists")) }
       accessData   <- EitherT { handleAuthResponse(authResponse) }
     } yield accessData
   }.value
@@ -68,7 +68,6 @@ class UserService @Inject()(
     val createUserHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.JSON))
 
     for {
-      _ <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       authResponse <- EitherT {
         sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders)
       }
@@ -132,7 +131,7 @@ class UserService @Inject()(
   private def handleCreationResponse(response: WSResponse): ApplicationResult[Done] =
     response.status match {
       case 201 =>
-        logger.info(s"Success signup")
+        logger.info(s"User successfully created")
         ApplicationResult(Done)
       case 400 =>
         logger.warn(s"Invalid payload or data mismatch")
