@@ -20,7 +20,8 @@ class DataLoaderManager @Inject()(
     rateRelationLoader: RateRelationLoader,
     studyingRelationLoader: StudyingRelationLoader,
     redisRepository: RedisRepository,
-    identityLoader: IdentityLoader
+    identityLoader: IdentityLoader,
+    redisearchLoader: RedisearchLoader
   )(implicit executionContext: ExecutionContext)
     extends Logging {
 
@@ -33,6 +34,7 @@ class DataLoaderManager @Inject()(
       _ <- redisRepository.set(COURSE_LAST_ID_KEY, coursesLength.toString)
       _ <- courseLoader.loadCourses()
       _ <- filterLoader.loadFilters()
+      _ <- redisearchLoader.loadConfigs()
       _ <- indexLoader.loadIndexes()
       _ <- hasRelationLoader.loadHasRelations()
       _ <- studentLoader.loadStudentsToGraph()

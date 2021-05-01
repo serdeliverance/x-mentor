@@ -3,14 +3,14 @@ package repositories
 import akka.Done
 import akka.Done.done
 import global.ApplicationResult
-import io.redisearch.client.Client
+import io.redisearch.client.{Client, ConfigOption}
 import io.redisearch.client.Client.IndexOptions
 import io.redisearch.{Document, Query, Schema}
 import models.errors.UnexpectedError
 import play.api.Logging
 import util.JsonUtils
-
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 import scala.util.Try
