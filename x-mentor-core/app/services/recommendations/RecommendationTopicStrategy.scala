@@ -48,7 +48,7 @@ class RecommendationTopicStrategy @Inject()(
     ApplicationResult(enrolledTopics(randomInt(enrolledTopics.length - 1)))
 
   private def getRecommendationBaseOnOtherStudentsOrSuggestOne(topic: Topic): ApplicationResult[Seq[CourseNode]] = {
-    logger.info(s"Looking for recommendation based on others students enrolled to $topic related courses")
+    logger.info(s"Looking for recommendation based on others students enrolled to courses of topic: ${topic.name}")
     for {
       students <- EitherT { studentRepository.getStudentsByTopic(topic) }
       courses  <- EitherT { courseRepository.getCoursesByStudentAndTopicInBulk(students, topic) }

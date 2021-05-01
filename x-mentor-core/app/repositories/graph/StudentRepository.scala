@@ -1,12 +1,13 @@
 package repositories.graph
 
 import akka.Done
-import global.ApplicationResult
+import global.{ApplicationResult, ApplicationResultExtended}
 import models.configurations.RedisGraphConfiguration
+import models.errors.NotFoundError
 import models.{Student, Topic}
 import play.api.Logging
 import repositories.RedisGraphRepository
-import repositories.graph.StudentRepository.{createStudentQuery, studentByTopic}
+import repositories.graph.StudentRepository.{createStudentQuery, studentByTopicQuery, studentQuery}
 import repositories.graph.decoder.StudentTag
 import util.ApplicationResultUtils
 
@@ -21,11 +22,21 @@ class StudentRepository @Inject()(
     extends Logging
     with ApplicationResultUtils {
 
-  // TODO
-  def getStudent(username: String): ApplicationResult[Student] = ???
+  def getStudent(username: String): ApplicationResult[Student] =
+    redisGraphRepository
+      .executeQuery[Student](studentQuery(username), StudentTag)
+      .innerMap { result =>
+        Right(result.headOption)
+      }
+      .innerMap {
+        case Some(student) => Right(student)
+        case None =>
+          logger.info(s"Student: $username not found")
+          Left(NotFoundError(s"Student: $username not found"))
+      }
 
   def getStudentsByTopic(topic: Topic): ApplicationResult[List[Student]] =
-    redisGraphRepository.executeQuery[Student](studentByTopic(topic), StudentTag)
+    redisGraphRepository.executeQuery[Student](studentByTopicQuery(topic), StudentTag)
 
   def createStudent(student: Student): ApplicationResult[Done] = {
     logger.info(s"Creating student: $student")
@@ -34,7 +45,11 @@ class StudentRepository @Inject()(
 }
 
 object StudentRepository {
-  private val studentByTopic = (topic: Topic) =>
+
+  private val studentQuery = (username: String) =>
+    s"MATCH (student:Student) WHERE student.username = '$username' return student"
+
+  private val studentByTopicQuery = (topic: Topic) =>
     s"MATCH (student)-[:studying]->(course), (topic)-[:has]->(course) where topic.name = '${topic.name}' RETURN student"
 
   private val createStudentQuery = (student: Student) =>
