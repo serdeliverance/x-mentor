@@ -12,16 +12,18 @@ import models.Course
 import play.api.Logging
 import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
 import util.CourseConverter
+
 import java.nio.file.Paths
-
 import global.EitherResult
-import javax.inject.{Inject, Singleton}
+import repositories.graph.CourseRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent._
 import scala.jdk.CollectionConverters._
 
 @Singleton
 class CourseLoader @Inject()(
+    courseRepository: CourseRepository,
     redisGraphRepository: RedisGraphRepository,
     redisJsonRepository: RedisJsonRepository,
     redisBloomRepository: RedisBloomRepository,
@@ -46,10 +48,9 @@ class CourseLoader @Inject()(
         case Right(course) => course
       }
       .filter(course => course.id.nonEmpty)
-      .mapAsync(1)(redisGraphRepository.createCourse)
+      .mapAsync(1)(courseRepository.createCourse)
       .runWith(Sink.seq[EitherResult[Done]])
       .map(list => list.size)
-
 
   private def graph(): RunnableGraph[NotUsed] =
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>

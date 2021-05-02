@@ -6,12 +6,14 @@ import akka.stream.scaladsl.{FileIO, Flow, Framing, GraphDSL, RunnableGraph, Sin
 import akka.util.ByteString
 import models.Student
 import play.api.Logging
-import repositories.{RedisBloomRepository, RedisGraphRepository}
-import java.nio.file.Paths
+import repositories.{RedisBloomRepository}
 
+import java.nio.file.Paths
 import akka.Done.done
 import akka.stream.ClosedShape
 import constants._
+import repositories.graph.StudentRepository
+
 import javax.inject.{Inject, Singleton}
 import services.UserService
 import util.MapMarkerContext
@@ -20,12 +22,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StudentLoader @Inject()(
-   redisGraphRepository: RedisGraphRepository,
-   redisBloomRepository: RedisBloomRepository,
-   userService: UserService
+    studentRepository: StudentRepository,
+    redisBloomRepository: RedisBloomRepository,
+    userService: UserService
   )(implicit system: ActorSystem,
-   ec: ExecutionContext)
-  extends Logging {
+    ec: ExecutionContext)
+    extends Logging {
 
   private val STUDENT_CSV_PATH = "conf/data/students.csv"
 
@@ -41,7 +43,7 @@ class StudentLoader @Inject()(
         val slices = line.split(",")
         Student(slices(0), slices(1))
       })
-      .mapAsync(1)(redisGraphRepository.createStudent)
+      .mapAsync(1)(studentRepository.createStudent)
       .runWith(Sink.ignore)
   }
 
@@ -53,8 +55,10 @@ class StudentLoader @Inject()(
 
       val source = FileIO
         .fromPath(Paths.get(STUDENT_CSV_PATH))
-        .via(Framing.delimiter(ByteString("\n"), 256, allowTruncation = true)
-          .map(_.utf8String))
+        .via(
+          Framing
+            .delimiter(ByteString("\n"), 256, allowTruncation = true)
+            .map(_.utf8String))
 
       val convertToStudent = Flow[String]
         .map(line => {

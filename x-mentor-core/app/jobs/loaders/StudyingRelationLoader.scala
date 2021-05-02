@@ -4,18 +4,17 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
-import play.api.Logging
-import repositories.RedisGraphRepository
-import java.nio.file.Paths
-
-import javax.inject.{Inject, Singleton}
 import models.Studying
+import play.api.Logging
+import repositories.graph.RelationsRepository
 
+import java.nio.file.Paths
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StudyingRelationLoader @Inject()(
-    redisGraphRepository: RedisGraphRepository
+    relationsRepository: RelationsRepository
   )(implicit system: ActorSystem,
     ec: ExecutionContext)
     extends Logging {
@@ -32,7 +31,7 @@ class StudyingRelationLoader @Inject()(
         val slices = line.split(",")
         Studying(slices(0), slices(1))
       })
-      .mapAsync(1)(redisGraphRepository.createStudyingRelation)
+      .mapAsync(1)(relationsRepository.createStudyingRelation)
       .runWith(Sink.ignore)
   }
 }

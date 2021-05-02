@@ -97,4 +97,11 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     grantType = this.configuration.get[String](AUTH_GRANT_TYPE),
     scope = this.configuration.get[String](AUTH_SCOPE)
   )
+
+  @Provides
+  def recommendationConfig(): RecommendationConfig = RecommendationConfig(
+    enrolledRecommendationSize = configuration.get[Int](ENROLLED_RECOMMENDATION_SIZE),
+    interestRecommendationSize = configuration.get[Int](INTEREST_RECOMMENDATION_SIZE),
+    discoveryRecommendationSize = configuration.get[Int](DISCOVER_RECOMMENDATION_SIZE)
+  )
 }

@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
 import models.Rating
 import play.api.Logging
-import repositories.RedisGraphRepository
+import repositories.graph.RelationsRepository
 
 import java.nio.file.Paths
 import javax.inject.{Inject, Singleton}
@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RateRelationLoader @Inject()(
-    redisGraphRepository: RedisGraphRepository
+    relationsRepository: RelationsRepository
   )(implicit system: ActorSystem,
     ec: ExecutionContext)
     extends Logging {
@@ -31,7 +31,7 @@ class RateRelationLoader @Inject()(
         val slices = line.split(",")
         Rating(slices(0), slices(2), slices(1).toInt)
       })
-      .mapAsync(1)(redisGraphRepository.createRatesRelation)
+      .mapAsync(1)(relationsRepository.createRatesRelation)
       .runWith(Sink.ignore)
   }
 }

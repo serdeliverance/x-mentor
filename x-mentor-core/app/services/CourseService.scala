@@ -2,34 +2,29 @@ package services
 
 import akka.Done
 import cats.data.EitherT
-import constants.{COURSE_IDS_FILTER, COURSE_KEY, COURSE_LAST_ID_KEY, ITEMS_PER_PAGE, USERS_FILTER}
+import cats.implicits._
+import constants._
 import global.{ApplicationResult, ApplicationResultExtended}
+import io.circe.parser.decode
 import io.redisearch.{Document, Query}
-import javax.inject.{Inject, Singleton}
-import models.{Course, CourseResponse, Studying}
 import models.errors.EmptyResponse
+import models.{Course, CourseResponse, Studying}
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
-import repositories.{
-  RediSearchRepository,
-  RedisBloomRepository,
-  RedisGraphRepository,
-  RedisJsonRepository,
-  RedisRepository
-}
-import cats.implicits._
-import io.circe.parser.decode
+import repositories.graph.{CourseRepository, RelationsRepository}
+import repositories.{RediSearchRepository, RedisBloomRepository, RedisJsonRepository}
 import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
 
-import scala.jdk.CollectionConverters._
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters._
 
 @Singleton
 class CourseService @Inject()(
+    courseRepository: CourseRepository,
+    relationsRepository: RelationsRepository,
     redisJsonRepository: RedisJsonRepository,
-    redisRepository: RedisRepository,
-    redisGraphRepository: RedisGraphRepository,
     redisPool: Pool[Jedis],
     rediSearchRepository: RediSearchRepository,
     redisBloomRepository: RedisBloomRepository
@@ -59,7 +54,7 @@ class CourseService @Inject()(
     for {
       _      <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       course <- EitherT(retrieveById(courseId))
-      _      <- EitherT(redisGraphRepository.createStudyingRelation(Studying(username, course.title)))
+      _      <- EitherT(relationsRepository.createStudyingRelation(Studying(username, course.title)))
     } yield Done
   }.value
 
@@ -76,7 +71,7 @@ class CourseService @Inject()(
 
   def getCoursesByStudent(student: String, page: Int): ApplicationResult[CourseResponse] = {
     for {
-      coursesFromGraph <- EitherT { redisGraphRepository.getCoursesByStudentPaginated(student, page) }
+      coursesFromGraph <- EitherT { courseRepository.getCoursesByStudentPaginated(student, page) }
       courses          <- EitherT { getMultipleCoursesByName(coursesFromGraph.map(_.name)) }
     } yield CourseResponse(courses.length, courses)
   }.value

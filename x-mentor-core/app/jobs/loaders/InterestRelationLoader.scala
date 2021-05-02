@@ -6,9 +6,9 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.{FileIO, Framing, Sink}
 import akka.util.ByteString
 import global.ApplicationResult
-import models.{Interest, Topic}
+import models.Interest
 import play.api.Logging
-import repositories.RedisGraphRepository
+import repositories.graph.RelationsRepository
 
 import java.nio.file.Paths
 import javax.inject.{Inject, Singleton}
@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class InterestRelationLoader @Inject()(
-    redisGraphRepository: RedisGraphRepository
+    relationsRepository: RelationsRepository
   )(implicit system: ActorSystem,
     ec: ExecutionContext)
     extends Logging {
@@ -32,7 +32,7 @@ class InterestRelationLoader @Inject()(
         val slices = line.split(",")
         Interest(slices(0), slices(1))
       })
-      .mapAsync(1)(redisGraphRepository.createInterestRelation)
+      .mapAsync(1)(relationsRepository.createInterestRelation)
       .runWith(Sink.ignore)
       .map(_ => Right(done()))
   }

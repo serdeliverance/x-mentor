@@ -8,14 +8,14 @@ import global.{ApplicationResult, ApplicationResultExtended}
 import models.Rating
 import models.errors.InvalidOperationError
 import play.api.Logging
-import repositories.RedisGraphRepository
+import repositories.graph.RelationsRepository
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class RatingService @Inject()(
-    redisGraphRepository: RedisGraphRepository,
+    relationsRepository: RelationsRepository,
     notificationService: NotificationService
   )(implicit ec: ExecutionContext)
     extends Logging {
@@ -24,13 +24,13 @@ class RatingService @Inject()(
     for {
       _ <- EitherT { validateIsEnrolled(rating.student, rating.course) }
       _ <- EitherT { validateIsNotRated(rating.student, rating.course) }
-      _ <- EitherT { redisGraphRepository.createRatesRelation(rating) }
+      _ <- EitherT { relationsRepository.createRatesRelation(rating) }
       _ <- EitherT { notificationService.notifyRating(rating) }
     } yield Done
   }.value
 
   private def validateIsEnrolled(student: String, course: String): ApplicationResult[Done] =
-    redisGraphRepository.existsStudyingRelation(student, course).innerMap {
+    relationsRepository.existsStudyingRelation(student, course).innerMap {
       case true => Right(done())
       case false => {
         logger.info(s"Validation failed: $student is not enrolled in $course course")
@@ -39,7 +39,7 @@ class RatingService @Inject()(
     }
 
   private def validateIsNotRated(student: String, course: String): ApplicationResult[Done] =
-    redisGraphRepository.existsRatesRelation(student, course).innerMap {
+    relationsRepository.existsRatesRelation(student, course).innerMap {
       case true => {
         logger.info(s"Validation failed: $student has already rated $course")
         Left(InvalidOperationError(s"$student has already rated $course"))
