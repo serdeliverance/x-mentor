@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useParams } from "react-router-dom"
 import axios from 'axios'
@@ -35,9 +35,8 @@ const CoursePage = () => {
     const { id } = useParams()
     const notify = useNotification()
     const authContext = useContext(AuthContext)
-
     const [course, setCourse] = useState({})
-    const [time, setTime] = useState(0)
+    const startTime = useRef(0)
 
     const fetchData = async () => {
         try{
@@ -70,13 +69,12 @@ const CoursePage = () => {
         }
     }
     
-    //TODO Timeseries
-    const updateWatchTime = async () => {
+    const updateWatchTime = async (seconds) => {
         try{
             if(localStorage.getItem("token")){
                 const response = await axios.post(
                     `${API_URL}/students/watchtime`,
-                    { "date": new Date().getTime(), "time": time },
+                    { "date": new Date().getTime(), "time": seconds },
                     {
                         headers: {
                             Authorization: `Bearer ${authContext.getTokens().access_token}`,
@@ -94,17 +92,17 @@ const CoursePage = () => {
 
     useEffect(() => {
         fetchData()
-        setInterval(() => {
-            setTime(prevTime => prevTime + 1)
-        }, 1000)
+        startTime.current = new Date().getTime()
+
         return () => {
-            //updateWatchTime()
+            const seconds = Math.round((new Date().getTime() - startTime.current) / 1000)
+            //updateWatchTime(seconds)
         }
     }, [])
     
     return (
         <div className={classes.root}>
-            <Typography variant="h5" className={classes.title}><strong>{course.title} {time}</strong></Typography>
+            <Typography variant="h5" className={classes.title}><strong>{course.title}</strong></Typography>
             <Grid container>
                 <Grid item xs={2}></Grid>
                 <Grid item xs={8} className={classes.contentContainer}>
