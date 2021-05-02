@@ -33,7 +33,7 @@ class DiscoverRecommendationStrategy @Inject()(
       selectedTopic      <- EitherT { takeRandomFromList[Topic](topicsToRecommend) }
       coursesToRecommend <- EitherT { courseRepository.getCoursesByTopic(selectedTopic) }
       recommendation <- EitherT {
-        handleResult(selectedTopic, coursesToRecommend.take(recommendationConfig.discoveryRecommendationSize))
+        handleResult(selectedTopic, coursesToRecommend.take(recommendationConfig.discoveryRecommendationSize).distinct)
       }
     } yield recommendation
   }.value

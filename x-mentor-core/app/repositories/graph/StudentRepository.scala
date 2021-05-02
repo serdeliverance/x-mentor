@@ -44,7 +44,7 @@ class StudentRepository @Inject()(
     redisGraphRepository.executeQuery[Student](studentByTopicQuery(topic), StudentTag)
 
   def getStudentByCourse(course: CourseNode): ApplicationResult[List[Student]] =
-    redisGraphRepository.executeQuery[Student](studentByCourseQuery(course.name), CourseTag)
+    redisGraphRepository.executeQuery[Student](studentByCourseQuery(course.name), StudentTag)
 
   def createStudent(student: Student): ApplicationResult[Done] = {
     logger.info(s"Creating student: $student")
