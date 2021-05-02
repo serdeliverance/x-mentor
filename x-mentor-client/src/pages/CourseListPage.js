@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Box, Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Tooltip, Typography, Badge, Snackbar } from '@material-ui/core'
+import { Box, Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Tooltip, Typography, Badge } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { useLocation } from "react-router-dom"
@@ -8,11 +8,8 @@ import EmojiEventsIcon from '@material-ui/icons/EmojiEvents'
 import Rating from '@material-ui/lab/Rating'
 import CourseModal from '../components/CourseModal';
 import { API_URL } from '../environment'
-import MuiAlert from '@material-ui/lab/Alert'
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />
-}
+import { useNotification } from '../hooks/notify'
+import { AuthContext } from '../Providers/AuthProvider'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -95,11 +92,8 @@ export default function CourseListPage() {
   const [total, setTotal] = useState(10)
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [currentCourse, setCurrentCourse] = useState()
-  const [alert, setAlert] = useState({
-    open: false,
-    severity: "",
-    message: ""
-  })
+  const notify = useNotification()
+  const authContext = useContext(AuthContext)
 
   const handleChange = (event, value) => setPage(value)
 
@@ -118,17 +112,17 @@ export default function CourseListPage() {
         {},
         {
           headers: {
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))["access_token"]}`,
-            "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
+            Authorization: `Bearer ${authContext.getTokens().access_token}`,
+            "Id-Token": `${authContext.getTokens().id_token}`,
           }
         }
       )
-      setAlert({open: true, severity: "success", message: "Enroll successfully"})
+      notify("Enroll successfully", "success")
     }
     catch(error){
       const status = error.response.status
       if(status === 401)
-        setAlert({open: true, severity: "error", message: "You need to sign in to enroll on a course"})
+        notify("You need to sign in to enroll on a course", "error")
     }
   }
 
@@ -208,11 +202,6 @@ export default function CourseListPage() {
     }
   </div>
   <CourseModal course={currentCourse} open={openCourseModal} setOpen={setOpenCourseModal} />
-  <Snackbar open={alert.open} autoHideDuration={6000} onClose={() => setAlert({...alert, open: false})}>
-      <Alert onClose={() => setAlert({...alert, open: false})} severity={alert.severity}>
-          {alert.message}
-      </Alert>
-  </Snackbar>
   </>
   );
 }

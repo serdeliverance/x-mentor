@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography, Snackbar } from '@material-ui/core'
+import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { API_URL } from '../environment'
-import MuiAlert from '@material-ui/lab/Alert'
 import { useHistory } from "react-router-dom";
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />
-}
+import { useNotification } from '../hooks/notify'
+import { AuthContext } from '../Providers/AuthProvider'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -73,11 +70,8 @@ export default function CourseListPage() {
   const [courses, setCourses] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
-  const [alert, setAlert] = useState({
-    open: false,
-    severity: "",
-    message: ""
-  })
+  const notify = useNotification()
+  const authContext = useContext(AuthContext)
 
   const handleChange = (event, value) => setPage(value)
 
@@ -87,8 +81,8 @@ export default function CourseListPage() {
         `${API_URL}/student/courses?page=${page}`,
         {
           headers: {
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))["access_token"]}`,
-            "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
+            Authorization: `Bearer ${authContext.getTokens().access_token}`,
+            "Id-Token": `${authContext.getTokens().id_token}`,
           }
         }
       )
@@ -96,14 +90,14 @@ export default function CourseListPage() {
       setTotal(Math.ceil(response.data.total / 6))
     }
     catch(error){
-      const status = error.response.status
+      const status = error.response && error.response.status
       if(status === 401) {
-        setAlert({open: true, severity: "warning", message: "Session Expired"})
+        notify("Session Expired", "warning")
         localStorage.removeItem("token")
         history.push("/")
       }
       else {
-        setAlert({open: true, severity: "error", message: "There was an error retreiving courses"})
+        notify("There was an error retreiving courses", "error")
       }
     }
   }
@@ -117,7 +111,6 @@ export default function CourseListPage() {
   }, [page])
 
   return (
-    <>
     <div className={classes.root}>
       {courses.length > 0 ?
       <>
@@ -157,11 +150,5 @@ export default function CourseListPage() {
       </Grid>
     }
   </div>
-  <Snackbar open={alert.open} autoHideDuration={6000} onClose={() => setAlert({...alert, open: false})}>
-      <Alert onClose={() => setAlert({...alert, open: false})} severity={alert.severity}>
-          {alert.message}
-      </Alert>
-  </Snackbar>
-  </>
-  );
+  )
 }

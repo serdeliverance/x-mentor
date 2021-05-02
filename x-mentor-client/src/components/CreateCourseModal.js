@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { Button, makeStyles, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Switch, Box, Snackbar } from '@material-ui/core'
+import { Button, makeStyles, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Switch, Box } from '@material-ui/core'
 import axios from 'axios'
-import MuiAlert from '@material-ui/lab/Alert'
 import { API_URL } from '../environment'
+import { useNotification } from '../hooks/notify'
 
 const useStyles = makeStyles(() => ({
     preview: {
@@ -14,11 +14,7 @@ const useStyles = makeStyles(() => ({
     paper: {
         minWidth: 600
     }
-}));
-
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
+}))
 
 export default function CreateCourseModal({open, setOpen}) {
     const classes = useStyles()
@@ -29,11 +25,7 @@ export default function CreateCourseModal({open, setOpen}) {
         preview: "",
         content: ""
     })
-    const [alert, setAlert] = useState({
-        open: false,
-        severity: "",
-        message: ""
-    })
+    const notify = useNotification()
     const [isContentUrl, setIsContentUrl] = useState(true)
 
     const handleCreate = async () => {
@@ -43,11 +35,11 @@ export default function CreateCourseModal({open, setOpen}) {
                     `${API_URL}/courses`,
                     courseForm
                 )
-                setAlert({open: true, severity: "success", message: "Course created!"})
+                notify("Course created!", "success")
                 setOpen(false)
             } catch (error) {
                 console.error(error)
-                setAlert({open: true, severity: "error", message: "There was an error"})
+                notify("There was an error", "error")
             }
         }
     }
@@ -108,7 +100,6 @@ export default function CreateCourseModal({open, setOpen}) {
     });
 
     return (
-        <>
         <Dialog open={open} onClose={handleClose} classes={{paperWidthSm: classes.paper}} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Course</DialogTitle>
             <DialogContent dividers>
@@ -212,11 +203,5 @@ export default function CreateCourseModal({open, setOpen}) {
                 </Button>
             </DialogActions>
         </Dialog>
-        <Snackbar open={alert.open} autoHideDuration={6000} onClose={() => setAlert({...alert, open: false})}>
-            <Alert onClose={() => setAlert({...alert, open: false})} severity={alert.severity}>
-                {alert.message}
-            </Alert>
-        </Snackbar>
-        </>
     )
 }

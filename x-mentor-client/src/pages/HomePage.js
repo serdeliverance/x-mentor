@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Button, Chip, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
+import { AuthContext } from '../Providers/AuthProvider'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     root: {
         height: "100%"
     }
@@ -15,6 +16,7 @@ const HomePage = () => {
     const classes = useStyles()
     const [topics, setTopics] = useState([])
     const [interests, setInsterests] = useState([])
+    const authContext = useContext(AuthContext)
 
     const fetchData = async () => {
         try{
@@ -23,8 +25,8 @@ const HomePage = () => {
                     `${API_URL}/topics`,
                     {
                         headers: {
-                          Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))["access_token"]}`,
-                          "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
+                          Authorization: `Bearer ${authContext.getTokens().access_token}`,
+                          "Id-Token": `${authContext.getTokens().id_token}`,
                         }
                     }
                 )
@@ -35,8 +37,8 @@ const HomePage = () => {
                     `${API_URL}/interests`,
                     {
                         headers: {
-                          Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))["access_token"]}`,
-                          "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
+                          Authorization: `Bearer ${authContext.getTokens().access_token}`,
+                          "Id-Token": `${authContext.getTokens().id_token}`,
                         }
                     }
                 )
@@ -55,11 +57,11 @@ const HomePage = () => {
 
     const handleDelete = () => {
         console.info('You clicked the delete icon.');
-      };
+    }
     
-      const handleClick = () => {
-        console.info('You clicked the Chip.');
-      };
+    const handleClick = () => {
+        console.info('You clicked the Chip.')
+    }
 
     return (
         <div className={classes.root}>

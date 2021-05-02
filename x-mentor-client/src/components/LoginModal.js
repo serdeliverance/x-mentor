@@ -1,13 +1,10 @@
-import React, { useState } from 'react'
-import { Button, Dialog, TextField, DialogActions, DialogContent, Snackbar, DialogTitle, Tooltip, makeStyles } from '@material-ui/core'
+import React, { useState, useContext } from 'react'
+import { Button, Dialog, TextField, DialogActions, DialogContent, DialogTitle, Tooltip, makeStyles } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
-import MuiAlert from '@material-ui/lab/Alert'
 import HelpIcon from '@material-ui/icons/Help'
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />
-}
+import { useNotification } from '../hooks/notify'
+import { AuthContext } from '../Providers/AuthProvider'
 
 const useStyles = makeStyles(() => ({
   title: {
@@ -20,15 +17,12 @@ const useStyles = makeStyles(() => ({
 
 export default function LoginModal({settings, setSettings, setLoggedIn}) {
   const classes = useStyles()
+  const notify = useNotification()
+  const authContext = useContext(AuthContext)
 
   const [loginForm, setLoginForm] = useState({
     username: "",
     password: ""
-  })
-  const [alert, setAlert] = useState({
-    open: false,
-    severity: "",
-    message: ""
   })
 
   const keyPress = (e) => {
@@ -44,13 +38,13 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
           `${API_URL}${settings.endpoint}`,
           loginForm
         )
-        localStorage.setItem("token", JSON.stringify(response.data))
+        authContext.setTokens(JSON.stringify(response.data))
         setLoggedIn(true)
         setSettings({...settings, open: false})
       }
       catch (error){
         console.error(error)
-        setAlert({open: true, severity: "error", message: "There was an error"})
+        notify("There was an error", "error")
       }
     }
   }
@@ -67,7 +61,6 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
   }
 
   return (
-    <>
     <Dialog open={settings.open} onClose={handleCancel} aria-labelledby="form-dialog-title">
         <DialogTitle className={classes.title}>
           {settings.title}
@@ -106,11 +99,5 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
             </Button>
         </DialogActions>
     </Dialog>
-    <Snackbar open={alert.open} autoHideDuration={6000} onClose={() => setAlert({...alert, open: false})}>
-      <Alert onClose={() => setAlert({...alert, open: false})} severity={alert.severity}>
-          {alert.message}
-      </Alert>
-    </Snackbar>
-    </>
   )
 }
