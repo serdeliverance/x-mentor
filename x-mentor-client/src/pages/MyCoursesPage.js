@@ -5,6 +5,7 @@ import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { API_URL } from '../environment'
 import MuiAlert from '@material-ui/lab/Alert'
+import { useHistory } from "react-router-dom";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />
@@ -44,7 +45,6 @@ const useStyles = makeStyles((theme) => ({
   pagination: {
     '& > *': {
       marginTop: theme.spacing(2),
-      float: 'right'
     },
   },
   star: {
@@ -69,6 +69,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CourseListPage() {
   const classes = useStyles()
+  const history = useHistory()
   const [courses, setCourses] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
@@ -92,34 +93,23 @@ export default function CourseListPage() {
         }
       )
       setCourses(response.data.courses)
-      setTotal(Math.round(response.data.total / 6))
+      setTotal(Math.ceil(response.data.total / 6))
     }
     catch(error){
-      console.error(error)
-      setAlert({open: true, severity: "error", message: "There was an error"})
+      const status = error.response.status
+      if(status === 401) {
+        setAlert({open: true, severity: "warning", message: "Session Expired"})
+        localStorage.removeItem("token")
+        history.push("/")
+      }
+      else {
+        setAlert({open: true, severity: "error", message: "There was an error retreiving courses"})
+      }
     }
   }
 
-  const startCourse = async (courseId) => {
-    console.log("Start course: " + courseId)
-    try{
-      /*const response = await axios.post(
-        `${API_URL}/courses/${courseId}/enroll`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")["access_token"]}`,
-            "Id-Token": `${JSON.parse(localStorage.getItem("token"))["id_token"]}`,
-            "Content-Type": "application/json"
-          }
-        }
-      )
-      console.log(response)*/
-    }
-    catch(error){
-      console.error(error)
-      setAlert({open: true, severity: "error", message: "There was an error"})
-    }
+  const watchCourse = (courseId) => {
+    history.push(`/course/${courseId}`)
   }
   
   useEffect(() => {
@@ -138,7 +128,7 @@ export default function CourseListPage() {
         {courses.map((course) => (
           <Grid item className={classes.tile} key={course.id}>
               <Card className={classes.card} id={course.id}>
-                  <CardActionArea onClick={(e) => startCourse(e.target.closest(".MuiCard-root").id)}>
+                  <CardActionArea onClick={(e) => watchCourse(e.target.closest(".MuiCard-root").id)}>
                       <CardContent className={classes.content}>
                           <Typography gutterBottom variant="h6" className={classes.title}>
                             {course.title}
@@ -151,8 +141,8 @@ export default function CourseListPage() {
                       </CardContent>
                   </CardActionArea>
                   <CardActions className={classes.actions}>
-                    <Button color="primary" className={classes.enroll} onClick={(e) => startCourse(e.target.closest(".MuiCard-root").id)}>
-                      Start Course
+                    <Button color="primary" className={classes.enroll} onClick={(e) => watchCourse(e.target.closest(".MuiCard-root").id)}>
+                      Watch Course
                     </Button>
                   </CardActions>
               </Card>

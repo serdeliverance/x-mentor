@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
@@ -71,12 +71,12 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Header() {
+export default function Header({render}) {
   const classes = useStyles()
   const history = useHistory()
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(localStorage.getItem("token") ? true : false);
   const [openCourseModal, setOpenCourseModal] = useState(false)
-  const [searchError, setSearchError] = useState(false)
+  const [searchValue, setSearchValue] = useState("")
   const [authSettings, setAuthSettings] = useState({
     mode: "",
     open: false,
@@ -87,8 +87,8 @@ export default function Header() {
   const keyPress = (e) => {
     const value = e.target.value
     if(e.keyCode === 13){
-      setSearchError(false)
       history.push(`/courses?q=${value}`)
+      setSearchValue("")
     }
   }
 
@@ -132,9 +132,9 @@ export default function Header() {
                         root: classes.inputRoot,
                         input: classes.inputInput,
                     }}
-                    className={searchError ? `${classes.errorBorder}` : "" }
+                    value={searchValue}
                     inputProps={{ 'aria-label': 'search' }}
-                    onChange={() => {}}
+                    onChange={e => setSearchValue(e.target.value)}
                     onKeyDown={keyPress}
                 />
             </div>

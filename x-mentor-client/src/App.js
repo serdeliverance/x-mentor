@@ -18,14 +18,14 @@ export default function App() {
     <Router>
       <Header />
       <Switch>
-        <Route path="/course">
-          <CoursePage />
-        </Route>
         <Route path="/courses">
           <CourseListPage />
         </Route>
         <PrivateRoute path="/my/courses">
           <MyCoursesPage />
+        </PrivateRoute>
+        <PrivateRoute path="/course/:id">
+          <CoursePage />
         </PrivateRoute>
         <Route path="/">
           <Home />
@@ -34,7 +34,7 @@ export default function App() {
       <Footer />
     </Router>
     </>
-  );
+  )
 }
 
 function PrivateRoute({ children, ...rest }) {
@@ -54,5 +54,6 @@ function PrivateRoute({ children, ...rest }) {
         )
       }
     />
-  );
+  )
+
 }

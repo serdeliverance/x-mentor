@@ -66,8 +66,8 @@ class CourseService @Inject()(
   def retrieve(q: String, page: Int): ApplicationResult[CourseResponse] = {
     val offset      = (page - 1) * ITEMS_PER_PAGE
     val queryString = if (q.isEmpty) "*" else s"$q*"
-    logger.info(s"Retrieving courses with query $queryString and offset $offset")
-    val query = new Query(queryString).limit(offset, offset + ITEMS_PER_PAGE)
+    logger.info(s"Retrieving courses with query $queryString and offset $offset and limit $ITEMS_PER_PAGE")
+    val query = new Query(queryString).limit(offset, ITEMS_PER_PAGE)
     for {
       coursesResp <- EitherT { rediSearchRepository.search(query) }
       courseList  <- EitherT { handleSearchResp(coursesResp) }

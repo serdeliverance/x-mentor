@@ -52,7 +52,6 @@ const useStyles = makeStyles((theme) => ({
   pagination: {
     '& > *': {
       marginTop: theme.spacing(2),
-      float: 'right'
     },
   },
   star: {
@@ -109,7 +108,7 @@ export default function CourseListPage() {
       `${API_URL}/courses?q=${query.get('q')}&page=${page}`,
     )
     setCourses(response.data.courses)
-    setTotal(Math.round(response.data.total / 6))
+    setTotal(Math.ceil(response.data.total / 6))
   }
 
   const enroll = async (courseId) => {
