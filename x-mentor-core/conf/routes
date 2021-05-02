@@ -10,3 +10,4 @@ POST    /interests                             controllers.InterestController.re
 GET     /interests                             controllers.InterestController.getByStudent()
 POST    /login                                 controllers.UserController.login()
 POST    /signup                                controllers.UserController.signup()
+GET     /recommendations                       controllers.RecommendationController.recommend()

@@ -1,4 +1,4 @@
-package repositories.graph
+package repositories.graph.decoder
 
 import com.redislabs.redisgraph.graph_entities.Node
 
