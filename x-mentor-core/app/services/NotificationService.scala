@@ -4,9 +4,9 @@ import akka.Done
 import akka.Done.done
 import global.ApplicationResult
 import models.{Interest, Rating}
-import models.events.{CourseRated, InterestRegistered}
+import models.events.{CourseRated, StudentInterested}
 import play.api.Logging
-import streams.{COURSE_RATED_STREAM, INTEREST_STREAM, MessagePublisher}
+import streams.{COURSE_RATED_STREAM, MessagePublisher, STUDENT_INTEREST_STREAM}
 import util.ApplicationResultUtils
 
 import javax.inject.{Inject, Singleton}
@@ -23,8 +23,8 @@ class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit
   }
 
   def notifyInterest(interest: Interest): ApplicationResult[Done] = {
-    logger.info(s"Sending $INTEREST_STREAM message with data: $interest")
-    messagePublisher.publishEvent(INTEREST_STREAM, InterestRegistered(interest.student, interest.topic))
+    logger.info(s"Sending $STUDENT_INTEREST_STREAM message with data: $interest")
+    messagePublisher.publishEvent(STUDENT_INTEREST_STREAM, StudentInterested(interest.student, interest.topic))
   }
 
   def notifyInterestInBulk(interests: List[Interest]): ApplicationResult[Done] =

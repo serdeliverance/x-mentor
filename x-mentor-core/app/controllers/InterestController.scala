@@ -31,7 +31,7 @@ class InterestController @Inject()(
         .registerInterest(request.student, request.body.topics.map(topic => Interest(request.student, topic)))
         .map {
           case Right(_) =>
-            logger.info("Interest registered successfully")
+            logger.info("Student interest registered successfully")
             Ok
           case Left(error) =>
             logger.info("Error registering interest")
