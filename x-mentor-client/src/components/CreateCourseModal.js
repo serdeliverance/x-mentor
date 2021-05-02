@@ -34,7 +34,7 @@ export default function CreateCourseModal({open, setOpen}) {
         severity: "",
         message: ""
     })
-    const [isContentUrl, setIsContentUrl] = useState(false)
+    const [isContentUrl, setIsContentUrl] = useState(true)
 
     const handleCreate = async () => {
         if(courseForm.title && courseForm.description && courseForm.preview && courseForm.content){

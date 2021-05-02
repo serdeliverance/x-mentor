@@ -113,7 +113,7 @@ export default function CourseListPage() {
 
   const enroll = async (courseId) => {
     try{
-      const response = await axios.post(
+      await axios.post(
         `${API_URL}/courses/${courseId}/enroll`,
         {},
         {

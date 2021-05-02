@@ -6,13 +6,19 @@ import { API_URL } from '../environment'
 import { Grid, Typography } from '@material-ui/core'
 
 const styles = makeStyles(() => ({
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
+    },
     contentContainer: {
         height: "30rem",
         textAlign: "center",
         background: "gray",
     },
     content: {
-        height: "100%"
+        height: "100%",
+        width: "100%"
     },
     title: {
         padding: "1rem 5rem"
@@ -69,12 +75,15 @@ const CoursePage = () => {
     }, [])
     
     return (
-        <div className={classes.container}>
+        <div className={classes.root}>
             <Typography variant="h5" className={classes.title}><strong>{course.title}</strong></Typography>
             <Grid container>
-                <Grid item xs={12} className={classes.contentContainer}>
+                <Grid item xs={2}></Grid>
+                <Grid item xs={8} className={classes.contentContainer}>
                     <Content />
                 </Grid>
+                <Grid item xs={2}></Grid>
+                <Grid item xs={2}></Grid>
                 <Grid item xs={8} className={classes.about}>
                     <Typography variant="h6"><strong>About</strong></Typography>
                     <Typography>{course.description}</Typography>
