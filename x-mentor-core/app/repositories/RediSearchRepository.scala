@@ -3,7 +3,7 @@ package repositories
 import akka.Done
 import akka.Done.done
 import global.ApplicationResult
-import io.redisearch.client.{Client, ConfigOption}
+import io.redisearch.client.Client
 import io.redisearch.client.Client.IndexOptions
 import io.redisearch.{Document, Query, Schema}
 import models.errors.UnexpectedError
@@ -22,7 +22,7 @@ class RediSearchRepository @Inject()(rediSearch: Client)(implicit ec: ExecutionC
     Try(rediSearch.search(query))
       .fold(
         error => {
-          logger.info(s"Error searching courses")
+          logger.info(s"Error searching courses ")
           ApplicationResult.error(UnexpectedError(error))
         },
         searchResult => {
@@ -31,15 +31,14 @@ class RediSearchRepository @Inject()(rediSearch: Client)(implicit ec: ExecutionC
       )
 
   def get(course: String): ApplicationResult[Option[Document]] = {
-    logger.info(s"Retrieving course: $course from redis json ")
+    logger.info(s"Retrieving course: $course from redis json")
     val query = new Query(course)
     search(query)
       .map {
         case Right(searchResult) => Right(searchResult._2.headOption)
-        case Left(error) => {
+        case Left(error) =>
           logger.info(s"Error getting course: $course from redis json")
           Left(error)
-        }
       }
   }
 
@@ -48,7 +47,7 @@ class RediSearchRepository @Inject()(rediSearch: Client)(implicit ec: ExecutionC
     Try(rediSearch.createIndex(schema, options))
       .fold(
         error => {
-          logger.info(s"Error creating index.")
+          logger.info(s"Error creating index. Error: $error")
           ApplicationResult.error(UnexpectedError(error))
         },
         _ => ApplicationResult(done())

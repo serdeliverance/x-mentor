@@ -38,18 +38,20 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
   }
 
   const handleAuth = async () => {
-    try{
-      const response = await axios.post(
-        `${API_URL}${settings.endpoint}`,
-        loginForm
-      )
-      localStorage.setItem("token", JSON.stringify(response.data))
-      setLoggedIn(true)
-      setSettings({...settings, open: false})
-    }
-    catch (error){
-      console.error(error)
-      setAlert({open: true, severity: "error", message: "There was an error"})
+    if(loginForm.username && loginForm.password){
+      try{
+        const response = await axios.post(
+          `${API_URL}${settings.endpoint}`,
+          loginForm
+        )
+        localStorage.setItem("token", JSON.stringify(response.data))
+        setLoggedIn(true)
+        setSettings({...settings, open: false})
+      }
+      catch (error){
+        console.error(error)
+        setAlert({open: true, severity: "error", message: "There was an error"})
+      }
     }
   }
 

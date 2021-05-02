@@ -4,7 +4,7 @@ import akka.Done
 import akka.Done.done
 import global.ApplicationResult
 import io.rebloom.client.Client
-import models.errors.{EmptyResponse, NotFoundError}
+import models.errors.EmptyResponse
 import play.api.Logging
 import javax.inject.{Inject, Singleton}
 
@@ -40,4 +40,29 @@ class RedisBloomRepository @Inject()(redisBloom: Client) extends Logging {
           }
       )
 
+  def createFilter(filter: String): ApplicationResult[Done] =
+    Try(redisBloom.createFilter(filter, 10000, 0.0001))
+      .fold(
+        error => {
+          logger.error(s"Error creating bloom filter $filter. Error: $error")
+          ApplicationResult.error(EmptyResponse)
+        },
+        _ => {
+          logger.info(s"'$filter' filter creation success")
+          ApplicationResult(Done)
+        }
+      )
+
+  def deleteFilter(filter: String): ApplicationResult[Done] =
+    Try(redisBloom.delete(filter))
+      .fold(
+        error => {
+          logger.error(s"Error deleting bloom filter $filter. Error: $error")
+          ApplicationResult.error(EmptyResponse)
+        },
+        _ => {
+          logger.info(s"'$filter' filter remove success")
+          ApplicationResult(Done)
+        }
+      )
 }
