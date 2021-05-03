@@ -2,7 +2,7 @@ package services.recommendations
 
 import cats.data.EitherT
 import cats.implicits._
-import global.ApplicationResult
+import global.{ApplicationResult, ApplicationResultExtended}
 import models.configurations.RecommendationConfig
 import models.dtos.responses.RecommendationResponseDTO.InterestBaseRecommendationDTO
 import models.{CourseNode, Student, Topic}
@@ -29,14 +29,29 @@ class InterestRecommendationStrategy @Inject()(
     )(implicit mmc: MapMarkerContext
     ): ApplicationResult[Option[InterestBaseRecommendationDTO]] = {
     logger.info("Getting recommendation based on interest")
+
+    selectRandomInterest(student).innerFlatMap {
+      case Some(topic) => getRecommendation(student, topic)
+      case None        => ApplicationResult(None)
+    }
+  }
+
+  private def selectRandomInterest(student: Student): ApplicationResult[Option[Topic]] =
+    topicRepository
+      .getInterestTopicsByStudent(student.username)
+      .innerFlatMap(interests => takeRandomFromList[Topic](interests))
+
+  private def getRecommendation(
+      student: Student,
+      topic: Topic
+    )(implicit mcc: MapMarkerContext
+    ): ApplicationResult[Option[InterestBaseRecommendationDTO]] = {
     for {
-      interests          <- EitherT { topicRepository.getInterestTopicsByStudent(student.username) }
-      selectedTopic      <- EitherT { takeRandomFromList[Topic](interests) }
-      coursesToRecommend <- EitherT { resolver.getRecommendationBaseOnOtherStudentsByTopic(selectedTopic) }
-      enrolledCourses    <- EitherT { courseRepository.getCoursesByStudentAndTopic(student, selectedTopic) }
+      coursesToRecommend <- EitherT { resolver.getRecommendationBaseOnOtherStudentsByTopic(topic) }
+      enrolledCourses    <- EitherT { courseRepository.getCoursesByStudentAndTopic(student, topic) }
       coursesToRecommend <- EitherT { difference[CourseNode](coursesToRecommend, enrolledCourses) }
       recommendation <- EitherT {
-        handleResult(selectedTopic, coursesToRecommend.take(recommendationConfig.interestRecommendationSize))
+        handleResult(topic, coursesToRecommend.take(recommendationConfig.interestRecommendationSize))
       }
     } yield recommendation
   }.value
