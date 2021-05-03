@@ -7,6 +7,7 @@ import global.ApplicationResult
 import models.{Interest, Topic}
 import play.api.Logging
 import repositories.graph.{RelationsRepository, TopicRepository}
+import util.{ApplicationResultUtils, MapMarkerContext}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -17,15 +18,23 @@ class InterestService @Inject()(
     relationsRepository: RelationsRepository,
     notificationService: NotificationService
   )(implicit ec: ExecutionContext)
-    extends Logging {
+    extends Logging
+    with ApplicationResultUtils {
 
-  def registerInterest(student: String, interests: List[Interest]): ApplicationResult[Done] = {
+  def registerInterest(
+      student: String,
+      interests: List[Interest]
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Done] = {
     for {
       persistedTopicsOfInterest <- EitherT { topicRepository.getInterestTopicsByStudent(student) }
-      registeredInterests       <- EitherT { mapToInterest(student, persistedTopicsOfInterest) }
-      interestsToRegister       <- EitherT { filterNotRegisteredInterests(registeredInterests, interests) }
-      _                         <- EitherT { relationsRepository.createInterestRelationInBulk(interestsToRegister) }
-      _                         <- EitherT { notificationService.notifyInterestInBulk(interestsToRegister) }
+      persistedInterests        <- EitherT { mapToInterest(student, persistedTopicsOfInterest) }
+      interestsToAdd            <- EitherT { difference(interests, persistedInterests) }
+      _                         <- EitherT { relationsRepository.createInterestRelationInBulk(interestsToAdd) }
+      interestsToDelete         <- EitherT { difference(persistedInterests, interests) }
+      _                         <- EitherT { relationsRepository.removeInterestRelationInBulk(interestsToDelete) }
+      _                         <- EitherT { notificationService.notifyInterestLostInBulk(interestsToDelete) }
+      _                         <- EitherT { notificationService.notifyInterestInBulk(interestsToAdd) }
     } yield Done
   }.value
 
@@ -34,11 +43,4 @@ class InterestService @Inject()(
 
   private def mapToInterest(student: String, topics: List[Topic]): ApplicationResult[List[Interest]] =
     ApplicationResult(topics.map(topic => Interest(student, topic.name)))
-
-  private def filterNotRegisteredInterests(
-      registeredInterests: List[Interest],
-      interestsToRegister: List[Interest]
-    ): ApplicationResult[List[Interest]] = ApplicationResult {
-    interestsToRegister.filterNot(interest => registeredInterests.contains(interest))
-  }
 }

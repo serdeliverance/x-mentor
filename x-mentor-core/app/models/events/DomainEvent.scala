@@ -1,10 +1,12 @@
 package models.events
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 sealed trait DomainEvent
 
-// TODO add date of type LocalDateTime
-case class CourseRated(student: String, course: String, stars: Int) extends DomainEvent
-case class InterestRegistered(student: String, topic: String, date: LocalDateTime = LocalDateTime.now)
+case class CourseRated(student: String, course: String, stars: Int, timestamp: Long = Instant.now.getEpochSecond)
+    extends DomainEvent
+case class StudentInterested(student: String, topic: String, timestamp: Long = Instant.now.getEpochSecond)
+    extends DomainEvent
+case class LostInterest(student: String, topic: String, timestamp: Long = Instant.now.getEpochSecond)
     extends DomainEvent

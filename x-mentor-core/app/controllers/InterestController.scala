@@ -9,6 +9,7 @@ import models.dtos.requests.InterestRequestDTO
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.InterestService
+import util.MapMarkerContext.fromAuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -25,13 +26,14 @@ class InterestController @Inject()(
     with Logging {
 
   def registerInterest(): Action[InterestRequestDTO] =
-    authenticatedAction.async(decode[InterestRequestDTO]) { request =>
+    authenticatedAction.async(decode[InterestRequestDTO]) { implicit request =>
+      implicit val mmc = fromAuthenticatedRequest()
       logger.info(s"Registering ${request.student} interests")
       interestService
         .registerInterest(request.student, request.body.topics.map(topic => Interest(request.student, topic)))
         .map {
           case Right(_) =>
-            logger.info("Interest registered successfully")
+            logger.info("Student interest registered successfully")
             Ok
           case Left(error) =>
             logger.info("Error registering interest")

@@ -4,21 +4,19 @@
 
 ## Stack
 
-* Play Framework
-* Akka Streams
+* Scala/Play Framework/Akka Streams
+* React
 * Redis Graph
-* Redis pub/sub
 * RediStreams
 * Redis Gears
 * RediSearch
 * Redis Json
-* Redis IA
 * Keycloak
-* React
 
 ## Main features
 
-* login
+* login/logout
+* sign up
 * interest
 * student recommendation
 * recommendation (recommendation sent to the user)
@@ -26,14 +24,8 @@
 * course finish
 * student progress
 
-* notifications (new courses)
+* bestsellers
 
-* course CRUD
-* student CRUD
-
-* bestsellers (possible case for IA recommendation module)
-
-* tutor chat
 
 ## Architecture (first draft)
 
@@ -47,12 +39,10 @@
 
 * `student-enrolled`
 * `student-interested`
-* `course-completed`
+* `student-interest-lost`
 * `course-created`
-* `course-updated`
 * `course-rated`
 * `course-recommended`
-* `teacher-registered`
 
 ## Graph relations
 
@@ -66,17 +56,11 @@
 
 * `studying`
 
-`(student) -[:studying_or_has_finished]-> (course)`
+`(student) -[:studying]-> (course)`
 
 * `rates`
 
 `(student) -[:rates]-> (course)`
-
-maybe tag relation with `recommends` if rate > 3
-
-* `teaches`
-
-`(student) -[:teaches]-> (course)`
 
 ## Redis Keys
 
