@@ -11,6 +11,7 @@ import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.CourseService
 import io.circe.syntax._
+import util.MapMarkerContext.fromAuthenticatedRequest
 
 import scala.concurrent.ExecutionContext
 
@@ -26,7 +27,8 @@ class CourseController @Inject()(
     with Logging {
 
   def create(): Action[CourseCreationRequestDTO] = authenticatedAction.async(decode[CourseCreationRequestDTO]) {
-    request =>
+    implicit request =>
+      implicit val mmc = fromAuthenticatedRequest()
       logger.info(s"Creating course")
       val course = Course(title = request.body.title,
                           description = request.body.description,

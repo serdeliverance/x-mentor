@@ -3,10 +3,16 @@ package services
 import akka.Done
 import akka.Done.done
 import global.ApplicationResult
-import models.{Interest, Rating}
-import models.events.{CourseRated, LostInterest, StudentInterested}
+import models.{Course, Interest, Rating}
+import models.events.{CourseCreated, CourseRated, LostInterest, StudentInterested}
 import play.api.Logging
-import streams.{COURSE_RATED_STREAM, LOST_INTEREST_STREAM, MessagePublisher, STUDENT_INTEREST_STREAM}
+import streams.{
+  COURSE_CREATION_STREAM,
+  COURSE_RATED_STREAM,
+  LOST_INTEREST_STREAM,
+  MessagePublisher,
+  STUDENT_INTEREST_STREAM
+}
 import util.{ApplicationResultUtils, MapMarkerContext}
 
 import javax.inject.{Inject, Singleton}
@@ -16,6 +22,11 @@ import scala.concurrent.ExecutionContext
 class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit ec: ExecutionContext)
     extends ApplicationResultUtils
     with Logging {
+
+  def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
+    logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM")
+    messagePublisher.publishEvent(COURSE_CREATION_STREAM, CourseCreated(course.title, course.topic))
+  }
 
   def notifyRating(rating: Rating)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $rating to $COURSE_RATED_STREAM")

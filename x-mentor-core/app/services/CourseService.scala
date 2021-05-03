@@ -14,7 +14,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import repositories.graph.{CourseRepository, RelationsRepository}
 import repositories.{RediSearchRepository, RedisBloomRepository, RedisJsonRepository}
-import util.{ApplicationResultUtils, CourseConverter, JsonUtils, RedisJsonUtils}
+import util.{ApplicationResultUtils, CourseConverter, JsonUtils, MapMarkerContext, RedisJsonUtils}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -27,27 +27,29 @@ class CourseService @Inject()(
     redisJsonRepository: RedisJsonRepository,
     redisPool: Pool[Jedis],
     rediSearchRepository: RediSearchRepository,
-    redisBloomRepository: RedisBloomRepository
+    redisBloomRepository: RedisBloomRepository,
+    notificationService: NotificationService
   )(implicit ec: ExecutionContext)
     extends Logging
     with JsonUtils
     with ApplicationResultUtils
     with RedisJsonUtils {
 
-  def create(course: Course): ApplicationResult[Done] = {
-      val redisInstance      = redisPool.getResource
-      val currentIndex: Long = redisInstance.get(COURSE_LAST_ID_KEY).toLong + 1
-      val key                = s"$COURSE_KEY$currentIndex"
-      val updatedCourse      = course.copy(id = Some(currentIndex))
+  def create(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
+    val redisInstance      = redisPool.getResource
+    val currentIndex: Long = redisInstance.get(COURSE_LAST_ID_KEY).toLong + 1
+    val key                = s"$COURSE_KEY$currentIndex"
+    val updatedCourse      = course.copy(id = Some(currentIndex))
 
-      logger.info(s"Storing course $currentIndex in Redis, increasing last id and adding to bloom filter")
-      redisInstance.incr(COURSE_LAST_ID_KEY)
+    logger.info(s"Storing course $currentIndex in Redis, increasing last id and adding to bloom filter")
+    redisInstance.incr(COURSE_LAST_ID_KEY)
 
-      for {
-        _ <- EitherT(redisJsonRepository.set(key, CourseConverter.courseToMap(updatedCourse).asJava))
-        _ <- EitherT(redisBloomRepository.add(COURSE_IDS_FILTER, currentIndex.toString))
-      } yield Done
-    }.value
+    for {
+      _ <- EitherT(redisJsonRepository.set(key, CourseConverter.courseToMap(updatedCourse).asJava))
+      _ <- EitherT(redisBloomRepository.add(COURSE_IDS_FILTER, currentIndex.toString))
+      _ <- EitherT(notificationService.notifyCourseCreation(course))
+    } yield Done
+  }.value
 
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
     logger.info(s"Enrolling user $username in course $courseId")
