@@ -12,6 +12,7 @@ trait RandomUtils {
     min + random.nextInt((maxValue - min) + 1)
   }
 
-  def takeRandomFromList[T](list: List[T]): ApplicationResult[T] =
-    ApplicationResult(list(randomInt(list.length - 1)))
+  def takeRandomFromList[T](list: List[T]): ApplicationResult[Option[T]] =
+    if (list.nonEmpty) ApplicationResult(Some(list(randomInt(list.length - 1))))
+    else ApplicationResult(None)
 }

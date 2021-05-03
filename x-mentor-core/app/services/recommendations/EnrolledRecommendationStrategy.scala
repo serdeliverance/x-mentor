@@ -2,7 +2,7 @@ package services.recommendations
 
 import cats.data.EitherT
 import cats.implicits._
-import global.ApplicationResult
+import global.{ApplicationResult, ApplicationResultExtended}
 import models.configurations.RecommendationConfig
 import models.dtos.responses.RecommendationResponseDTO.EnrolledBasedRecommendationDTO
 import models.{CourseNode, Student}
@@ -28,18 +28,31 @@ class EnrolledRecommendationStrategy @Inject()(
       student: Student
     )(implicit mmc: MapMarkerContext
     ): ApplicationResult[Option[EnrolledBasedRecommendationDTO]] = {
-    logger.info("Getting recommendation based on students that has taken the same course")
+    logger
+      .info("Getting recommendation based on students that has taken the same course")
+    selectRandomCourse(student).innerFlatMap {
+      case Some(selectedCourse) => getRecommendation(selectedCourse)
+      case None                 => ApplicationResult(None)
+    }
+  }
+
+  private def selectRandomCourse(student: Student): ApplicationResult[Option[CourseNode]] =
+    courseRepository
+      .getCoursesByStudent(student.username)
+      .innerFlatMap { courses =>
+        takeRandomFromList[CourseNode](courses)
+      }
+
+  private def getRecommendation(course: CourseNode): ApplicationResult[Option[EnrolledBasedRecommendationDTO]] = {
     for {
-      courses                      <- EitherT { courseRepository.getCoursesByStudent(student.username) }
-      selectedCourse               <- EitherT { takeRandomFromList[CourseNode](courses) }
-      selectedCourseTopic          <- EitherT { topicRepository.getTopicByCourse(selectedCourse) }
-      studentsEnrolledToSameCourse <- EitherT { studentRepository.getStudentByCourse(selectedCourse) }
+      selectedCourseTopic          <- EitherT { topicRepository.getTopicByCourse(course) }
+      studentsEnrolledToSameCourse <- EitherT { studentRepository.getStudentByCourse(course) }
       similarCourses <- EitherT {
         courseRepository.getCoursesByStudentAndTopicInBulk(studentsEnrolledToSameCourse, selectedCourseTopic)
       }
-      coursesToRecommend <- EitherT { difference(similarCourses, Seq(selectedCourse)) }
+      coursesToRecommend <- EitherT { difference(similarCourses, Seq(course)) }
       recommendation <- EitherT {
-        handleResult(selectedCourse, coursesToRecommend.take(recommendationConfig.enrolledRecommendationSize))
+        handleResult(course, coursesToRecommend.take(recommendationConfig.enrolledRecommendationSize))
       }
     } yield recommendation
   }.value
