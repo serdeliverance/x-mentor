@@ -8,7 +8,7 @@ import models.dtos.responses.RecommendationResponseDTO.InterestBaseRecommendatio
 import models.{CourseNode, Student, Topic}
 import play.api.Logging
 import repositories.graph.{CourseRepository, TopicRepository}
-import util.{ApplicationResultUtils, RandomUtils}
+import util.{ApplicationResultUtils, MapMarkerContext, RandomUtils}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -24,7 +24,10 @@ class InterestRecommendationStrategy @Inject()(
     with RandomUtils
     with ApplicationResultUtils {
 
-  def recommend(student: Student): ApplicationResult[Option[InterestBaseRecommendationDTO]] = {
+  def recommend(
+      student: Student
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Option[InterestBaseRecommendationDTO]] = {
     logger.info("Getting recommendation based on interest")
     for {
       interests          <- EitherT { topicRepository.getInterestTopicsByStudent(student.username) }

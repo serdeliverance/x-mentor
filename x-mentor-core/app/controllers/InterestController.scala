@@ -28,7 +28,7 @@ class InterestController @Inject()(
   def registerInterest(): Action[InterestRequestDTO] =
     authenticatedAction.async(decode[InterestRequestDTO]) { implicit request =>
       implicit val mmc = fromAuthenticatedRequest()
-      logger.info(s"Registering ${request.student} interests")
+      logger.info(s"Registering interests")
       interestService
         .registerInterest(request.student, request.body.topics.map(topic => Interest(request.student, topic)))
         .map {
@@ -41,8 +41,9 @@ class InterestController @Inject()(
         }
     }
 
-  def getByStudent(): Action[AnyContent] = authenticatedAction.async { request =>
-    logger.info(s"Getting interests of student: ${request.student}")
+  def get(): Action[AnyContent] = authenticatedAction.async { implicit request =>
+    implicit val mmc = fromAuthenticatedRequest()
+    logger.info(s"Getting interests")
     interestService.getInterests(request.student).map {
       case Right(topics) =>
         logger.info("Interests retrieved successfully")

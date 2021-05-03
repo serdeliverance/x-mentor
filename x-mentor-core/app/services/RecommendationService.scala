@@ -11,7 +11,7 @@ import services.recommendations.{
   EnrolledRecommendationStrategy,
   InterestRecommendationStrategy
 }
-import util.RandomUtils
+import util.{MapMarkerContext, RandomUtils}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -26,7 +26,10 @@ class RecommendationService @Inject()(
     extends Logging
     with RandomUtils {
 
-  def getRecommendation(username: String): ApplicationResult[RecommendationResponseDTO] = {
+  def getRecommendation(
+      username: String
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[RecommendationResponseDTO] = {
     for {
       student                     <- EitherT { studentRepository.getStudent(username) }
       enrolledBasedRecommendation <- EitherT { enrolledRecommendationStrategy.recommend(student) }

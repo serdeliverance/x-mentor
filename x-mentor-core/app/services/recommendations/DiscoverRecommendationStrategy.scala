@@ -7,7 +7,7 @@ import models.configurations.RecommendationConfig
 import models.dtos.responses.RecommendationResponseDTO.{DiscoverRecommendationDTO, EnrolledBasedRecommendationDTO}
 import play.api.Logging
 import repositories.graph.{CourseRepository, TopicRepository}
-import util.{ApplicationResultUtils, RandomUtils}
+import util.{ApplicationResultUtils, MapMarkerContext, RandomUtils}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -23,7 +23,10 @@ class DiscoverRecommendationStrategy @Inject()(
     with RandomUtils
     with ApplicationResultUtils {
 
-  def recommend(student: Student): ApplicationResult[Option[DiscoverRecommendationDTO]] = {
+  def recommend(
+      student: Student
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Option[DiscoverRecommendationDTO]] = {
     logger.info("Getting recommendation suggesting topic related courses from catalog")
     for {
       allTopics          <- EitherT { topicRepository.getTopics() }
