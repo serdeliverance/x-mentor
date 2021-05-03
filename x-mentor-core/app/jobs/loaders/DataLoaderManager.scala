@@ -29,6 +29,7 @@ class DataLoaderManager @Inject()(
     logger.info("Loading all data into the graph")
 
     for {
+      _ <- redisRepository.flushAll()
       _ <- topicLoader.loadTopics()
       coursesLength <- courseLoader.loadCoursesToGraph()
       _ <- redisRepository.set(COURSE_LAST_ID_KEY, coursesLength.toString)
