@@ -7,13 +7,8 @@ import models.configurations.RedisGraphConfiguration
 import models.{Has, Interest, Rating, Studying}
 import play.api.Logging
 import repositories.RedisGraphRepository
-import repositories.graph.RelationsRepository.{
-  createHasRelationQuery,
-  createInterestRelationQuery,
-  createRatesQuery,
-  createStudyingRelationQuery
-}
-import util.ApplicationResultUtils
+import repositories.graph.RelationsRepository._
+import util.{ApplicationResultUtils, MapMarkerContext}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -39,10 +34,28 @@ class RelationsRepository @Inject()(
   def createStudyingRelation(studying: Studying): ApplicationResult[Done] =
     redisGraphRepository.executeCreateQuery(createStudyingRelationQuery(studying))
 
-  def createInterestRelationInBulk(interests: List[Interest]): ApplicationResult[Done] =
+  def removeInterestRelation(interest: Interest): ApplicationResult[Done] =
+    redisGraphRepository.executeCreateQuery(deleteInterestRelationQuery(interest))
+
+  def createInterestRelationInBulk(
+      interests: Seq[Interest]
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Done] = {
+    logger.info(s"Adding interests relations: ${interests.map(_.topic)}")
     sequence {
       interests.map(interest => createInterestRelation(interest))
     }.map(_ => Right(done()))
+  }
+
+  def removeInterestRelationInBulk(
+      interests: Seq[Interest]
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Done] = {
+    logger.info(s"Removing interests relations: ${interests.map(_.topic)}")
+    sequence {
+      interests.map(interest => removeInterestRelation(interest))
+    }.map(_ => Right(done()))
+  }
 
   def existsStudyingRelation(student: String, course: String): ApplicationResult[Boolean] =
     courseRepository.getCoursesByStudent(student).innerMap(result => Right(result.exists(_.name == course)))
@@ -64,4 +77,7 @@ object RelationsRepository {
 
   private val createStudyingRelationQuery = (studying: Studying) =>
     s"MATCH (s:Student), (c:Course) WHERE s.username = '${studying.student}' AND c.name = '${studying.course}' CREATE (s)-[:studying]->(c)"
+
+  private val deleteInterestRelationQuery = (interest: Interest) =>
+    s"MATCH (student)-[interest:interested]->(topic) WHERE student.username='${interest.student}' and topic.name='${interest.topic}' DELETE interest"
 }

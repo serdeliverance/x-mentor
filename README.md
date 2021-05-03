@@ -39,6 +39,7 @@
 
 * `student-enrolled`
 * `student-interested`
+* `student-interest-lost`
 * `course-created`
 * `course-rated`
 * `course-recommended`
