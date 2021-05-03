@@ -46,4 +46,16 @@ class RedisRepository @Inject()(val pool: Pool[Jedis])(implicit ec: ExecutionCon
         _ => ApplicationResult(Done)
       )
   }
+
+  def flushAll(): ApplicationResult[Done] = {
+    logger.info(s"Flushing all")
+    Try(pool.getResource.flushAll())
+      .fold(
+        _ => {
+          logger.info(s"Error flushing all.")
+          ApplicationResult.error(EmptyResponse)
+        },
+        _ => ApplicationResult(Done)
+      )
+  }
 }
