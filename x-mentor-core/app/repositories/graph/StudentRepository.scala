@@ -14,7 +14,7 @@ import repositories.graph.StudentRepository.{
   studentQuery
 }
 import repositories.graph.decoder.{CourseTag, StudentTag}
-import util.ApplicationResultUtils
+import util.{ApplicationResultUtils, MapMarkerContext}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -27,7 +27,7 @@ class StudentRepository @Inject()(
     extends Logging
     with ApplicationResultUtils {
 
-  def getStudent(username: String): ApplicationResult[Student] =
+  def getStudent(username: String)(implicit mmc: MapMarkerContext): ApplicationResult[Student] =
     redisGraphRepository
       .executeQuery[Student](studentQuery(username), StudentTag)
       .innerMap { result =>

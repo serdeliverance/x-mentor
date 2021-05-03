@@ -8,7 +8,7 @@ import models.dtos.responses.RecommendationResponseDTO.EnrolledBasedRecommendati
 import models.{CourseNode, Student}
 import play.api.Logging
 import repositories.graph.{CourseRepository, StudentRepository, TopicRepository}
-import util.{ApplicationResultUtils, RandomUtils}
+import util.{ApplicationResultUtils, MapMarkerContext, RandomUtils}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -24,7 +24,10 @@ class EnrolledRecommendationStrategy @Inject()(
     with RandomUtils
     with ApplicationResultUtils {
 
-  def recommend(student: Student): ApplicationResult[Option[EnrolledBasedRecommendationDTO]] = {
+  def recommend(
+      student: Student
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Option[EnrolledBasedRecommendationDTO]] = {
     logger.info("Getting recommendation based on students that has taken the same course")
     for {
       courses                      <- EitherT { courseRepository.getCoursesByStudent(student.username) }

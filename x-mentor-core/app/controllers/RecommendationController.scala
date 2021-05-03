@@ -7,6 +7,7 @@ import io.circe.syntax._
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.RecommendationService
+import util.MapMarkerContext.fromAuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -22,8 +23,9 @@ class RecommendationController @Inject()(
     with ErrorToResultConverter
     with Logging {
 
-  def recommend(): Action[AnyContent] = authenticatedAction.async { request =>
-    logger.info(s"Getting recommendations for student: ${request.student}")
+  def recommend(): Action[AnyContent] = authenticatedAction.async { implicit request =>
+    implicit val mmc = fromAuthenticatedRequest()
+    logger.info(s"Getting recommendations")
     recommendationService.getRecommendation(request.student).map {
       case Right(recommendations) =>
         logger.info("Recommendations retrieved successfully")
