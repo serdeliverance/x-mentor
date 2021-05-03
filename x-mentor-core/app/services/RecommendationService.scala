@@ -2,8 +2,9 @@ package services
 
 import cats.data.EitherT
 import cats.implicits._
-import global.ApplicationResult
+import global.{ApplicationResult, ApplicationResultExtended}
 import models.dtos.responses.RecommendationResponseDTO
+import models.dtos.responses.RecommendationResponseDTO.visitorRecommendation
 import play.api.Logging
 import repositories.graph.StudentRepository
 import services.recommendations.{
@@ -37,4 +38,9 @@ class RecommendationService @Inject()(
       discoverRecommendation      <- EitherT { discoverRecommendationStrategy.recommend(student) }
     } yield RecommendationResponseDTO(enrolledBasedRecommendation, interestBasedRecommendation, discoverRecommendation)
   }.value
+
+  def getVisitorRecommendation()(implicit mmc: MapMarkerContext): ApplicationResult[RecommendationResponseDTO] =
+    discoverRecommendationStrategy
+      .visitorRecommendation()
+      .innerMap(recommendation => Right(visitorRecommendation(recommendation)))
 }

@@ -7,7 +7,7 @@ import io.circe.syntax._
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.RecommendationService
-import util.MapMarkerContext.fromAuthenticatedRequest
+import util.MapMarkerContext.{fromAuthenticatedRequest, fromRequest}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -27,6 +27,19 @@ class RecommendationController @Inject()(
     implicit val mmc = fromAuthenticatedRequest()
     logger.info(s"Getting recommendations")
     recommendationService.getRecommendation(request.student).map {
+      case Right(recommendations) =>
+        logger.info("Recommendations retrieved successfully")
+        Ok(recommendations.asJson)
+      case Left(error) =>
+        logger.info("Error getting recommendations")
+        handleError(error)
+    }
+  }
+
+  def visitorRecommendation(): Action[AnyContent] = Action.async { implicit request =>
+    implicit val mmc = fromRequest()
+    logger.info("Getting recommendation for visitor")
+    recommendationService.getVisitorRecommendation().map {
       case Right(recommendations) =>
         logger.info("Recommendations retrieved successfully")
         Ok(recommendations.asJson)
