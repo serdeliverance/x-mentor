@@ -9,6 +9,7 @@ import models.Rating
 import models.errors.InvalidOperationError
 import play.api.Logging
 import repositories.graph.RelationsRepository
+import util.MapMarkerContext
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -20,7 +21,7 @@ class RatingService @Inject()(
   )(implicit ec: ExecutionContext)
     extends Logging {
 
-  def rate(rating: Rating): ApplicationResult[Done] = {
+  def rate(rating: Rating)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     for {
       _ <- EitherT { validateIsEnrolled(rating.student, rating.course) }
       _ <- EitherT { validateIsNotRated(rating.student, rating.course) }
@@ -29,7 +30,11 @@ class RatingService @Inject()(
     } yield Done
   }.value
 
-  private def validateIsEnrolled(student: String, course: String): ApplicationResult[Done] =
+  private def validateIsEnrolled(
+      student: String,
+      course: String
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Done] =
     relationsRepository.existsStudyingRelation(student, course).innerMap {
       case true => Right(done())
       case false => {
@@ -38,7 +43,11 @@ class RatingService @Inject()(
       }
     }
 
-  private def validateIsNotRated(student: String, course: String): ApplicationResult[Done] =
+  private def validateIsNotRated(
+      student: String,
+      course: String
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Done] =
     relationsRepository.existsRatesRelation(student, course).innerMap {
       case true => {
         logger.info(s"Validation failed: $student has already rated $course")
