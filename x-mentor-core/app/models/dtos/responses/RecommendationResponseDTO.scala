@@ -17,6 +17,9 @@ case class RecommendationResponseDTO(
 
 object RecommendationResponseDTO extends CirceImplicits {
 
+  def visitorRecommendation(discoverRecommendationDTO: Option[DiscoverRecommendationDTO]): RecommendationResponseDTO =
+    RecommendationResponseDTO(None, None, discoverRecommendationDTO)
+
   case class EnrolledBasedRecommendationDTO(reason: String, courses: Seq[CourseNode])
 
   case class InterestBaseRecommendationDTO(topic: String, courses: Seq[CourseNode])

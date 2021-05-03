@@ -29,13 +29,25 @@ class DiscoverRecommendationStrategy @Inject()(
     ): ApplicationResult[Option[DiscoverRecommendationDTO]] = {
     logger.info("Getting recommendation suggesting topic related courses from catalog")
 
-    getRandomTopic(student).innerFlatMap {
+    getRandomTopicForStudent(student).innerFlatMap {
       case Some(topic) => getRecommendation(topic)
       case None        => ApplicationResult(None)
     }
   }
 
-  private def getRandomTopic(student: Student)(implicit mmc: MapMarkerContext): ApplicationResult[Option[Topic]] = {
+  def visitorRecommendation()(implicit mmc: MapMarkerContext): ApplicationResult[Option[DiscoverRecommendationDTO]] = {
+    logger.info("Getting random topic recommendation for anonymous visitor")
+
+    getRandomTopic().innerFlatMap {
+      case Some(topic) => getRecommendation(topic)
+      case None        => ApplicationResult(None)
+    }
+  }
+
+  private def getRandomTopicForStudent(
+      student: Student
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Option[Topic]] = {
     for {
       allTopics         <- EitherT { topicRepository.getTopics() }
       interests         <- EitherT { topicRepository.getInterestTopicsByStudent(student.username) }
@@ -44,6 +56,9 @@ class DiscoverRecommendationStrategy @Inject()(
       selectedTopic     <- EitherT { takeRandomFromList[Topic](topicsToRecommend) }
     } yield selectedTopic
   }.value
+
+  private def getRandomTopic()(implicit mmc: MapMarkerContext): ApplicationResult[Option[Topic]] =
+    topicRepository.getTopics().innerFlatMap(topics => takeRandomFromList(topics))
 
   private def getRecommendation(topic: Topic): ApplicationResult[Option[DiscoverRecommendationDTO]] = {
     for {
