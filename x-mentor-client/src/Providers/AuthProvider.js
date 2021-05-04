@@ -1,22 +1,26 @@
-import React, { createContext } from "react"
+import React, { createContext, useState } from "react"
 
-const AuthContext = createContext({
-  getTokens: () => undefined,
-  setTokens: (tokens) => undefined
-})
+const AuthContext = createContext()
 
 const AuthProvider = ({ children }) => {
-
-  function getTokens() {
+  const getTokens = () => {
     return JSON.parse(localStorage.getItem("token"))
   }
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(getTokens() ? true : false)
 
-  function setTokens(authTokens) {
-    localStorage.setItem("token", authTokens)
+  const login = (data) => {
+    localStorage.setItem("token", JSON.stringify(data))
+    setIsLoggedIn(true)
+  }
+
+  const logout = () => {
+    localStorage.removeItem("token")
+    setIsLoggedIn(false)
   }
 
   return (
-    <AuthContext.Provider value={{ getTokens, setTokens }}>
+    <AuthContext.Provider value={{ getTokens, login, logout, isLoggedIn }}>
       {children}
     </AuthContext.Provider>
   )

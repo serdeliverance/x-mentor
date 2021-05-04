@@ -71,7 +71,7 @@ export default function CourseListPage() {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(10)
   const notify = useNotification()
-  const authContext = useContext(AuthContext)
+  const { getTokens } = useContext(AuthContext)
 
   const handleChange = (event, value) => setPage(value)
 
@@ -81,8 +81,8 @@ export default function CourseListPage() {
         `${API_URL}/student/courses?page=${page}`,
         {
           headers: {
-            Authorization: `Bearer ${authContext.getTokens().access_token}`,
-            "Id-Token": `${authContext.getTokens().id_token}`,
+            Authorization: `Bearer ${getTokens().access_token}`,
+            "Id-Token": `${getTokens().id_token}`,
           }
         }
       )

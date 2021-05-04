@@ -18,7 +18,7 @@ const useStyles = makeStyles(() => ({
 export default function LoginModal({settings, setSettings, setLoggedIn}) {
   const classes = useStyles()
   const notify = useNotification()
-  const authContext = useContext(AuthContext)
+  const { login } = useContext(AuthContext)
 
   const [loginForm, setLoginForm] = useState({
     username: "",
@@ -38,7 +38,7 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
           `${API_URL}${settings.endpoint}`,
           loginForm
         )
-        authContext.setTokens(JSON.stringify(response.data))
+        login(response.data)
         setLoggedIn(true)
         setSettings({...settings, open: false})
       }

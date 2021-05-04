@@ -34,7 +34,7 @@ const CoursePage = () => {
     const classes = styles()
     const { id } = useParams()
     const notify = useNotification()
-    const authContext = useContext(AuthContext)
+    const { getTokens } = useContext(AuthContext)
     const [course, setCourse] = useState({})
     const startTime = useRef(0)
 
@@ -44,8 +44,8 @@ const CoursePage = () => {
                 `${API_URL}/courses/${id}`,
                 {
                     headers: {
-                        Authorization: `Bearer ${authContext.getTokens().access_token}`,
-                        "Id-Token": `${authContext.getTokens().id_token}`,
+                        Authorization: `Bearer ${getTokens().access_token}`,
+                        "Id-Token": `${getTokens().id_token}`,
                         "Content-Type": "application/json"
                     }
                 }
@@ -77,8 +77,8 @@ const CoursePage = () => {
                     { "date": new Date().getTime(), "time": seconds },
                     {
                         headers: {
-                            Authorization: `Bearer ${authContext.getTokens().access_token}`,
-                            "Id-Token": `${authContext.getTokens().id_token}`,
+                            Authorization: `Bearer ${getTokens().access_token}`,
+                            "Id-Token": `${getTokens().id_token}`,
                         }
                     }
                 )

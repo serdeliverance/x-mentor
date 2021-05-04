@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{FileIO, Flow, Framing, GraphDSL, RunnableGraph, Sin
 import akka.util.ByteString
 import models.Student
 import play.api.Logging
-import repositories.{RedisBloomRepository}
+import repositories.RedisBloomRepository
 
 import java.nio.file.Paths
 import akka.Done.done
@@ -38,7 +38,7 @@ class StudentLoader @Inject()(
     logger.info("Loading students into the graph")
     FileIO
       .fromPath(Paths.get(STUDENT_CSV_PATH))
-      .via(Framing.delimiter(ByteString("\n"), 256, allowTruncation = true).map(_.utf8String))
+      .via(Framing.delimiter(ByteString(System.lineSeparator()), 256, allowTruncation = true).map(_.utf8String))
       .map(line => {
         val slices = line.split(",")
         Student(slices(0), slices(1))
@@ -57,7 +57,7 @@ class StudentLoader @Inject()(
         .fromPath(Paths.get(STUDENT_CSV_PATH))
         .via(
           Framing
-            .delimiter(ByteString("\n"), 256, allowTruncation = true)
+            .delimiter(ByteString(System.lineSeparator()), 256, allowTruncation = true)
             .map(_.utf8String))
 
       val convertToStudent = Flow[String]

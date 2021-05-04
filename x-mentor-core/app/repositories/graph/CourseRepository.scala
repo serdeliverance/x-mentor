@@ -74,5 +74,5 @@ object CourseRepository {
   private val paginated = (query: String, offset: Int, limit: Int) => s"$query SKIP $offset LIMIT $limit"
 
   private val createCourseQuery = (course: Course) =>
-    s"CREATE (:Course {name: '${course.title}', id: '${course.id.get}'})"
+    s"CREATE (:Course {name: '${course.title}', id: '${course.id.get}', preview: '${course.preview}'})"
 }

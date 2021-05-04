@@ -93,7 +93,7 @@ export default function CourseListPage() {
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [currentCourse, setCurrentCourse] = useState()
   const notify = useNotification()
-  const authContext = useContext(AuthContext)
+  const { getTokens } = useContext(AuthContext)
 
   const handleChange = (event, value) => setPage(value)
 
@@ -112,8 +112,8 @@ export default function CourseListPage() {
         {},
         {
           headers: {
-            Authorization: `Bearer ${authContext.getTokens().access_token}`,
-            "Id-Token": `${authContext.getTokens().id_token}`,
+            Authorization: `Bearer ${getTokens().access_token}`,
+            "Id-Token": `${getTokens().id_token}`,
           }
         }
       )

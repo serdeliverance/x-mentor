@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
@@ -9,6 +9,7 @@ import LoginModal from './LoginModal';
 import AddIcon from '@material-ui/icons/Add'
 import Tooltip from '@material-ui/core/Tooltip';
 import CreateCourseModal from './CreateCourseModal'
+import { AuthContext } from '../Providers/AuthProvider';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -60,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
     }
   },
   button: {
-    margin: theme.spacing(2)
+    margin: "8px 16px"
   },
   errorBorder: {
     border: "red solid 1px",
@@ -71,12 +72,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Header({render}) {
+export default function Header() {
   const classes = useStyles()
   const history = useHistory()
   const [loggedIn, setLoggedIn] = useState(localStorage.getItem("token") ? true : false);
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [searchValue, setSearchValue] = useState("")
+  const { logout } = useContext(AuthContext)
   const [authSettings, setAuthSettings] = useState({
     mode: "",
     open: false,
@@ -94,7 +96,7 @@ export default function Header({render}) {
 
   const handleLogout = () => {
     setLoggedIn(false)
-    localStorage.removeItem("token")
+    logout()
   }
 
   const handleLogin = () => {

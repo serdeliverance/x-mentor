@@ -24,7 +24,7 @@ class TopicLoader @Inject()(topicRepository: TopicRepository)(implicit system: A
     logger.info("Loading topics into the graph")
     FileIO
       .fromPath(Paths.get(TOPIC_CSV_PATH))
-      .via(Framing.delimiter(ByteString("\n"), 256, true).map(_.utf8String))
+      .via(Framing.delimiter(ByteString(System.lineSeparator()), 256, true).map(_.utf8String))
       .map(line => {
         val slices = line.split(",")
         Topic(None, slices(0), slices(1))

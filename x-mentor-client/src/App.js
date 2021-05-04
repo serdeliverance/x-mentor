@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   BrowserRouter as Router,
   Switch,
@@ -12,15 +12,14 @@ import MyCoursesPage from './pages/MyCoursesPage'
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { NotificationsProvider } from "./Providers/NotificationsProvider";
-import { AuthProvider } from "./Providers/AuthProvider";
+import { AuthContext, AuthProvider } from "./Providers/AuthProvider";
 
 export default function App() {
   return (
-    <>
-    <Router>
-      <AuthProvider>
+    <AuthProvider>
+      <Router>
         <NotificationsProvider>
-          <Header />
+          <Header/>
           <Switch>
             <Route path="/courses">
               <CourseListPage />
@@ -36,19 +35,19 @@ export default function App() {
             </Route>
           </Switch>
         </NotificationsProvider>
-      </AuthProvider>
-      <Footer />
-    </Router>
-    </>
+        <Footer />
+      </Router>
+    </AuthProvider>
   )
 }
 
 function PrivateRoute({ children, ...rest }) {
+  const { isLoggedIn } = useContext(AuthContext)
   return (
     <Route
       {...rest}
       render={({ location }) =>
-        localStorage.getItem("token") ? (
+        isLoggedIn ? (
           children
         ) : (
           <Redirect

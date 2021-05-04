@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Box, Button, Chip, Divider, Grid, Typography } from '@material-ui/core'
+import { Box, Button, Chip, Divider, Grid, Paper, Typography } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
 import { AuthContext } from '../Providers/AuthProvider'
 import { useNotification } from '../hooks/notify'
+import Carousel from 'react-material-ui-carousel'
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -23,6 +24,25 @@ const useStyles = makeStyles(() => ({
     },
     sidebar: {
         padding: "2rem 4rem"
+    },
+    checkButton: {
+        position: "absolute",
+        display: "block",
+        bottom: "2rem",
+        right: 0,
+        zIndex: 2,
+        margin: 5,
+        padding: 5
+    },
+    image: {
+        width: "100%"
+    },
+    courseTitle: {
+        margin: 0,
+        padding: "2px 10px"
+    },
+    paper: {
+        border: "2px solid"
     }
 }))
 
@@ -30,50 +50,38 @@ const HomePage = () => {
     const classes = useStyles()
     const [topics, setTopics] = useState([])
     const [interests, setInsterests] = useState([])
-    const [recommendations, setRecommendations] = useState([])
-    const authContext = useContext(AuthContext)
+    const [recommendations, setRecommendations] = useState({})
+    const { isLoggedIn, getTokens } = useContext(AuthContext)
     const notify = useNotification()
 
     const fetchData = async () => {
-        try{
-            const recommendationsResponse = axios(
-                `${API_URL}/recommendations`,
-                {
+        try {
+            if(isLoggedIn){
+                const headers = {
                     headers: {
-                      Authorization: `Bearer ${authContext.getTokens().access_token}`,
-                      "Id-Token": `${authContext.getTokens().id_token}`,
+                        Authorization: `Bearer ${getTokens().access_token}`,
+                        "Id-Token": `${getTokens().id_token}`,
                     }
                 }
-            ).then(response => {
-                console.log(response.data)
-                setRecommendations(response.data)
-            })
-            console.log("Continue")
 
-            if(authContext.getTokens()){
-                const topicsResponse = await axios(
-                    `${API_URL}/topics`,
-                    {
-                        headers: {
-                          Authorization: `Bearer ${authContext.getTokens().access_token}`,
-                          "Id-Token": `${authContext.getTokens().id_token}`,
-                        }
-                    }
-                )
+                axios(`${API_URL}/recommendations`, headers).then(response => {
+                    console.log(response.data)
+                    setRecommendations(response.data)
+                })
+
+                const topicsResponse = await axios(`${API_URL}/topics`, headers)
                 const topics = topicsResponse.data.map(topic => topic.name)
                 setTopics(topics)
 
-                const interestsResponse = await axios(
-                    `${API_URL}/interests`,
-                    {
-                        headers: {
-                          Authorization: `Bearer ${authContext.getTokens().access_token}`,
-                          "Id-Token": `${authContext.getTokens().id_token}`,
-                        }
-                    }
-                )
+                const interestsResponse = await axios(`${API_URL}/interests`, headers)
                 const interests = interestsResponse.data.map(interest => interest.name)
                 setInsterests(interests)
+            }
+            else {
+                axios(`${API_URL}/visitors/recommendations`).then(response => {
+                    console.log(response.data)
+                    setRecommendations(response.data.discover)
+                })
             }
         }
         catch(error){
@@ -92,14 +100,14 @@ const HomePage = () => {
 
     const handleInterestsSubmit = async () => {
         try{
-            if(authContext.getTokens()){
-                const response = await axios.post(
+            if(isLoggedIn){
+                await axios.post(
                     `${API_URL}/interests`,
                     { "topics": interests },
                     {
                         headers: {
-                          Authorization: `Bearer ${authContext.getTokens().access_token}`,
-                          "Id-Token": `${authContext.getTokens().id_token}`,
+                            Authorization: `Bearer ${getTokens().access_token}`,
+                            "Id-Token": `${getTokens().id_token}`,
                         }
                     }
                 )
@@ -130,18 +138,41 @@ const HomePage = () => {
         }
     }
 
+    const Item = (props) => {
+        return (
+            <Paper variant="outlined" classes={{outlined: classes.paper}}>
+                <h2 className={classes.courseTitle}>{props.item.name}</h2>
+                <img alt={props.item.name} src={props.item.preview} className={classes.image}></img>
+
+                <Button className={classes.checkButton} variant="contained" color="secondary">
+                    Check it out!
+                </Button>
+            </Paper>
+        )
+    }
+
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [isLoggedIn])
 
     return (
         <div className={classes.root}>
             <Grid container>
-                <Grid item xs={9}>
-                    <Typography variant="h4">Welcome to X-Mentor</Typography>
+                <Grid container item xs={8}>
+                    <Grid item xs={2}></Grid>
+                    <Grid item xs={6}>
+                    {!isLoggedIn && <>
+                        <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
+                        <Carousel>
+                            {
+                                recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
+                            }
+                        </Carousel></>
+                    }
+                    </Grid>
                 </Grid>
-                {authContext.getTokens() && 
-                <Grid item xs={3} className={classes.sidebar}>
+                {isLoggedIn && 
+                <Grid item xs={4} className={classes.sidebar}>
                     <Typography variant="h6" align="center">Tell us what you're interested in</Typography>
                     <Divider />
                     <InterestsComponent />

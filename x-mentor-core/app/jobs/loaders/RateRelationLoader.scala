@@ -26,7 +26,7 @@ class RateRelationLoader @Inject()(
 
     FileIO
       .fromPath(Paths.get(RATE_RELATION_CSV_PATH))
-      .via(Framing.delimiter(ByteString("\n"), 256, true).map(_.utf8String))
+      .via(Framing.delimiter(ByteString(System.lineSeparator()), 256, true).map(_.utf8String))
       .map(line => {
         val slices = line.split(",")
         Rating(slices(0), slices(2), slices(1).toInt)
