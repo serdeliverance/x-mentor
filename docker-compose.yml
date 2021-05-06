@@ -33,12 +33,16 @@ services:
   x-keycloak:
     image: jboss/keycloak
     restart: always
+    command: 
+      - "-Dkeycloak.migration.action=import"
+      - "-Dkeycloak.migration.provider=singleFile"
+      - "-Dkeycloak.migration.file=/tmp/realm-export.json"
+      - "-Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
     volumes:
       - ./realm-export.json:/tmp/realm-export.json
     environment:
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin
-      - KEYCLOAK_IMPORT=/tmp/realm-export.json
     ports:
       - 8880:8080
 
