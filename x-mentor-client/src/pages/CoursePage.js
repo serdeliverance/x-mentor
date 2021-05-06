@@ -6,6 +6,7 @@ import { API_URL } from '../environment'
 import { Grid, Typography } from '@material-ui/core'
 import { useNotification } from '../hooks/notify'
 import { AuthContext } from '../Providers/AuthProvider'
+import Rating from '@material-ui/lab/Rating'
 
 const styles = makeStyles(() => ({
     root: {
@@ -90,6 +91,26 @@ const CoursePage = () => {
         }
     }
 
+    const rate = async (event) => {
+        const value = event.target.value
+        try{
+            const response = await axios(
+                `${API_URL}/ratings`,
+                { course: course.title, stars: value },
+                {
+                    headers: {
+                        Authorization: `Bearer ${getTokens().access_token}`,
+                        "Id-Token": `${getTokens().id_token}`,
+                    }
+                }
+            )
+        }
+        catch(error){
+            console.error(error)
+            notify("There was an retreiving the course", "error")
+        }
+    }
+
     useEffect(() => {
         fetchData()
         startTime.current = new Date().getTime()
@@ -113,6 +134,12 @@ const CoursePage = () => {
                 <Grid item xs={8} className={classes.about}>
                     <Typography variant="h6"><strong>About</strong></Typography>
                     <Typography>{course.description}</Typography>
+                </Grid>
+                <Grid item xs={2}></Grid>
+                <Grid item xs={2}></Grid>
+                <Grid container xs={8} className={classes.rating} justify="space-evenly" alignItems="center">
+                    <Typography variant="h6"><strong>Rate the course</strong></Typography>
+                    <Rating name="rating" defaultValue={0} onChange={rate} size="large"/>
                 </Grid>
             </Grid>
         </div>
