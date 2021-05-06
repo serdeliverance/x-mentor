@@ -38,7 +38,7 @@ class UserService @Inject()(
     ): ApplicationResult[AccessData] = {
     logger.info(s"login with user: $username")
 
-    val reqBody    = createAuthRequestBody(username, password, this.configuration.clientId)
+    val reqBody    = createAuthRequestBody(username, password)
     val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
     for {
@@ -56,8 +56,7 @@ class UserService @Inject()(
     logger.info(s"Creating user: $username")
 
     val requestTokenBody = createAuthRequestBody(this.configuration.users.admin.username,
-                                                 this.configuration.users.admin.password,
-                                                 this.configuration.adminClientId)
+                                                 this.configuration.users.admin.password)
     val requestTokenHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
     val createUserBody = Json.obj(
@@ -69,7 +68,7 @@ class UserService @Inject()(
 
     for {
       authResponse <- EitherT {
-        sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders)
+        sender.post(this.configuration.urls.tokenUrl, requestTokenBody, requestTokenHeaders)
       }
       adminToken <- EitherT { handleAuthResponse(authResponse) }
       creationResponse <- EitherT {
@@ -118,11 +117,11 @@ class UserService @Inject()(
         ApplicationResult.error(EmptyResponse)
     }
 
-  private def createAuthRequestBody(username: String, password: String, clientId: String) =
+  private def createAuthRequestBody(username: String, password: String) =
     formUrlEncodedBody(
       username,
       password,
-      clientId,
+      this.configuration.clientId,
       this.configuration.clientSecret,
       this.configuration.grantType,
       this.configuration.scope

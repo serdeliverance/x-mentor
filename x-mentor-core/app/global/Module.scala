@@ -78,7 +78,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   def authConfiguration: AuthConfiguration = new AuthConfiguration(
     urls = new AuthUrlsConfiguration(
       base = this.configuration.get[String](AUTH_BASE_URL),
-      adminToken = this.configuration.get[String](AUTH_ADMIN_TOKEN_URL),
       token = this.configuration.get[String](AUTH_TOKEN_URL),
       users = this.configuration.get[String](AUTH_USERS_URL),
       realm = this.configuration.get[String](AUTH_REALM_URL),
@@ -92,7 +91,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
       usernameAttributeName = this.configuration.get[String](USERNAME_ATTRIBUTE_NAME)
     ),
     clientId = this.configuration.get[String](AUTH_CLIENT_ID),
-    adminClientId = this.configuration.get[String](AUTH_ADMIN_CLIENT_ID),
     clientSecret = this.configuration.get[String](AUTH_CLIENT_SECRET),
     grantType = this.configuration.get[String](AUTH_GRANT_TYPE),
     scope = this.configuration.get[String](AUTH_SCOPE)
