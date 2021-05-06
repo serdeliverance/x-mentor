@@ -1,15 +1,15 @@
-import React, { useState, useContext } from 'react';
-import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core';
-import SearchIcon from '@material-ui/icons/Search';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MailIcon from '@material-ui/icons/Mail';
-import NotificationsIcon from '@material-ui/icons/Notifications';
-import { useHistory } from "react-router-dom";
-import LoginModal from './LoginModal';
+import React, { useState, useContext } from 'react'
+import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core'
+import SearchIcon from '@material-ui/icons/Search'
+import AccountCircle from '@material-ui/icons/AccountCircle'
+import MailIcon from '@material-ui/icons/Mail'
+import NotificationsIcon from '@material-ui/icons/Notifications'
+import { useHistory } from "react-router-dom"
+import LoginModal from './LoginModal'
 import AddIcon from '@material-ui/icons/Add'
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip from '@material-ui/core/Tooltip'
 import CreateCourseModal from './CreateCourseModal'
-import { AuthContext } from '../Providers/AuthProvider';
+import { AuthContext } from '../Providers/AuthProvider'
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -129,15 +129,15 @@ export default function Header() {
                     <SearchIcon />
                 </div>
                 <InputBase
-                    placeholder="Search…"
-                    classes={{
-                        root: classes.inputRoot,
-                        input: classes.inputInput,
-                    }}
-                    value={searchValue}
-                    inputProps={{ 'aria-label': 'search' }}
-                    onChange={e => setSearchValue(e.target.value)}
-                    onKeyDown={keyPress}
+                  placeholder="Search…"
+                  classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput,
+                  }}
+                  value={searchValue}
+                  inputProps={{ 'aria-label': 'search' }}
+                  onChange={e => setSearchValue(e.target.value)}
+                  onKeyDown={keyPress}
                 />
             </div>
             <div className={classes.grow} />
@@ -189,5 +189,5 @@ export default function Header() {
         </Toolbar>
       </AppBar>
     </div>
-  );
+  )
 }
