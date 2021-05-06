@@ -62,6 +62,9 @@ dockerfile in docker := {
 
   new Dockerfile {
     from("openjdk:8-jre-slim")
+    run("apt-update && apt-get install curl")
+    copyRaw("conf/wait-for-keycloak.sh", targetDir)
+    run("bash wait-for-keycloak.sh")
     entryPoint(s"$targetDir/bin/${executableScriptName.value}")
     copy(appDir, targetDir, chown = "daemon:daemon")
   }
