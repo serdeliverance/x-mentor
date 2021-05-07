@@ -47,6 +47,7 @@ class CourseService @Inject()(
     for {
       _ <- EitherT(redisJsonRepository.set(key, CourseConverter.courseToMap(updatedCourse).asJava))
       _ <- EitherT(redisBloomRepository.add(COURSE_IDS_FILTER, currentIndex.toString))
+      _ <- EitherT(courseRepository.createCourse(course))
       _ <- EitherT(notificationService.notifyCourseCreation(course))
     } yield Done
   }.value
