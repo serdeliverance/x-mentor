@@ -3,15 +3,16 @@ package services
 import akka.Done
 import akka.Done.done
 import global.ApplicationResult
-import models.{Course, Interest, Rating}
-import models.events.{CourseCreated, CourseRated, LostInterest, StudentInterested}
+import models.{Course, Interest, Rating, StudentProgress}
+import models.events.{CourseCreated, CourseRated, LostInterest, StudentInterested, StudentProgressRegistered}
 import play.api.Logging
 import streams.{
   COURSE_CREATION_STREAM,
   COURSE_RATED_STREAM,
   LOST_INTEREST_STREAM,
   MessagePublisher,
-  STUDENT_INTEREST_STREAM
+  STUDENT_INTEREST_STREAM,
+  STUDENT_PROGRESS_STREAM
 }
 import util.{ApplicationResultUtils, MapMarkerContext}
 
@@ -41,6 +42,15 @@ class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit
   def notifyInterestLost(interest: Interest)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $interest to $LOST_INTEREST_STREAM")
     messagePublisher.publishEvent(LOST_INTEREST_STREAM, LostInterest(interest.student, interest.topic))
+  }
+
+  def notifyStudentProgress(
+      studentProgress: StudentProgress
+    )(implicit mmc: MapMarkerContext
+    ): ApplicationResult[Done] = {
+    logger.info(s"Sending message: $studentProgress to $STUDENT_PROGRESS_STREAM")
+    messagePublisher.publishEvent(STUDENT_PROGRESS_STREAM,
+                                  StudentProgressRegistered(studentProgress.student, studentProgress.minutes))
   }
 
   def notifyInterestInBulk(interests: Seq[Interest])(implicit mmc: MapMarkerContext): ApplicationResult[Done] =
