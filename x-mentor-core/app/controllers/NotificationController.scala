@@ -1,7 +1,10 @@
 package controllers
 
-import akka.NotUsed
+import akka.actor.{ActorRef, ActorSystem}
+import akka.stream.{CompletionStrategy, OverflowStrategy}
+import akka.{Done, NotUsed}
 import akka.stream.scaladsl.Source
+
 import javax.inject.{Inject, Singleton}
 import models.Notification
 import play.api.Logging
@@ -11,23 +14,47 @@ import services.NotificationService
 import play.api.mvc._
 import io.circe.syntax._
 
+import java.time.LocalDateTime
+import scala.concurrent.ExecutionContext
+
 @Singleton
 class NotificationController @Inject()(
     val controllerComponents: ControllerComponents,
-    notificationService: NotificationService)
+    notificationService: NotificationService
+  )(implicit ec: ExecutionContext,
+    system: ActorSystem)
     extends BaseController
     with Logging {
 
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  sealed trait NotificationMessage
+  case class CourseCreated(course: String, createdAt: LocalDateTime) extends NotificationMessage
 
   def subscribeToNotifications() = Action {
 
     //val sourceOfSessionStatuses: Source[String, NotUsed] = notificationService.getSourceOfNotifications()
     //.map(notification => notification.message)
 
-    val source = Source.apply(List(Notification("kiki").asJson.noSpaces, Notification("foo").asJson.noSpaces, Notification("bar").asJson.noSpaces))
+    val (sseActor, sseSource) = Source
+      .actorRef[String](
+        completionMatcher = {
+          case Done =>
+            // complete stream immediately if we send it Done
+            CompletionStrategy.immediately
+        },
+        // never fail the stream because of a message
+        failureMatcher = PartialFunction.empty,
+        bufferSize = 100,
+        overflowStrategy = OverflowStrategy.dropHead
+      )
+      .preMaterialize()
 
-    Ok.chunked(source via EventSource.flow)
+    sseActor ! "hola"
+    sseActor ! "xmentor"
+    sseActor ! "meze ladri"
+
+    // val sseSource = Source.queue[Notification](1000, OverflowStrategy.dropHead).preMaterialize()
+
+    Ok.chunked(sseSource via EventSource.flow)
       .as(ContentTypes.EVENT_STREAM)
       .withHeaders("Cache-Control" -> "no-cache")
       .withHeaders("Connection" -> "keep-alive")
