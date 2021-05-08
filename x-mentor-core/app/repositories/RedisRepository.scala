@@ -6,7 +6,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.params.SetParams
 import redis.clients.jedis.util.Pool
 import javax.inject.{Inject, Singleton}
-import models.errors.{ApplicationError, EmptyResponse}
+import models.errors.EmptyResponse
 import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
