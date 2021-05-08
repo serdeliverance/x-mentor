@@ -40,17 +40,13 @@ class NotificationController @Inject()(
           case Done =>
             // complete stream immediately if we send it Done
             CompletionStrategy.immediately
-        },
+        }: PartialFunction[Any, CompletionStrategy],
         // never fail the stream because of a message
         failureMatcher = PartialFunction.empty,
         bufferSize = 100,
         overflowStrategy = OverflowStrategy.dropHead
       )
       .preMaterialize()
-
-    sseActor ! "hola"
-    sseActor ! "xmentor"
-    sseActor ! "meze ladri"
 
     // val sseSource = Source.queue[Notification](1000, OverflowStrategy.dropHead).preMaterialize()
 
