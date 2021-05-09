@@ -15,7 +15,7 @@ const useStyles = makeStyles(() => ({
   }
 }))
 
-export default function LoginModal({settings, setSettings, setLoggedIn}) {
+export default function LoginModal({settings, setSettings}) {
   const classes = useStyles()
   const notify = useNotification()
   const { login } = useContext(AuthContext)
@@ -39,7 +39,6 @@ export default function LoginModal({settings, setSettings, setLoggedIn}) {
           loginForm
         )
         login(response.data)
-        setLoggedIn(true)
         setSettings({...settings, open: false})
       }
       catch (error){

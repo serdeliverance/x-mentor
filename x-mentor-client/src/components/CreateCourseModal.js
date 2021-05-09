@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { Button, makeStyles, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Switch, Box } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
 import { useNotification } from '../hooks/notify'
+import { AuthContext } from '../Providers/AuthProvider'
 
 const useStyles = makeStyles(() => ({
     preview: {
@@ -27,15 +28,23 @@ export default function CreateCourseModal({open, setOpen}) {
     })
     const notify = useNotification()
     const [isContentUrl, setIsContentUrl] = useState(true)
+    const { getTokens } = useContext(AuthContext)
 
     const handleCreate = async () => {
-        if(courseForm.title && courseForm.description && courseForm.preview && courseForm.content){
+        if(courseForm.title && courseForm.description && courseForm.content){
             try {
                 await axios.post(
                     `${API_URL}/courses`,
-                    courseForm
+                    courseForm,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getTokens().access_token}`,
+                            "Id-Token": `${getTokens().id_token}`,
+                        }
+                    }
                 )
                 notify("Course created!", "success")
+                resetForm()
                 setOpen(false)
             } catch (error) {
                 console.error(error)
@@ -45,7 +54,11 @@ export default function CreateCourseModal({open, setOpen}) {
     }
 
     const handleClose = () => {
+        resetForm()
         setOpen(false)
+    }
+
+    const resetForm = () => {
         setCourseForm({
             title: "",
             description: "",
@@ -53,7 +66,7 @@ export default function CreateCourseModal({open, setOpen}) {
             preview: "",
             content: ""
         })
-        setIsContentUrl(false)
+        setIsContentUrl(true)
     }
 
     const handleTextField = (event) => {
@@ -97,7 +110,7 @@ export default function CreateCourseModal({open, setOpen}) {
         reader.readAsDataURL(file);
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
-    });
+    })
 
     return (
         <Dialog open={open} onClose={handleClose} classes={{paperWidthSm: classes.paper}} aria-labelledby="form-dialog-title">

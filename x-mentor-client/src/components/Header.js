@@ -124,9 +124,9 @@ export default function Header() {
         // process the data here,
         // then pass it to state to be rendered
       }
-      sse.onmessage = e => getRealtimeData(JSON.parse(e.data))
-      sse.onerror = () => {
-        console.log("Error")        
+      sse.onmessage = e => getRealtimeData(e)
+      sse.onerror = (error) => {
+        console.log("Error: " + error)        
         sse.close()
       }
       return () => {

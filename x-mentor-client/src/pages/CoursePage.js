@@ -74,7 +74,7 @@ const CoursePage = () => {
         try{
             if(localStorage.getItem("token")){
                 const response = await axios.post(
-                    `${API_URL}/students/watchtime`,
+                    `${API_URL}/students/progress`,
                     { "date": new Date().getTime(), "time": seconds },
                     {
                         headers: {
