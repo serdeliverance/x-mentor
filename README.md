@@ -64,6 +64,23 @@
 
 ## Redis Keys
 
-* `courses:*:levels:*:contents:*:resources:*`
-* `users:*`
-* `topics:*:courses:*`
+### Bloom filters
+
+* courses
+* users
+
+### Graphs
+
+* xmentor
+	- topics
+	- users
+	- courses 
+
+### Json
+
+* `courses:{n}`
+
+### Keys
+
+* public-key
+* course-last-index

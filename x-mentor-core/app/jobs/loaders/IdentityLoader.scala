@@ -40,10 +40,7 @@ class IdentityLoader @Inject()(sender: Sender, configuration: AuthConfiguration,
                 logger.error(s"Error parsing auth server response $error")
                 ApplicationResult(false)
               },
-              realmResponse => redisRepository.set(PUBLIC_KEY, realmResponse.publicKey).map {
-                case result => Right(result)
-                case _ => Right(false)
-              }
+              realmResponse => redisRepository.set(PUBLIC_KEY, realmResponse.publicKey).map(result => Right(result))
             )
         case _ =>
           logger.error("Failing connecting with auth server")

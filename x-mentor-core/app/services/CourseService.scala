@@ -8,15 +8,15 @@ import global.{ApplicationResult, ApplicationResultExtended}
 import io.circe.parser.decode
 import io.redisearch.{Document, Query}
 import models.errors.EmptyResponse
-import models.{Course, CourseResponse, Studying}
+import models.{Course, CourseResponse, Notification, Studying}
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import repositories.graph.{CourseRepository, RelationsRepository}
 import repositories.{RediSearchRepository, RedisBloomRepository, RedisJsonRepository}
 import util.{ApplicationResultUtils, CourseConverter, JsonUtils, MapMarkerContext, RedisJsonUtils}
-
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
@@ -47,12 +47,14 @@ class CourseService @Inject()(
     for {
       _ <- EitherT(redisJsonRepository.set(key, CourseConverter.courseToMap(updatedCourse).asJava))
       _ <- EitherT(redisBloomRepository.add(COURSE_IDS_FILTER, currentIndex.toString))
+      _ <- EitherT(courseRepository.createCourse(course))
       _ <- EitherT(notificationService.notifyCourseCreation(course))
     } yield Done
   }.value
 
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
     logger.info(s"Enrolling user $username in course $courseId")
+    notificationService.registerNewNotification(Notification("NEW COURSE"))
     for {
       _      <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       course <- EitherT(retrieveById(courseId))

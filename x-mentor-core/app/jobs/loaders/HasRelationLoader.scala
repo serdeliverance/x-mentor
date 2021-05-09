@@ -8,9 +8,7 @@ import models.Has
 import play.api.Logging
 import repositories.graph.RelationsRepository
 import java.nio.file.Paths
-
 import javax.inject.{Inject, Singleton}
-
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -27,7 +25,7 @@ class HasRelationLoader @Inject()(
 
     FileIO
       .fromPath(Paths.get(HAS_RELATION_CSV_PATH))
-      .via(Framing.delimiter(ByteString(System.lineSeparator()), 256, true).map(_.utf8String))
+      .via(Framing.delimiter(ByteString(System.lineSeparator()), 256, allowTruncation = true).map(_.utf8String))
       .map(line => {
         val slices = line.split(",")
         Has(slices(0), slices(1))
