@@ -1,6 +1,9 @@
 package global
 
+import akka.Done
 import akka.actor.ActorSystem
+import akka.stream.scaladsl.Source
+import akka.stream.{CompletionStrategy, OverflowStrategy}
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
@@ -17,7 +20,9 @@ import javax.inject.{Named, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
-class Module(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
+class Module(environment: Environment, configuration: Configuration)(implicit ec: ExecutionContext, system: ActorSystem)
+    extends AbstractModule
+    with AkkaGuiceSupport {
 
   val _ = environment
 
@@ -102,4 +107,22 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     interestRecommendationSize = configuration.get[Int](INTEREST_RECOMMENDATION_SIZE),
     discoveryRecommendationSize = configuration.get[Int](DISCOVER_RECOMMENDATION_SIZE)
   )
+
+  @Provides
+  def sseConfiguration(): SSEConfiguration = {
+    val (sseActor, sseSource) = Source
+      .actorRef[String](
+        completionMatcher = {
+          case Done =>
+            // complete stream immediately if we send it Done
+            CompletionStrategy.immediately
+        }: PartialFunction[Any, CompletionStrategy],
+        // never fail the stream because of a message
+        failureMatcher = PartialFunction.empty,
+        bufferSize = 100,
+        overflowStrategy = OverflowStrategy.dropHead
+      )
+      .preMaterialize()
+    SSEConfiguration(sseActor, sseSource)
+  }
 }

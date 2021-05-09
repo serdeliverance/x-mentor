@@ -7,23 +7,34 @@ import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.QueueOfferResult.{Dropped, Enqueued, Failure, QueueClosed}
 import akka.stream.scaladsl.{Source, SourceQueue, SourceQueueWithComplete}
 import global.ApplicationResult
+import models.configurations.SSEConfiguration
 import models.{Course, Interest, Notification, Rating}
 import models.events.{CourseCreated, CourseRated, LostInterest, StudentInterested}
 import play.api.Logging
-import streams.{COURSE_CREATION_STREAM, COURSE_RATED_STREAM, LOST_INTEREST_STREAM, MessagePublisher, STUDENT_INTEREST_STREAM}
+import streams.{
+  COURSE_CREATION_STREAM,
+  COURSE_RATED_STREAM,
+  LOST_INTEREST_STREAM,
+  MessagePublisher,
+  STUDENT_INTEREST_STREAM
+}
 import util.{ApplicationResultUtils, MapMarkerContext}
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit ec: ExecutionContext)
+class NotificationService @Inject()(
+    messagePublisher: MessagePublisher,
+    sseConfiguration: SSEConfiguration
+  )(implicit ec: ExecutionContext)
     extends ApplicationResultUtils
     with Logging {
 
   def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM")
+    sseConfiguration.notificationActor ! "course created"
     messagePublisher.publishEvent(COURSE_CREATION_STREAM, CourseCreated(course.title, course.topic))
   }
 
@@ -52,11 +63,10 @@ class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit
       interests.map(interest => notifyInterestLost(interest))
     }.map(_ => Right(done()))
 
-
-  implicit private val system: ActorSystem = ActorSystem("Notification")
+  implicit private val system: ActorSystem        = ActorSystem("Notification")
   implicit private val materializer: Materializer = Materializer(system)
-  val sourceOfNotifications = mutable.Queue.empty[Source[Notification, NotUsed]]
-  private val sourceQueueOfNotifications2 =  mutable.Queue.empty[SourceQueue[Notification]]
+  val sourceOfNotifications                       = mutable.Queue.empty[Source[Notification, NotUsed]]
+  private val sourceQueueOfNotifications2         = mutable.Queue.empty[SourceQueue[Notification]]
 
   def getSourceOfNotifications: Source[Notification, NotUsed] = {
     logger.info("Retreiving notifications")
@@ -79,20 +89,24 @@ class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit
 
   def registerNewNotification(notification: Notification): Future[Unit] = {
     createSourceOfNotifications()
-    sourceQueueOfNotifications2.dequeue().offer(notification) .flatMap {
-      case Enqueued =>
-        Future.successful(())
-      case Dropped =>
-        Future.failed(new Exception(s"Notification couldn't be published"))
-      case Failure(e) =>
-        println("Failure(e):" + e.getMessage)
-        Future.failed(new Exception(s"Notification couldn't be published because of $e"))
-      case QueueClosed =>
-        println("QueueClosed")
-        Future.failed(new Exception(s"Notification couldn't be published because the publishing queue was closed"))
-    }.recover({
-      case t =>
-        println(t.getMessage)
-    })
+    sourceQueueOfNotifications2
+      .dequeue()
+      .offer(notification)
+      .flatMap {
+        case Enqueued =>
+          Future.successful(())
+        case Dropped =>
+          Future.failed(new Exception(s"Notification couldn't be published"))
+        case Failure(e) =>
+          println("Failure(e):" + e.getMessage)
+          Future.failed(new Exception(s"Notification couldn't be published because of $e"))
+        case QueueClosed =>
+          println("QueueClosed")
+          Future.failed(new Exception(s"Notification couldn't be published because the publishing queue was closed"))
+      }
+      .recover({
+        case t =>
+          println(t.getMessage)
+      })
   }
 }

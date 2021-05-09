@@ -58,11 +58,22 @@ imageNames in docker := Seq(
 // Dockerfile template
 dockerfile in docker := {
   val appDir: File = stage.value
-  val targetDir = "/app"
+  // val targetDir = "/app"
+  val finder: PathFinder = (appDir / "conf") * "wait-for-keycloak.sh"
 
   new Dockerfile {
-    from("openjdk:8-jre-slim")
-    entryPoint(s"$targetDir/bin/${executableScriptName.value}")
-    copy(appDir, targetDir, chown = "daemon:daemon")
+    //from("openjdk:8-jre-slim")
+    from("openjdk:8-jre-alpine")
+    expose(9000, 9443)
+    workDir("/opt/docker")
+    cmd("RUN","apt-get update && apt-get install curl")
+    add(appDir, "/opt/docker")
+    add(finder.get, "/opt/docker")
+    run("chmod", "+x", "/opt/docker/conf/wrapper.sh")
+    //copyRaw("conf/wait-for-keycloak.sh", targetDir)
+    // entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+    // copy(appDir, targetDir, chown = "daemon:daemon")
+    // /opt/docker/bin/wrapper.sh
+    entryPoint("sh", "/opt/docker/conf/wrapper.sh")
   }
 }
