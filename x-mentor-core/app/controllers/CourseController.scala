@@ -3,7 +3,6 @@ package controllers
 import controllers.actions.AuthenticatedAction
 import controllers.circe.Decodable
 import controllers.converters.ErrorToResultConverter
-
 import javax.inject.{Inject, Singleton}
 import models.Course
 import models.dtos.requests.{CourseCreationRequestDTO, CourseEnrollmentRequestDTO}
@@ -11,6 +10,7 @@ import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.CourseService
 import io.circe.syntax._
+import util.MapMarkerContext
 import util.MapMarkerContext.fromAuthenticatedRequest
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,7 +28,7 @@ class CourseController @Inject()(
 
   def create(): Action[CourseCreationRequestDTO] = authenticatedAction.async(decode[CourseCreationRequestDTO]) {
     implicit request =>
-      implicit val mmc = fromAuthenticatedRequest()
+      implicit val mmc: MapMarkerContext = fromAuthenticatedRequest()
       logger.info(s"Creating course")
       val course = Course(title = request.body.title,
                           description = request.body.description,

@@ -8,7 +8,7 @@ import global.{ApplicationResult, ApplicationResultExtended}
 import io.circe.parser.decode
 import io.redisearch.{Document, Query}
 import models.errors.EmptyResponse
-import models.{Course, CourseResponse, Notification, Studying}
+import models.{Course, CourseResponse, Studying}
 import play.api.Logging
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool

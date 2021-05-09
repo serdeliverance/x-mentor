@@ -8,8 +8,9 @@ import play.api.Logging
 import play.api.mvc.{Action, BaseController, ControllerComponents}
 import services.MetricsService
 import util.MapMarkerContext.fromAuthenticatedRequest
-
 import javax.inject.{Inject, Singleton}
+import util.MapMarkerContext
+
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -25,7 +26,7 @@ class MetricsController @Inject()(
 
   def registerStudentProgress(): Action[StudentProgressDTO] =
     authenticatedAction.async(decode[StudentProgressDTO]) { implicit request =>
-      implicit val mmc = fromAuthenticatedRequest()
+      implicit val mmc: MapMarkerContext = fromAuthenticatedRequest()
       logger.info("Registering watching time")
       metricsService.registerStudentProgress(request.student, request.body.durationInSeconds).map(_ => Ok)
     }

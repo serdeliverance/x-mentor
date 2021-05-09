@@ -126,7 +126,7 @@ export default function Header() {
       }
       sse.onmessage = e => getRealtimeData(e)
       sse.onerror = (error) => {
-        console.log("Error: " + error)        
+        console.log(error)        
         sse.close()
       }
       return () => {

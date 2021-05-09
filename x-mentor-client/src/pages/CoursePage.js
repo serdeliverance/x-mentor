@@ -35,7 +35,7 @@ const CoursePage = () => {
     const classes = styles()
     const { id } = useParams()
     const notify = useNotification()
-    const { getTokens } = useContext(AuthContext)
+    const { isLoggedIn, getTokens } = useContext(AuthContext)
     const [course, setCourse] = useState({})
     const startTime = useRef(0)
 
@@ -72,10 +72,10 @@ const CoursePage = () => {
     
     const updateWatchTime = async (seconds) => {
         try{
-            if(localStorage.getItem("token")){
+            if(isLoggedIn){
                 const response = await axios.post(
                     `${API_URL}/students/progress`,
-                    { "date": new Date().getTime(), "time": seconds },
+                    { "duration_in_seconds": seconds },
                     {
                         headers: {
                             Authorization: `Bearer ${getTokens().access_token}`,
@@ -115,7 +115,6 @@ const CoursePage = () => {
     useEffect(() => {
         fetchData()
         startTime.current = new Date().getTime()
-
         return () => {
             const seconds = Math.round((new Date().getTime() - startTime.current) / 1000)
             updateWatchTime(seconds)
@@ -138,7 +137,7 @@ const CoursePage = () => {
                 </Grid>
                 <Grid item xs={2}></Grid>
                 <Grid item xs={2}></Grid>
-                <Grid container xs={8} className={classes.rating} justify="space-evenly" alignItems="center">
+                <Grid container item xs={8} className={classes.rating} justify="space-evenly" alignItems="center">
                     <Typography variant="h6"><strong>Rate the course</strong></Typography>
                     <Rating name="rating" defaultValue={0} onChange={rate} size="large"/>
                 </Grid>
