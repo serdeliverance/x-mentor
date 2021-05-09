@@ -14,3 +14,6 @@ case class StudentInterested(student: String, topic: String, timestamp: Long = I
 
 case class LostInterest(student: String, topic: String, timestamp: Long = Instant.now.getEpochSecond)
     extends DomainEvent
+
+case class StudentProgressRegistered(student: String, duration: Int, timestamp: Long = Instant.now.getEpochSecond)
+    extends DomainEvent
