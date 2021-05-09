@@ -6,7 +6,7 @@ import Pagination from '@material-ui/lab/Pagination'
 import { useLocation } from "react-router-dom"
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents'
 import Rating from '@material-ui/lab/Rating'
-import CourseModal from '../components/CourseModal';
+import CourseModal from '../components/CourseModal'
 import { API_URL } from '../environment'
 import { useNotification } from '../hooks/notify'
 import { AuthContext } from '../Providers/AuthProvider'
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundSize: "auto 100%"
   },
   tile: {
-    padding: theme.spacing(4),
+    padding: theme.spacing(5),
     width: "30%",
   },
   description: {
@@ -185,7 +185,7 @@ export default function CourseListPage() {
                   </Button>
                   <Tooltip title={course.rating} placement="left">
                     <Box component="fieldset" pb={0.2} borderColor="transparent">
-                        <Rating name="read-only" value={course.rating} precision={0.5} readOnly />
+                        <Rating name="read-only" value={course.rating} readOnly />
                     </Box>
                   </Tooltip>
                 </CardActions>

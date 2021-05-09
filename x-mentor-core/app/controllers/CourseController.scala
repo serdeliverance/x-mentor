@@ -13,7 +13,7 @@ import services.CourseService
 import io.circe.syntax._
 import util.MapMarkerContext.fromAuthenticatedRequest
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CourseController @Inject()(
@@ -37,7 +37,8 @@ class CourseController @Inject()(
                           topic = request.body.topic)
       courseService
         .create(course)
-        .map(_ => Created)
+
+      Future(Created)
   }
 
   def enroll(courseId: Long): Action[CourseEnrollmentRequestDTO] =

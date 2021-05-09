@@ -19,14 +19,17 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 import cats.implicits._
 import constants.USERS_FILTER
+import models.Student
 import play.api.libs.json._
 import repositories.RedisBloomRepository
+import repositories.graph.StudentRepository
 
 @Singleton
 class UserService @Inject()(
     sender: Sender,
     configuration: AuthConfiguration,
-    redisBloomRepository: RedisBloomRepository
+    redisBloomRepository: RedisBloomRepository,
+    studentRepository: StudentRepository
   )(implicit ec: ExecutionContext)
     extends Logging
     with CirceImplicits {
@@ -38,13 +41,16 @@ class UserService @Inject()(
     ): ApplicationResult[AccessData] = {
     logger.info(s"login with user: $username")
 
-    val reqBody    = createAuthRequestBody(username, password, this.configuration.clientId)
+    val reqBody    = createAuthRequestBody(username, password)
     val reqHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
     for {
-      exists       <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
-      authResponse <- EitherT { if(exists) sender.post(this.configuration.urls.tokenUrl, reqBody, reqHeaders) else ApplicationResult.error(NotFoundError("User does not exists")) }
-      accessData   <- EitherT { handleAuthResponse(authResponse) }
+      exists <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
+      authResponse <- EitherT {
+        if (exists) sender.post(this.configuration.urls.tokenUrl, reqBody, reqHeaders)
+        else ApplicationResult.error(NotFoundError("User does not exists"))
+      }
+      accessData <- EitherT { handleAuthResponse(authResponse) }
     } yield accessData
   }.value
 
@@ -55,9 +61,8 @@ class UserService @Inject()(
     ): ApplicationResult[Done] = {
     logger.info(s"Creating user: $username")
 
-    val requestTokenBody = createAuthRequestBody(this.configuration.users.admin.username,
-                                                 this.configuration.users.admin.password,
-                                                 this.configuration.adminClientId)
+    val requestTokenBody =
+      createAuthRequestBody(this.configuration.users.admin.username, this.configuration.users.admin.password)
     val requestTokenHeaders = List((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
 
     val createUserBody = Json.obj(
@@ -69,7 +74,7 @@ class UserService @Inject()(
 
     for {
       authResponse <- EitherT {
-        sender.post(this.configuration.urls.adminTokenUrl, requestTokenBody, requestTokenHeaders)
+        sender.post(this.configuration.urls.tokenUrl, requestTokenBody, requestTokenHeaders)
       }
       adminToken <- EitherT { handleAuthResponse(authResponse) }
       creationResponse <- EitherT {
@@ -78,6 +83,7 @@ class UserService @Inject()(
                     createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer ${adminToken.accessToken}")))
       }
       response <- EitherT { handleCreationResponse(creationResponse) }
+      _ <- EitherT { studentRepository.createStudent(Student(username, s"$username@gmail.com")) }
     } yield response
   }.value
 
@@ -118,11 +124,11 @@ class UserService @Inject()(
         ApplicationResult.error(EmptyResponse)
     }
 
-  private def createAuthRequestBody(username: String, password: String, clientId: String) =
+  private def createAuthRequestBody(username: String, password: String) =
     formUrlEncodedBody(
       username,
       password,
-      clientId,
+      this.configuration.clientId,
       this.configuration.clientSecret,
       this.configuration.grantType,
       this.configuration.scope

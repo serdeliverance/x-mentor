@@ -66,17 +66,11 @@ class StudentLoader @Inject()(
           Student(slices(0), slices(1))
         })
 
-      val createUsers = Flow[Student]
-        .map(student => {
-          userService.signup(student.username, student.username)
-          student
-        })
-
       val redisBloomSink = Flow[Student]
         .mapAsync(1)(student => redisBloomRepository.add(USERS_FILTER, student.username))
         .to(Sink.ignore)
 
-      source ~> convertToStudent ~> createUsers ~> redisBloomSink
+      source ~> convertToStudent ~> redisBloomSink
       ClosedShape
     })
 }

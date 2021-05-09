@@ -13,7 +13,6 @@ package object configurations {
 
   val AUTH_BASE_URL           = "auth.urls.base"
   val AUTH_TOKEN_URL          = "auth.urls.token"
-  val AUTH_ADMIN_TOKEN_URL    = "auth.urls.admin-token"
   val AUTH_USERS_URL          = "auth.urls.users"
   val AUTH_REALM_URL          = "auth.urls.realm"
   val AUTH_ADMIN_USERNAME     = "auth.users.admin.username"

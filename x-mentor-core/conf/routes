@@ -13,3 +13,5 @@ POST    /login                                 controllers.UserController.login(
 POST    /signup                                controllers.UserController.signup()
 GET     /recommendations                       controllers.RecommendationController.recommend()
 GET     /visitors/recommendations              controllers.RecommendationController.visitorRecommendation()
+GET     /notifications                         controllers.NotificationController.subscribeToNotifications()
+POST    /notifications                         controllers.NotificationController.registerNotification()

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
+import { Card, CardActionArea, CardContent, CardMedia, Grid, Typography } from '@material-ui/core'
 import axios from 'axios'
 import Pagination from '@material-ui/lab/Pagination'
 import { API_URL } from '../environment'
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundSize: "auto 100%"
   },
   tile: {
-    padding: theme.spacing(4),
+    padding: theme.spacing(5),
     width: "30%"
   },
   description: {
@@ -34,7 +34,11 @@ const useStyles = makeStyles((theme) => ({
     display: '-webkit-box'
   },
   card: {
-    height: '50vh'
+    height: '36vh'
+  },
+  cardActions: {
+    '&:hover': {
+    }
   },
   title: {
     fontWeight: 'bold'
@@ -44,24 +48,6 @@ const useStyles = makeStyles((theme) => ({
       marginTop: theme.spacing(2),
     },
   },
-  star: {
-    float: "right",
-    position: "relative",
-    top: 5,
-    color: "gold"
-  },
-  actions: {
-    height: "3rem",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  enroll: {
-    padding: 16
-  },
-  content: {
-    padding: "16px 16px 0"
-  }
 }))
 
 export default function CourseListPage() {
@@ -133,11 +119,6 @@ export default function CourseListPage() {
                           />
                       </CardContent>
                   </CardActionArea>
-                  <CardActions className={classes.actions}>
-                    <Button color="primary" className={classes.enroll} onClick={(e) => watchCourse(e.target.closest(".MuiCard-root").id)}>
-                      Watch Course
-                    </Button>
-                  </CardActions>
               </Card>
           </Grid>
         ))}

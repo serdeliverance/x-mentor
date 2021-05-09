@@ -1,15 +1,16 @@
-import React, { useState, useContext } from 'react';
-import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core';
-import SearchIcon from '@material-ui/icons/Search';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MailIcon from '@material-ui/icons/Mail';
-import NotificationsIcon from '@material-ui/icons/Notifications';
-import { useHistory } from "react-router-dom";
-import LoginModal from './LoginModal';
+import React, { useState, useContext, useEffect } from 'react'
+import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core'
+import SearchIcon from '@material-ui/icons/Search'
+import AccountCircle from '@material-ui/icons/AccountCircle'
+import MailIcon from '@material-ui/icons/Mail'
+import NotificationsIcon from '@material-ui/icons/Notifications'
+import { useHistory } from "react-router-dom"
+import LoginModal from './LoginModal'
 import AddIcon from '@material-ui/icons/Add'
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip from '@material-ui/core/Tooltip'
 import CreateCourseModal from './CreateCourseModal'
-import { AuthContext } from '../Providers/AuthProvider';
+import { AuthContext } from '../Providers/AuthProvider'
+import { API_URL } from '../environment'
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -117,6 +118,26 @@ export default function Header() {
     })
   }
 
+  useEffect(() => {
+    console.log("Creating event source")
+    const sse = new EventSource(`${API_URL}/notifications`,
+    { withCredentials: true });
+    function getRealtimeData(data) {
+      console.log(data)
+      // process the data here,
+      // then pass it to state to be rendered
+    }
+    sse.onmessage = e => getRealtimeData(JSON.parse(e.data));
+    sse.onerror = () => {
+      // error log here 
+      
+      sse.close();
+    }
+    return () => {
+      sse.close();
+    };
+  }, [])
+
   return (
     <div className={classes.grow}>
       <AppBar position="static">
@@ -129,15 +150,15 @@ export default function Header() {
                     <SearchIcon />
                 </div>
                 <InputBase
-                    placeholder="Search…"
-                    classes={{
-                        root: classes.inputRoot,
-                        input: classes.inputInput,
-                    }}
-                    value={searchValue}
-                    inputProps={{ 'aria-label': 'search' }}
-                    onChange={e => setSearchValue(e.target.value)}
-                    onKeyDown={keyPress}
+                  placeholder="Search…"
+                  classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput,
+                  }}
+                  value={searchValue}
+                  inputProps={{ 'aria-label': 'search' }}
+                  onChange={e => setSearchValue(e.target.value)}
+                  onKeyDown={keyPress}
                 />
             </div>
             <div className={classes.grow} />
@@ -164,16 +185,18 @@ export default function Header() {
                         <NotificationsIcon />
                     </Badge>
                 </IconButton></>}
-                <IconButton
-                    edge="end"
-                    aria-label="account of current user"
-                    aria-controls='primary-search-account-menu'
-                    aria-haspopup="true"
-                    color="inherit"
-                    onClick={() => handleLogout()}
-                >
-                  <AccountCircle />
-                </IconButton>
+                <Tooltip title="Logout" arrow>
+                  <IconButton
+                      edge="end"
+                      aria-label="account of current user"
+                      aria-controls='primary-search-account-menu'
+                      aria-haspopup="true"
+                      color="inherit"
+                      onClick={() => handleLogout()}
+                  >
+                    <AccountCircle />
+                  </IconButton>
+                </Tooltip>
             </div>
             <CreateCourseModal open={openCourseModal} setOpen={setOpenCourseModal}></CreateCourseModal>
             </>
@@ -189,5 +212,5 @@ export default function Header() {
         </Toolbar>
       </AppBar>
     </div>
-  );
+  )
 }

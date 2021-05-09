@@ -6,6 +6,7 @@ import { API_URL } from '../environment'
 import { AuthContext } from '../Providers/AuthProvider'
 import { useNotification } from '../hooks/notify'
 import Carousel from 'react-material-ui-carousel'
+import { useHistory } from "react-router-dom"
 
 const useStyles = makeStyles(() => ({
     root: {
@@ -15,7 +16,7 @@ const useStyles = makeStyles(() => ({
         margin: 5
     },
     interests: {
-        height: "10rem"
+        height: "15rem"
     },
     topics: {
     },
@@ -23,12 +24,12 @@ const useStyles = makeStyles(() => ({
         textAlign: "center"
     },
     sidebar: {
-        padding: "2rem 4rem"
+        padding: "2rem 0 0 0"
     },
     checkButton: {
         position: "absolute",
         display: "block",
-        bottom: "2rem",
+        bottom: 30,
         right: 0,
         zIndex: 2,
         margin: 5,
@@ -42,7 +43,7 @@ const useStyles = makeStyles(() => ({
         padding: "2px 10px"
     },
     paper: {
-        border: "2px solid"
+        boxShadow: "none"
     }
 }))
 
@@ -52,6 +53,7 @@ const HomePage = () => {
     const [interests, setInsterests] = useState([])
     const [recommendations, setRecommendations] = useState({})
     const { isLoggedIn, getTokens } = useContext(AuthContext)
+    const history = useHistory()
     const notify = useNotification()
 
     const fetchData = async () => {
@@ -65,8 +67,11 @@ const HomePage = () => {
                 }
 
                 axios(`${API_URL}/recommendations`, headers).then(response => {
-                    console.log(response.data)
-                    setRecommendations(response.data)
+                    const data = response.data
+                    const keys = Object.keys(data)
+                    const randomObject = Math.floor(Math.random()*keys.length)
+                    const courses = data[keys[randomObject]]
+                    setRecommendations(courses)
                 })
 
                 const topicsResponse = await axios(`${API_URL}/topics`, headers)
@@ -119,6 +124,10 @@ const HomePage = () => {
         }
     }
 
+    const checkCourse = (courseName) => {
+        history.push(`/courses?q=${courseName}`)
+    }
+
     const InterestsComponent = () => {
         if(interests.length === 0) {
             return (
@@ -140,11 +149,11 @@ const HomePage = () => {
 
     const Item = (props) => {
         return (
-            <Paper variant="outlined" classes={{outlined: classes.paper}}>
+            <Paper className={classes.paper}>
                 <h2 className={classes.courseTitle}>{props.item.name}</h2>
                 <img alt={props.item.name} src={props.item.preview} className={classes.image}></img>
 
-                <Button className={classes.checkButton} variant="contained" color="secondary">
+                <Button className={classes.checkButton} variant="contained" color="secondary" onClick={() => checkCourse(props.item.name)}>
                     Check it out!
                 </Button>
             </Paper>
@@ -158,34 +167,52 @@ const HomePage = () => {
     return (
         <div className={classes.root}>
             <Grid container>
-                <Grid container item xs={8}>
-                    <Grid item xs={2}></Grid>
+                <Grid container item xs={6} justify="center" className={classes.sidebar}>
+                    <Grid item xs={1}></Grid>
                     <Grid item xs={6}>
-                    {!isLoggedIn && <>
+                    {!isLoggedIn ? 
+                    <>
                         <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
+                        <Divider />
                         <Carousel>
                             {
                                 recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
                             }
-                        </Carousel></>
+                        </Carousel>
+                    </> :
+                    <>
+                        <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
+                        <Divider />
+                        <Carousel>
+                            {
+                                recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
+                            }
+                        </Carousel>
+                    </>
                     }
                     </Grid>
                 </Grid>
-                {isLoggedIn && 
-                <Grid item xs={4} className={classes.sidebar}>
-                    <Typography variant="h6" align="center">Tell us what you're interested in</Typography>
-                    <Divider />
-                    <InterestsComponent />
-                    <Divider />
-                    <Box className={classes.topics} mb={3} textAlign="center">
-                        {topics.map(topic => (
-                            <Chip key={topic} label={topic} className={classes.chip} disabled={interests.includes(topic) ? true : false} onClick={() => handleClick(topic)}/>
-                        ))}
-                    </Box>
-                    <Box className={classes.interestsBtn}>
-                        <Button variant="contained" color="primary" onClick={handleInterestsSubmit}>Save Changes</Button>
-                    </Box>
-                </Grid>}
+                {isLoggedIn ?
+                <Grid container item xs={6} className={classes.sidebar} justify="center">
+                    <Grid item xs={1}></Grid>
+                    <Grid item xs={4}>
+                        <Typography variant="h6" align="center">Tell us what you're interested in</Typography>
+                        <Divider />
+                        <InterestsComponent />
+                        <Divider />
+                        <Box className={classes.topics} mb={3} textAlign="center">
+                            {topics.map(topic => (
+                                <Chip key={topic} label={topic} className={classes.chip} disabled={interests.includes(topic) ? true : false} onClick={() => handleClick(topic)}/>
+                            ))}
+                        </Box>
+                        <Box className={classes.interestsBtn}>
+                            <Button variant="contained" color="primary" onClick={handleInterestsSubmit}>Save Changes</Button>
+                        </Box>
+                    </Grid>
+                </Grid> :
+                <>
+                </>
+                }
             </Grid>
         </div>
     )

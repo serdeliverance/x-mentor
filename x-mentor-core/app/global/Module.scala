@@ -1,6 +1,9 @@
 package global
 
+import akka.Done
 import akka.actor.ActorSystem
+import akka.stream.scaladsl.Source
+import akka.stream.{CompletionStrategy, OverflowStrategy}
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
@@ -78,7 +81,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
   def authConfiguration: AuthConfiguration = new AuthConfiguration(
     urls = new AuthUrlsConfiguration(
       base = this.configuration.get[String](AUTH_BASE_URL),
-      adminToken = this.configuration.get[String](AUTH_ADMIN_TOKEN_URL),
       token = this.configuration.get[String](AUTH_TOKEN_URL),
       users = this.configuration.get[String](AUTH_USERS_URL),
       realm = this.configuration.get[String](AUTH_REALM_URL),
@@ -92,7 +94,6 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
       usernameAttributeName = this.configuration.get[String](USERNAME_ATTRIBUTE_NAME)
     ),
     clientId = this.configuration.get[String](AUTH_CLIENT_ID),
-    adminClientId = this.configuration.get[String](AUTH_ADMIN_CLIENT_ID),
     clientSecret = this.configuration.get[String](AUTH_CLIENT_SECRET),
     grantType = this.configuration.get[String](AUTH_GRANT_TYPE),
     scope = this.configuration.get[String](AUTH_SCOPE)
@@ -104,4 +105,22 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     interestRecommendationSize = configuration.get[Int](INTEREST_RECOMMENDATION_SIZE),
     discoveryRecommendationSize = configuration.get[Int](DISCOVER_RECOMMENDATION_SIZE)
   )
+
+  @Provides
+  def sseConfiguration()(implicit ec: ExecutionContext, system: ActorSystem): SSEConfiguration = {
+    val (sseActor, sseSource) = Source
+      .actorRef[String](
+        completionMatcher = {
+          case Done =>
+            // complete stream immediately if we send it Done
+            CompletionStrategy.immediately
+        }: PartialFunction[Any, CompletionStrategy],
+        // never fail the stream because of a message
+        failureMatcher = PartialFunction.empty,
+        bufferSize = 100,
+        overflowStrategy = OverflowStrategy.dropHead
+      )
+      .preMaterialize()
+    SSEConfiguration(sseActor, sseSource)
+  }
 }
