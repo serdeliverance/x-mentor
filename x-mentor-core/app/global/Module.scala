@@ -1,10 +1,6 @@
 package global
 
-import akka.Done
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.sse.ServerSentEvent
-import akka.stream.scaladsl.Source
-import akka.stream.{CompletionStrategy, OverflowStrategy}
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
@@ -12,8 +8,6 @@ import configurations._
 import io.rebloom.client.Client
 import jobs.ApplicationStart
 import models.configurations._
-import play.api.libs.EventSource
-import play.api.libs.EventSource.Event
 import play.api.libs.concurrent.{AkkaGuiceSupport, CustomExecutionContext}
 import play.api.{Configuration, Environment}
 import redis.clients.jedis.util.Pool
@@ -108,25 +102,4 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     interestRecommendationSize = configuration.get[Int](INTEREST_RECOMMENDATION_SIZE),
     discoveryRecommendationSize = configuration.get[Int](DISCOVER_RECOMMENDATION_SIZE)
   )
-
-  @Provides
-  def sseConfiguration()(implicit ec: ExecutionContext, system: ActorSystem): SSEConfiguration = {
-    val heartbeat = Event("", None, None)
-    val (sseActor, sseSource) = Source
-      .actorRef[String](
-        completionMatcher = {
-          case Done =>
-            // complete stream immediately if we send it Done
-            CompletionStrategy.immediately
-        }: PartialFunction[Any, CompletionStrategy],
-        // never fail the stream because of a message
-        failureMatcher = PartialFunction.empty,
-        bufferSize = 100,
-        overflowStrategy = OverflowStrategy.dropHead
-      )
-      .via(EventSource.flow)
-      .keepAlive(1.second, () => heartbeat)
-      .preMaterialize()
-    SSEConfiguration(sseActor, sseSource)
-  }
 }

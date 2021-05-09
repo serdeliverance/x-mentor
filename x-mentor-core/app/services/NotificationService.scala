@@ -3,27 +3,28 @@ package services
 import akka.Done
 import akka.Done.done
 import global.ApplicationResult
-import models.configurations.SSEConfiguration
 import models.events._
 import models.{Course, Interest, Rating, StudentProgress}
 import play.api.Logging
+import services.SseService.CourseCreatedSseEvent
 import streams._
 import util.{ApplicationResultUtils, MapMarkerContext}
 
+import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class NotificationService @Inject()(
     messagePublisher: MessagePublisher,
-    sseConfiguration: SSEConfiguration
+    sseService: SseService
   )(implicit ec: ExecutionContext)
     extends ApplicationResultUtils
     with Logging {
 
   def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM")
-    sseConfiguration.notificationActor ! "course created"
+    sseService.pushEvent(CourseCreatedSseEvent(course.title, LocalDateTime.now))
     messagePublisher.publishEvent(COURSE_CREATION_STREAM, CourseCreated(course.title, course.topic))
   }
 
