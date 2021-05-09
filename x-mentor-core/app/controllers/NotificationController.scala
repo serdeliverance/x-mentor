@@ -1,26 +1,21 @@
 package controllers
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.stream.{CompletionStrategy, OverflowStrategy}
-import akka.{Done, NotUsed}
-import akka.stream.scaladsl.Source
-
-import javax.inject.{Inject, Singleton}
-import models.Notification
+import akka.actor.ActorSystem
+import models.configurations.SSEConfiguration
 import play.api.Logging
 import play.api.http.ContentTypes
 import play.api.libs.EventSource
-import services.NotificationService
 import play.api.mvc._
-import io.circe.syntax._
+import services.NotificationService
 
 import java.time.LocalDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class NotificationController @Inject()(
     val controllerComponents: ControllerComponents,
-    notificationService: NotificationService
+    sseConfiguration: SSEConfiguration
   )(implicit ec: ExecutionContext,
     system: ActorSystem)
     extends BaseController
@@ -34,23 +29,9 @@ class NotificationController @Inject()(
     //val sourceOfSessionStatuses: Source[String, NotUsed] = notificationService.getSourceOfNotifications()
     //.map(notification => notification.message)
 
-    val (sseActor, sseSource) = Source
-      .actorRef[String](
-        completionMatcher = {
-          case Done =>
-            // complete stream immediately if we send it Done
-            CompletionStrategy.immediately
-        }: PartialFunction[Any, CompletionStrategy],
-        // never fail the stream because of a message
-        failureMatcher = PartialFunction.empty,
-        bufferSize = 100,
-        overflowStrategy = OverflowStrategy.dropHead
-      )
-      .preMaterialize()
-
     // val sseSource = Source.queue[Notification](1000, OverflowStrategy.dropHead).preMaterialize()
 
-    Ok.chunked(sseSource via EventSource.flow)
+    Ok.chunked(sseConfiguration.sseSource via EventSource.flow)
       .as(ContentTypes.EVENT_STREAM)
       .withHeaders("Cache-Control" -> "no-cache")
       .withHeaders("Connection" -> "keep-alive")
