@@ -76,10 +76,9 @@ const useStyles = makeStyles((theme) => ({
 export default function Header() {
   const classes = useStyles()
   const history = useHistory()
-  const [loggedIn, setLoggedIn] = useState(localStorage.getItem("token") ? true : false);
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [searchValue, setSearchValue] = useState("")
-  const { logout } = useContext(AuthContext)
+  const { isLoggedIn, logout } = useContext(AuthContext)
   const [authSettings, setAuthSettings] = useState({
     mode: "",
     open: false,
@@ -95,10 +94,7 @@ export default function Header() {
     }
   }
 
-  const handleLogout = () => {
-    setLoggedIn(false)
-    logout()
-  }
+  const handleLogout = () => logout()
 
   const handleLogin = () => {
     setAuthSettings({
@@ -119,24 +115,25 @@ export default function Header() {
   }
 
   useEffect(() => {
-    console.log("Creating event source")
-    const sse = new EventSource(`${API_URL}/notifications`,
-    { withCredentials: true });
-    function getRealtimeData(data) {
-      console.log(data)
-      // process the data here,
-      // then pass it to state to be rendered
+    if(isLoggedIn){
+      console.log("Creating event source")
+      const sse = new EventSource(`${API_URL}/notifications`,
+      { withCredentials: true });
+      function getRealtimeData(data) {
+        console.log(data)
+        // process the data here,
+        // then pass it to state to be rendered
+      }
+      sse.onmessage = e => getRealtimeData(JSON.parse(e.data))
+      sse.onerror = () => {
+        console.log("Error")        
+        sse.close()
+      }
+      return () => {
+        sse.close()
+      };
     }
-    sse.onmessage = e => getRealtimeData(JSON.parse(e.data));
-    sse.onerror = () => {
-      // error log here 
-      
-      sse.close();
-    }
-    return () => {
-      sse.close();
-    };
-  }, [])
+  }, [isLoggedIn])
 
   return (
     <div className={classes.grow}>
@@ -162,7 +159,7 @@ export default function Header() {
                 />
             </div>
             <div className={classes.grow} />
-            {loggedIn ?
+            {isLoggedIn ?
             <>
             <div>
                 <Tooltip title="Create Course" arrow>
@@ -205,7 +202,7 @@ export default function Header() {
             <div>
                 <Button variant="outlined" color="inherit" onClick={handleLogin} className={classes.loginBtn}>Login</Button>
                 <Button variant="outlined" color="inherit" onClick={handleSignup}>Sign Up</Button>
-                <LoginModal settings={authSettings} setSettings={setAuthSettings} setLoggedIn={setLoggedIn}></LoginModal>
+                <LoginModal settings={authSettings} setSettings={setAuthSettings}></LoginModal>
             </div>
             </>
         }

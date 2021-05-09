@@ -54,7 +54,6 @@ class CourseService @Inject()(
 
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
     logger.info(s"Enrolling user $username in course $courseId")
-    notificationService.registerNewNotification(Notification("NEW COURSE"))
     for {
       _      <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       course <- EitherT(retrieveById(courseId))
