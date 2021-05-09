@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import models.configurations.SSEConfiguration
 import play.api.Logging
 import play.api.http.ContentTypes
+import play.api.libs.EventSource.Event
 import play.api.mvc._
 
 import java.time.LocalDateTime

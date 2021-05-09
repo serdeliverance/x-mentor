@@ -12,6 +12,8 @@ import configurations._
 import io.rebloom.client.Client
 import jobs.ApplicationStart
 import models.configurations._
+import play.api.libs.EventSource
+import play.api.libs.EventSource.Event
 import play.api.libs.concurrent.{AkkaGuiceSupport, CustomExecutionContext}
 import play.api.{Configuration, Environment}
 import redis.clients.jedis.util.Pool
@@ -109,6 +111,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides
   def sseConfiguration()(implicit ec: ExecutionContext, system: ActorSystem): SSEConfiguration = {
+    val heartbeat = Event("", None, None)
     val (sseActor, sseSource) = Source
       .actorRef[String](
         completionMatcher = {
@@ -121,11 +124,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
         bufferSize = 100,
         overflowStrategy = OverflowStrategy.dropHead
       )
-      .map(notification => ServerSentEvent(notification))
-      .keepAlive(1.second, () => ServerSentEvent.heartbeat)
-      .collect {
-        case ServerSentEvent(data, _, _, _) if data != "" => data
-      }
+      .via(EventSource.flow)
+      .keepAlive(1.second, () => heartbeat)
       .preMaterialize()
     SSEConfiguration(sseActor, sseSource)
   }
