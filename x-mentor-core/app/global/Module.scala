@@ -20,9 +20,7 @@ import javax.inject.{Named, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
-class Module(environment: Environment, configuration: Configuration)(implicit ec: ExecutionContext, system: ActorSystem)
-    extends AbstractModule
-    with AkkaGuiceSupport {
+class Module(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
 
   val _ = environment
 
@@ -109,7 +107,7 @@ class Module(environment: Environment, configuration: Configuration)(implicit ec
   )
 
   @Provides
-  def sseConfiguration(): SSEConfiguration = {
+  def sseConfiguration()(implicit ec: ExecutionContext, system: ActorSystem): SSEConfiguration = {
     val (sseActor, sseSource) = Source
       .actorRef[String](
         completionMatcher = {
