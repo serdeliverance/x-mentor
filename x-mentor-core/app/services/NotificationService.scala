@@ -24,7 +24,7 @@ class NotificationService @Inject()(
 
   def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM")
-    sseService.pushEvent(CourseCreatedSseEvent(course.title, LocalDateTime.now))
+    sseService.pushEvent(CourseCreatedSseEvent(course, LocalDateTime.now))
     messagePublisher.publishEvent(COURSE_CREATION_STREAM, CourseCreated(course.title, course.topic))
   }
 

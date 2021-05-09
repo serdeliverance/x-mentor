@@ -19,7 +19,7 @@ class NotificationController @Inject()(
     with Logging {
 
   def subscribeToNotifications(): Action[AnyContent] = Action {
-    Ok.chunked(sseService.getSseSource())
+    Ok.chunked(sseService.getSseSource)
       .as(ContentTypes.EVENT_STREAM)
       .withHeaders("Cache-Control" -> "no-cache")
       .withHeaders("Connection" -> "keep-alive")

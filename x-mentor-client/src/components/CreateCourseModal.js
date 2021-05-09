@@ -12,6 +12,10 @@ const useStyles = makeStyles(() => ({
     content: {
         height: "12rem"
     },
+    content: {
+        width: "100%",
+        height: "12rem"
+    },
     paper: {
         minWidth: 600
     }
@@ -204,7 +208,7 @@ export default function CreateCourseModal({open, setOpen}) {
                     />
                 </Box>
                 {courseForm.content && courseForm.content.startsWith("data:image") && !isContentUrl && <img alt="content" className={classes.content} src={`${courseForm.content}`}></img>}
-                {courseForm.content && courseForm.content.startsWith("data:video") && !isContentUrl && <video alt="content" className={classes.content} src={`${courseForm.content}`} controls></video>}
+                {courseForm.content && courseForm.content.startsWith("data:video") && !isContentUrl && <video alt="content" className={classes.contentVideo} src={`${courseForm.content}`} controls></video>}
                 {courseForm.content && isContentUrl && <iframe title="Content" className={classes.content} src={`${courseForm.content}`}></iframe>}
             </DialogContent>
             <DialogActions>

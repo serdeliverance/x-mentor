@@ -7,23 +7,26 @@ import akka.stream.scaladsl.Source
 import play.api.Logging
 import play.api.libs.EventSource
 import play.api.libs.EventSource.Event
-import services.SseService.{heartbeat, CourseCreatedSseEvent, SseEvent}
-
+import services.SseService.{CourseCreatedSseEvent, SseEvent, heartbeat}
 import java.time.LocalDateTime
+
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
+import io.circe.syntax._
+import models.Course
 
 @Singleton
 class SseService @Inject()()(implicit system: ActorSystem) extends Logging {
 
   private val (eventSourceQueue, sseSource) = Source
-    .queue[SseEvent](100, OverflowStrategy.backpressure)
+    .queue[SseEvent](10000, OverflowStrategy.backpressure)
     .map {
-      case CourseCreatedSseEvent(course, createdAt) => s"$course $createdAt"
+      case CourseCreatedSseEvent(course, createdAt) => course.asJson.deepMerge(Map("createdAt" -> createdAt.toString).asJson).deepMerge(Map("read" -> false).asJson).noSpaces
     }
     .via(EventSource.flow)
-    .keepAlive(1.second, () => heartbeat)
+    .keepAlive(5.second, () => heartbeat)
     .preMaterialize()
 
   def pushEvent(event: SseEvent): Future[QueueOfferResult] = {
@@ -31,12 +34,11 @@ class SseService @Inject()()(implicit system: ActorSystem) extends Logging {
     eventSourceQueue.offer(event)
   }
 
-  def getSseSource(): Source[Event, NotUsed] = sseSource
+  def getSseSource: Source[Event, NotUsed] = sseSource
 }
 
 object SseService {
   sealed trait SseEvent
-  case class CourseCreatedSseEvent(course: String, createdAt: LocalDateTime) extends SseEvent
-
-  val heartbeat = Event("", None, None)
+  case class CourseCreatedSseEvent(course: Course, createdAt: LocalDateTime) extends SseEvent
+  val heartbeat: Event = Event("", None, None)
 }

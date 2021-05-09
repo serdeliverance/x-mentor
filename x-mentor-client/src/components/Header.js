@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles } from '@material-ui/core'
+import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles, Popover, Box } from '@material-ui/core'
 import SearchIcon from '@material-ui/icons/Search'
 import AccountCircle from '@material-ui/icons/AccountCircle'
 import MailIcon from '@material-ui/icons/Mail'
@@ -62,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
     }
   },
   button: {
-    margin: "8px 16px"
+    margin: "8px 16px 8px 0"
   },
   errorBorder: {
     border: "red solid 1px",
@@ -70,7 +70,10 @@ const useStyles = makeStyles((theme) => ({
   },
   loginBtn: {
     marginRight: "2rem"
-  }
+  },
+  notification: {
+    padding: theme.spacing(2),
+  },
 }));
 
 export default function Header() {
@@ -78,6 +81,7 @@ export default function Header() {
   const history = useHistory()
   const [openCourseModal, setOpenCourseModal] = useState(false)
   const [searchValue, setSearchValue] = useState("")
+  const [notifications, setNotifications] = useState([])
   const { isLoggedIn, logout } = useContext(AuthContext)
   const [authSettings, setAuthSettings] = useState({
     mode: "",
@@ -85,6 +89,17 @@ export default function Header() {
     endpoint: "",
     title: ""
   })
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const handleClick = (event) => setAnchorEl(event.currentTarget)
+
+  const handleClose = () => {
+    setAnchorEl(null)
+    const updatedNotifications = [...notifications]
+    updatedNotifications.forEach(notification => notification.read = true)
+    setNotifications(updatedNotifications)
+  }
+  const showNotifications = Boolean(anchorEl)
 
   const keyPress = (e) => {
     const value = e.target.value
@@ -116,13 +131,18 @@ export default function Header() {
 
   useEffect(() => {
     if(isLoggedIn){
-      console.log("Creating event source")
       const sse = new EventSource(`${API_URL}/notifications`,
       { withCredentials: true });
-      function getRealtimeData(data) {
-        console.log(data)
-        // process the data here,
-        // then pass it to state to be rendered
+      function getRealtimeData(event) {
+        const data = event.data
+        if(data){
+          console.log(notifications)
+          const newArray = [...notifications]
+          console.log(newArray)
+          newArray.push(JSON.parse(data))
+          console.log(newArray)
+          setNotifications(newArray)
+        }
       }
       sse.onmessage = e => getRealtimeData(e)
       sse.onerror = (error) => {
@@ -162,38 +182,56 @@ export default function Header() {
             {isLoggedIn ?
             <>
             <div>
-                <Tooltip title="Create Course" arrow>
-                  <IconButton
-                      color="inherit"
-                      aria-label="create"
-                      className={classes.button}
-                      onClick={() => setOpenCourseModal(true)}>
-                    <AddIcon />
-                  </IconButton>
-                </Tooltip>
-                <Link className={classes.link} component="button" onClick={() => history.push("/my/courses")} style={{"padding": "8px 24px 8px 0px"}} color="inherit">My Courses</Link>
-                {false && <><IconButton aria-label="show 4 new mails" color="inherit">
-                    <Badge badgeContent={4} color="secondary">
-                        <MailIcon />
-                    </Badge>
+              <IconButton aria-label="show new notifications" color="inherit" onClick={handleClick}>
+                <Badge badgeContent={notifications.filter(notification => !notification.read).length} color="secondary">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+              <Popover
+                id="notifications"
+                open={showNotifications}
+                anchorEl={anchorEl}
+                onClose={handleClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'center',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'center',
+                }}
+              >
+                {notifications.length === 0 ?
+                  <Typography className={classes.notification}>No new notifications</Typography>
+                :
+                notifications.map(notification => (
+                  <Box>
+                    <Typography key={notification.id} className={classes.notification}>{notification.title}</Typography>
+                  </Box>
+                ))}
+              </Popover>
+              <Tooltip title="Create Course" arrow>
+                <IconButton
+                    color="inherit"
+                    aria-label="create"
+                    className={classes.button}
+                    onClick={() => setOpenCourseModal(true)}>
+                  <AddIcon />
                 </IconButton>
-                <IconButton aria-label="show 17 new notifications" color="inherit">
-                    <Badge badgeContent={17} color="secondary">
-                        <NotificationsIcon />
-                    </Badge>
-                </IconButton></>}
-                <Tooltip title="Logout" arrow>
-                  <IconButton
-                      edge="end"
-                      aria-label="account of current user"
-                      aria-controls='primary-search-account-menu'
-                      aria-haspopup="true"
-                      color="inherit"
-                      onClick={() => handleLogout()}
-                  >
-                    <AccountCircle />
-                  </IconButton>
-                </Tooltip>
+              </Tooltip>
+              <Link className={classes.link} component="button" onClick={() => history.push("/my/courses")} style={{"padding": "8px 24px 8px 0px"}} color="inherit">My Courses</Link>
+              <Tooltip title="Logout" arrow>
+                <IconButton
+                    edge="end"
+                    aria-label="account of current user"
+                    aria-controls='primary-search-account-menu'
+                    aria-haspopup="true"
+                    color="inherit"
+                    onClick={() => handleLogout()}
+                >
+                  <AccountCircle />
+                </IconButton>
+              </Tooltip>
             </div>
             <CreateCourseModal open={openCourseModal} setOpen={setOpenCourseModal}></CreateCourseModal>
             </>
