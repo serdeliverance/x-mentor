@@ -2,6 +2,7 @@ package global
 
 import akka.Done
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.stream.scaladsl.Source
 import akka.stream.{CompletionStrategy, OverflowStrategy}
 import com.google.inject.{AbstractModule, Provides}
@@ -120,6 +121,11 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
         bufferSize = 100,
         overflowStrategy = OverflowStrategy.dropHead
       )
+      .map(notification => ServerSentEvent(notification))
+      .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+      .collect {
+        case ServerSentEvent(data, _, _, _) if data != "" => data
+      }
       .preMaterialize()
     SSEConfiguration(sseActor, sseSource)
   }
