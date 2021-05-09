@@ -1,9 +1,14 @@
 package services
 
-import akka.Done
+import akka.{Done, NotUsed}
 import akka.Done.done
+import akka.actor.ActorSystem
+import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.QueueOfferResult.{Dropped, Enqueued, Failure, QueueClosed}
+import akka.stream.scaladsl.{Source, SourceQueue, SourceQueueWithComplete}
 import global.ApplicationResult
-import models.{Course, Interest, Rating}
+import models.configurations.SSEConfiguration
+import models.{Course, Interest, Notification, Rating}
 import models.events.{CourseCreated, CourseRated, LostInterest, StudentInterested}
 import play.api.Logging
 import streams.{
@@ -16,15 +21,20 @@ import streams.{
 import util.{ApplicationResultUtils, MapMarkerContext}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit ec: ExecutionContext)
+class NotificationService @Inject()(
+    messagePublisher: MessagePublisher,
+    sseConfiguration: SSEConfiguration
+  )(implicit ec: ExecutionContext)
     extends ApplicationResultUtils
     with Logging {
 
   def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM")
+    sseConfiguration.notificationActor ! "course created"
     messagePublisher.publishEvent(COURSE_CREATION_STREAM, CourseCreated(course.title, course.topic))
   }
 
@@ -52,4 +62,51 @@ class NotificationService @Inject()(messagePublisher: MessagePublisher)(implicit
     sequence {
       interests.map(interest => notifyInterestLost(interest))
     }.map(_ => Right(done()))
+
+  implicit private val system: ActorSystem        = ActorSystem("Notification")
+  implicit private val materializer: Materializer = Materializer(system)
+  val sourceOfNotifications                       = mutable.Queue.empty[Source[Notification, NotUsed]]
+  private val sourceQueueOfNotifications2         = mutable.Queue.empty[SourceQueue[Notification]]
+
+  def getSourceOfNotifications: Source[Notification, NotUsed] = {
+    logger.info("Retreiving notifications")
+    sourceOfNotifications.dequeue()
+  }
+
+  // it's configured to keep the source open for 30s (reusing it for consecutive requests)
+  def createSourceOfNotifications(): Source[Notification, NotUsed] = {
+    val initialSourceOfNotifications = Source.queue[Notification](1000, OverflowStrategy.dropHead)
+    val sourceQueueOfNotifications: (SourceQueue[Notification], Source[Notification, NotUsed]) =
+      initialSourceOfNotifications.preMaterialize()
+    sourceOfNotifications.append(sourceQueueOfNotifications._2)
+    sourceQueueOfNotifications2.append(sourceQueueOfNotifications._1)
+    // watch for closing the source queue (probably because of being inactive)
+    sourceQueueOfNotifications._1.watchCompletion().foreach { _ =>
+      logger.info("Completed")
+    }
+    sourceQueueOfNotifications._2
+  }
+
+  def registerNewNotification(notification: Notification): Future[Unit] = {
+    createSourceOfNotifications()
+    sourceQueueOfNotifications2
+      .dequeue()
+      .offer(notification)
+      .flatMap {
+        case Enqueued =>
+          Future.successful(())
+        case Dropped =>
+          Future.failed(new Exception(s"Notification couldn't be published"))
+        case Failure(e) =>
+          println("Failure(e):" + e.getMessage)
+          Future.failed(new Exception(s"Notification couldn't be published because of $e"))
+        case QueueClosed =>
+          println("QueueClosed")
+          Future.failed(new Exception(s"Notification couldn't be published because the publishing queue was closed"))
+      }
+      .recover({
+        case t =>
+          println(t.getMessage)
+      })
+  }
 }
