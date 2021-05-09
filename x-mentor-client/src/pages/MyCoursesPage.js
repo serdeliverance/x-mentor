@@ -64,7 +64,7 @@ export default function CourseListPage() {
   const fetchData = async () => {
     try{
       const response = await axios(
-        `${API_URL}/student/courses?page=${page}`,
+        `${API_URL}/students/courses?page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${getTokens().access_token}`,

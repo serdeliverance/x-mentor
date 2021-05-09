@@ -104,10 +104,11 @@ const CoursePage = () => {
                     }
                 }
             )
+            console.log(response)
         }
         catch(error){
             console.error(error)
-            notify("There was an retreiving the course", "error")
+            notify("There was an error rating the course", "error")
         }
     }
 
@@ -117,7 +118,7 @@ const CoursePage = () => {
 
         return () => {
             const seconds = Math.round((new Date().getTime() - startTime.current) / 1000)
-            //updateWatchTime(seconds)
+            updateWatchTime(seconds)
         }
     }, [])
     
