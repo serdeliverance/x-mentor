@@ -1,16 +1,16 @@
 package services
 
 import cats.data.EitherT
+import cats.implicits._
 import constants.STUDENT_PROGRESS_LIST_KEY
 import global.ApplicationResult
+import models.StudentProgress
 import models.dtos.responses.LeadersBoardDTO
 import play.api.Logging
 import repositories.{RedisRepository, RedisTimeSeriesRepository}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
-import cats.implicits._
-import models.dtos.responses.LeadersBoardDTO.LeaderDTO
 
 @Singleton
 class LeadersBoardService @Inject()(
@@ -19,10 +19,13 @@ class LeadersBoardService @Inject()(
   )(implicit ec: ExecutionContext)
     extends Logging {
 
+  private val LEADERS_COUNT = 5
+
   def get(): ApplicationResult[LeadersBoardDTO] = {
     for {
       studentProgressKeys <- EitherT { redisRepository.listAll(STUDENT_PROGRESS_LIST_KEY) }
-      leaderBoards        <- EitherT { redisTimeSeriesRepository.getAll(studentProgressKeys) }
-    } yield LeadersBoardDTO(List.empty[LeaderDTO])
+      studentProgress     <- EitherT { redisTimeSeriesRepository.getAll[StudentProgress](studentProgressKeys) }
+      leaders = studentProgress.sortBy(_.progress).reverse.take(LEADERS_COUNT)
+    } yield LeadersBoardDTO(leaders)
   }.value
 }

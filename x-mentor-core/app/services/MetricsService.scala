@@ -10,7 +10,7 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class MetricsService @Inject()(notificationService: NotificationService) {
 
-  def registerStudentProgress(student: String, minutes: Int)(implicit mmc: MapMarkerContext): ApplicationResult[Done] =
-    notificationService.notifyStudentProgress(StudentProgress(student, minutes))
+  def registerStudentProgress(student: String, seconds: Int)(implicit mmc: MapMarkerContext): ApplicationResult[Done] =
+    notificationService.notifyStudentProgress(StudentProgress(student, seconds))
 
 }
