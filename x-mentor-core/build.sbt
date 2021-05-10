@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
   "com.redislabs" % "jredisai" % "0.9.0",
   "com.redislabs" % "jrejson" % "1.3.0",
   "com.redislabs" % "jredisearch" % "2.0.0",
+  "com.redislabs" % "jredistimeseries" % "1.4.0",
   //JWT
   "com.pauldijou" %% "jwt-core" % "4.2.0",
 
