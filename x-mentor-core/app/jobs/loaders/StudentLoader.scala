@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{Broadcast, FileIO, Flow, Framing, GraphDSL, Runnabl
 import akka.util.ByteString
 import models.Student
 import play.api.Logging
-import repositories.{RedisBloomRepository, RedisTimeSeriesRepository}
+import repositories.{RedisBloomRepository, RedisRepository, RedisTimeSeriesRepository}
 
 import java.nio.file.Paths
 import akka.Done.done
@@ -24,15 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class StudentLoader @Inject()(
     studentRepository: StudentRepository,
     redisBloomRepository: RedisBloomRepository,
-    redisTimeSeriesRepository: RedisTimeSeriesRepository
+    redisTimeSeriesRepository: RedisTimeSeriesRepository,
+    redisRepostory: RedisRepository
   )(implicit system: ActorSystem,
     ec: ExecutionContext)
     extends Logging {
 
   private val STUDENT_CSV_PATH = "conf/data/students.csv"
-
-  private val STUDENT_PROGRESS_KEY_PREFIX = "studentprogress"
-  private val STUDENT_LABEL               = "student"
 
   def loadStudents(): Future[Done] =
     Future(students().run()).map(_ => done())
@@ -75,14 +73,20 @@ class StudentLoader @Inject()(
                                            Map(STUDENT_LABEL -> student.username)))
         .to(Sink.ignore)
 
+      val redisRepositorySink = Flow[Student]
+        .mapAsync(1)(student =>
+          redisRepostory.rpush(STUDENT_PROGRESS_LIST_KEY, s"$STUDENT_PROGRESS_KEY_PREFIX:${student.username}"))
+        .to(Sink.ignore)
+
       val redisBloomSink = Flow[Student]
         .mapAsync(1)(student => redisBloomRepository.add(USERS_FILTER, student.username))
         .to(Sink.ignore)
 
-      val broadcast = builder.add(Broadcast[Student](2))
+      val broadcast = builder.add(Broadcast[Student](3))
 
       source ~> convertToStudent ~> broadcast ~> redisBloomSink
       broadcast ~> redisTimeSeriesSink
+      broadcast ~> redisRepositorySink
       ClosedShape
     })
 }

@@ -5,6 +5,11 @@ package object constants {
   final val COURSE_IDS_FILTER  = "courses"
   final val USERS_FILTER       = "users"
 
+  final val STUDENT_PROGRESS_KEY_PREFIX = "studentprogress"
+  final val STUDENT_LABEL               = "student"
+
+  final val STUDENT_PROGRESS_LIST_KEY = "student-progress-list"
+
   final val ITEMS_PER_PAGE = 6
 
   final val AUTHORIZATION_HEADER = "Authorization"

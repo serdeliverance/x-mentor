@@ -5,7 +5,7 @@ import io.circe.{Decoder, Encoder}
 import models.dtos.responses.LeadersBoardDTO.LeaderDTO
 import models.json.CirceImplicits
 
-case class LeadersBoardDTO(list: LeaderDTO)
+case class LeadersBoardDTO(list: List[LeaderDTO])
 
 object LeadersBoardDTO extends CirceImplicits {
 

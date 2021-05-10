@@ -23,6 +23,11 @@ class RedisTimeSeriesRepository @Inject()(redisTimeSeries: RedisTimeSeries)(impl
         logger.error(s"Error creating key: $key. Error: $error")
         ApplicationResult.error(EmptyResponse)
       }, _ => ApplicationResult(done()))
-
   }
+
+  // TODO
+  def getAll[T](keys: List[String]): ApplicationResult[List[T]] = ???
+
+  // TODO
+  def get[T](key: String): ApplicationResult[T] = ???
 }
