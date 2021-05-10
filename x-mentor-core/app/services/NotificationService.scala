@@ -49,7 +49,7 @@ class NotificationService @Inject()(
     ): ApplicationResult[Done] = {
     logger.info(s"Sending message: $studentProgress to $STUDENT_PROGRESS_STREAM")
     messagePublisher.publishEvent(STUDENT_PROGRESS_STREAM,
-                                  StudentProgressRegistered(studentProgress.student, studentProgress.seconds))
+                                  StudentProgressRegistered(studentProgress.student, studentProgress.progress))
   }
 
   def notifyInterestInBulk(interests: Seq[Interest])(implicit mmc: MapMarkerContext): ApplicationResult[Done] =
