@@ -30,7 +30,6 @@ libraryDependencies ++= Seq(
   "com.redislabs" % "jredisai" % "0.9.0",
   "com.redislabs" % "jrejson" % "1.3.0",
   "com.redislabs" % "jredisearch" % "2.0.0",
-  "com.redislabs" % "jredistimeseries" % "1.4.0",
   //JWT
   "com.pauldijou" %% "jwt-core" % "4.2.0",
 
@@ -56,25 +55,17 @@ imageNames in docker := Seq(
   ImageName(s"${organization.value}/${name.value}:latest")
 )
 
-// Dockerfile template
 dockerfile in docker := {
   val appDir: File = stage.value
-  // val targetDir = "/app"
-  val finder: PathFinder = (appDir / "conf") * "wait-for-keycloak.sh"
+  val targetDir = "/opt/docker"
 
   new Dockerfile {
-    //from("openjdk:8-jre-slim")
-    from("openjdk:8-jre-alpine")
-    expose(9000, 9443)
-    workDir("/opt/docker")
-    cmd("RUN","apt-get update && apt-get install curl")
-    add(appDir, "/opt/docker")
-    add(finder.get, "/opt/docker")
-    run("chmod", "+x", "/opt/docker/conf/wrapper.sh")
-    //copyRaw("conf/wait-for-keycloak.sh", targetDir)
-    // entryPoint(s"$targetDir/bin/${executableScriptName.value}")
-    // copy(appDir, targetDir, chown = "daemon:daemon")
-    // /opt/docker/bin/wrapper.sh
-    entryPoint("sh", "/opt/docker/conf/wrapper.sh")
+    from("openjdk:8-jre-slim")
+    expose(9000)
+    run("apt", "update")
+    run("apt", "-y", "upgrade")
+    run("apt", "-y", "install", "curl")
+    copy(appDir, targetDir)
+    entryPoint(s"$targetDir/conf/wrapper.sh")
   }
 }
