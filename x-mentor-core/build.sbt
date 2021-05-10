@@ -30,7 +30,6 @@ libraryDependencies ++= Seq(
   "com.redislabs" % "jredisai" % "0.9.0",
   "com.redislabs" % "jrejson" % "1.3.0",
   "com.redislabs" % "jredisearch" % "2.0.0",
-  "com.redislabs" % "jredistimeseries" % "1.4.0",
   //JWT
   "com.pauldijou" %% "jwt-core" % "4.2.0",
 
@@ -55,19 +54,6 @@ scalacOptions ++= Seq(
 imageNames in docker := Seq(
   ImageName(s"${organization.value}/${name.value}:latest")
 )
-
-// Dockerfile template
-/*dockerfile in docker := {
-  val appDir: File = stage.value
-  val dir: String = "/opt/docker"
-  new Dockerfile {
-    //from("openjdk:8-jre-slim")
-    from("openjdk:8-jre-alpine")
-    workDir(dir)
-    copy(appDir, dir, chown = "daemon:daemon")
-    entryPoint(s"$dir/bin/${executableScriptName.value}")
-  }
-}*/
 
 dockerfile in docker := {
   val appDir: File = stage.value
