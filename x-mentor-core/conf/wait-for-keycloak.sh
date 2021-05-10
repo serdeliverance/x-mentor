@@ -1,29 +1,13 @@
 #!/bin/bash
 
-# when no arguments was given
-if [ $# -eq 0 ]
-then
-    echo "Usage: $0 <host> [port]"
-    exit 1
-fi
+COMMAND=$1
 
-HOST=$1
-# port defaults to 8080
-PORT=${2:-8080}
-RETRIES=50
-
-echo -n "Waiting for keycloak to start on ${HOST}:${PORT}"
+echo -n "Waiting for keycloak to start on x-keycloak:8080"
 # loop until we connect successfully or failed
-until curl -f -v "http://x-keycloak:8080/auth/realms/xmentor/.well-known/openid-configuration" >/dev/null 2>/dev/null
+until curl -f -v "http://x-keycloak:8080/auth/realms/xmentor/.well-known/openid-configuration" > /dev/null
 do
-    RETRIES=$(($RETRIES - 1))
-    if [ $RETRIES -eq 0 ]
-    then
-        echo "Failed to connect"
-        exit 1
-    fi
-    # wait a bit
-    echo -n "."
-    sleep 1
+    echo "Waiting for keycloak to be up"
+    sleep 5
 done
-echo
+echo -e "\nKeycloak is up. Executing command $COMMAND"
+exec "$COMMAND"
