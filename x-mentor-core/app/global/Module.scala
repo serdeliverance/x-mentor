@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import com.google.inject.{AbstractModule, Provides}
 import com.redislabs.modules.rejson.JReJSON
 import com.redislabs.redisgraph.impl.api.RedisGraph
+import com.redislabs.redistimeseries.RedisTimeSeries
 import configurations._
 import io.rebloom.client.Client
 import jobs.ApplicationStart
@@ -102,4 +103,8 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     interestRecommendationSize = configuration.get[Int](INTEREST_RECOMMENDATION_SIZE),
     discoveryRecommendationSize = configuration.get[Int](DISCOVER_RECOMMENDATION_SIZE)
   )
+
+  @Provides
+  def redisTimeSeries(pool: Pool[Jedis]): RedisTimeSeries =
+    new RedisTimeSeries(pool)
 }

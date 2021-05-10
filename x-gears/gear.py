@@ -1,17 +1,20 @@
-import redisgears
-
 def xlog(*args):
     redisgears.executeCommand('xadd', 'log', '*', 'text', ' '.join(map(str, args)))
 
-def toIA(x):
-	# a simple example
-	redisgears.executeCommand('set', 'ia', x['value']['student'])
-
 def toTimeSeries(x):
-	# a simple example
-	redisgears.executeCommand('set', 'timeseries', x['value']['student'])
+	student = x['value']['student']
+	durationInSeconds = x['value']['duration']
+	timestamp = x['value']['timestamp']
 
-gearsCtx('StreamReader').\
-    foreach(toTimeSeries).\
-    foreach(toIA).\
-    register('course-rated:0', trimStream=False)
+	addStudentCommand = 'TS.ADD studentprogress:{} {} {} RETENTION 0 LABELS student {}'.format(student, timestamp, durationInSeconds, student)
+	
+	xlog(addStudentCommand)
+	
+	args = list(addStudentCommand.split(" "))
+	
+	redisgears.executeCommand(*args)
+
+
+gb = GearsBuilder('StreamReader')
+gb.foreach(toTimeSeries)
+gb.register('student-progress-registered', batch=1, duration=0, onFailedPolicy='continue', onFailedRetryInterval=1, trimStream=False)
