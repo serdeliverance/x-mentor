@@ -14,4 +14,4 @@ POST    /signup                                controllers.UserController.signup
 GET     /recommendations                       controllers.RecommendationController.recommend()
 GET     /visitors/recommendations              controllers.RecommendationController.visitorRecommendation()
 GET     /notifications                         controllers.NotificationController.subscribeToNotifications()
-GET     /leadersboard                          controllers.LeadersBoardController.get()
+GET     /leaderboard                          controllers.LeaderboardController.get()

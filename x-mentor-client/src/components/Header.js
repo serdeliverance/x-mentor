@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from 'react'
 import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles, Popover, Box } from '@material-ui/core'
 import SearchIcon from '@material-ui/icons/Search'
 import AccountCircle from '@material-ui/icons/AccountCircle'
-import MailIcon from '@material-ui/icons/Mail'
 import NotificationsIcon from '@material-ui/icons/Notifications'
 import { useHistory } from "react-router-dom"
 import LoginModal from './LoginModal'
@@ -151,7 +150,7 @@ export default function Header() {
       }
       return () => {
         sse.close()
-      };
+      }
     }
   }, [isLoggedIn])
 

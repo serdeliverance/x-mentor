@@ -7,13 +7,12 @@ import io.circe.syntax._
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.LeadersBoardService
-import util.MapMarkerContext.fromAuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class LeadersBoardController @Inject()(
+class LeaderboardController @Inject()(
     val controllerComponents: ControllerComponents,
     authenticatedAction: AuthenticatedAction,
     leadersBoardService: LeadersBoardService
@@ -23,15 +22,14 @@ class LeadersBoardController @Inject()(
     with Decodable
     with Logging {
 
-  def get(): Action[AnyContent] = authenticatedAction.async { implicit request =>
-    implicit val mmc = fromAuthenticatedRequest()
-    logger.info("Getting leadersboard")
+  def get(): Action[AnyContent] = Action.async { implicit request =>
+    logger.info("Getting leaderboard")
     leadersBoardService.get().map {
       case Right(leadersBoard) =>
-        logger.info("Leadersboard data retrieved successfully")
+        logger.info("Leaderboard data retrieved successfully")
         Ok(leadersBoard.asJson)
       case Left(error) =>
-        logger.info("Error getting leadersboard data")
+        logger.info("Error getting leaderboard data")
         handleError(error)
     }
   }

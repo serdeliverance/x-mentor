@@ -94,7 +94,7 @@ const CoursePage = () => {
     const rate = async (event) => {
         const value = event.target.value
         try{
-            const response = await axios(
+            const response = await axios.post(
                 `${API_URL}/ratings`,
                 { course: course.title, stars: value },
                 {
@@ -104,11 +104,9 @@ const CoursePage = () => {
                     }
                 }
             )
-            console.log(response)
         }
         catch(error){
-            console.error(error)
-            notify("There was an error rating the course", "error")
+            notify("You have already rated the course!", "error")
         }
     }
 

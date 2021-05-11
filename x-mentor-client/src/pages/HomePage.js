@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Box, Button, Chip, Divider, Grid, Paper, Typography } from '@material-ui/core'
+import { Box, Button, Chip, Divider, Grid, Paper, Typography, makeStyles } from '@material-ui/core'
 import axios from 'axios'
 import { API_URL } from '../environment'
 import { AuthContext } from '../Providers/AuthProvider'
 import { useNotification } from '../hooks/notify'
 import Carousel from 'react-material-ui-carousel'
 import { useHistory } from "react-router-dom"
+import Leaderboard from '../components/Leadeboard'
 
 const useStyles = makeStyles(() => ({
     root: {
-        height: "100%"
+        height: "calc(100vh - 7rem)"
     },
     chip: {
         margin: 5
@@ -44,7 +44,7 @@ const useStyles = makeStyles(() => ({
     },
     paper: {
         boxShadow: "none"
-    }
+    },
 }))
 
 const HomePage = () => {
@@ -52,12 +52,21 @@ const HomePage = () => {
     const [topics, setTopics] = useState([])
     const [interests, setInsterests] = useState([])
     const [recommendations, setRecommendations] = useState({})
+    const [scores, setScores] = useState([[],[]])
     const { isLoggedIn, getTokens } = useContext(AuthContext)
     const history = useHistory()
     const notify = useNotification()
 
     const fetchData = async () => {
         try {
+            
+            axios(`${API_URL}/leaderboard`).then(response => {
+                const leadeboardData = response.data.list
+                leadeboardData.sort((a,b) => a.progress > b.progress ? -1 : 1)
+                const orderedScores = [leadeboardData.map(a => a.progress), leadeboardData.map(a => a.student)]
+                setScores(orderedScores)
+            })
+
             if(isLoggedIn){
                 const headers = {
                     headers: {
@@ -84,10 +93,10 @@ const HomePage = () => {
             }
             else {
                 axios(`${API_URL}/visitors/recommendations`).then(response => {
-                    console.log(response.data)
                     setRecommendations(response.data.discover)
                 })
             }
+            
         }
         catch(error){
             console.log(error)          
@@ -165,56 +174,55 @@ const HomePage = () => {
     }, [isLoggedIn])
 
     return (
-        <div className={classes.root}>
-            <Grid container>
-                <Grid container item xs={6} justify="center" className={classes.sidebar}>
-                    <Grid item xs={1}></Grid>
-                    <Grid item xs={6}>
-                    {!isLoggedIn ? 
-                    <>
-                        <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
-                        <Divider />
-                        <Carousel>
-                            {
-                                recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
-                            }
-                        </Carousel>
-                    </> :
-                    <>
-                        <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
-                        <Divider />
-                        <Carousel>
-                            {
-                                recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
-                            }
-                        </Carousel>
-                    </>
-                    }
-                    </Grid>
-                </Grid>
-                {isLoggedIn ?
-                <Grid container item xs={6} className={classes.sidebar} justify="center">
-                    <Grid item xs={1}></Grid>
-                    <Grid item xs={4}>
-                        <Typography variant="h6" align="center">Tell us what you're interested in</Typography>
-                        <Divider />
-                        <InterestsComponent />
-                        <Divider />
-                        <Box className={classes.topics} mb={3} textAlign="center">
-                            {topics.map(topic => (
-                                <Chip key={topic} label={topic} className={classes.chip} disabled={interests.includes(topic) ? true : false} onClick={() => handleClick(topic)}/>
-                            ))}
-                        </Box>
-                        <Box className={classes.interestsBtn}>
-                            <Button variant="contained" color="primary" onClick={handleInterestsSubmit}>Save Changes</Button>
-                        </Box>
-                    </Grid>
-                </Grid> :
+        <Grid container className={classes.root}>
+            <Grid container item xs={6} justify="center" className={classes.sidebar}>
+                <Grid item xs={6}>
+                {!isLoggedIn ? 
                 <>
+                    <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
+                    <Divider />
+                    <Carousel>
+                        {
+                            recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
+                        }
+                    </Carousel>
+                </> :
+                <>
+                    <Typography variant="h6" align="center">Discover new courses about {recommendations?.topic}</Typography>
+                    <Divider />
+                    <Carousel>
+                        {
+                            recommendations?.courses && recommendations?.courses.map( (item, i) => <Item key={i} item={item} /> )
+                        }
+                    </Carousel>
                 </>
                 }
+                </Grid>
             </Grid>
-        </div>
+            {isLoggedIn ?
+            <Grid container item xs={6} className={classes.sidebar} justify="center">
+                <Divider orientation="vertical" />
+                <Grid item xs={2}></Grid>
+                <Grid item xs={4}>
+                    <Typography variant="h6" align="center">Tell us what you're interested in</Typography>
+                    <Divider />
+                    <InterestsComponent />
+                    <Divider />
+                    <Box className={classes.topics} mb={3} textAlign="center">
+                        {topics.map(topic => (
+                            <Chip key={topic} label={topic} className={classes.chip} disabled={interests.includes(topic) ? true : false} onClick={() => handleClick(topic)}/>
+                        ))}
+                    </Box>
+                    <Box className={classes.interestsBtn}>
+                        <Button variant="contained" color="primary" onClick={handleInterestsSubmit}>Save Changes</Button>
+                    </Box>
+                </Grid>
+            </Grid> :
+            <>
+            </>
+            }
+            <Leaderboard scores={scores}></Leaderboard>
+        </Grid>
     )
 }
 
