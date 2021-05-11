@@ -37,7 +37,7 @@ class RedisGraphRepository @Inject()(
     )(implicit redisGraphConfiguration: RedisGraphConfiguration
     ): ApplicationResult[Done] =
     ApplicationResult {
-      logger.info(s"Running query: $query")
+      logger.info(s"Running query: ${query.take(200)}")
       redisGraph.query(redisGraphConfiguration.graph, query)
     }.map(_ => Right(done()))
 }

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles, Popover, Box } from '@material-ui/core'
+import { Button, Link, Badge, InputBase, Typography, IconButton, Toolbar, AppBar, fade, makeStyles, Popover, Grid, Divider } from '@material-ui/core'
 import SearchIcon from '@material-ui/icons/Search'
 import AccountCircle from '@material-ui/icons/AccountCircle'
 import NotificationsIcon from '@material-ui/icons/Notifications'
@@ -61,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
     }
   },
   button: {
-    margin: "8px 16px 8px 0"
+    margin: theme.spacing(1, 2, 1, 0)
   },
   errorBorder: {
     border: "red solid 1px",
@@ -70,9 +70,31 @@ const useStyles = makeStyles((theme) => ({
   loginBtn: {
     marginRight: "2rem"
   },
-  notification: {
+  emptyNotification: {
     padding: theme.spacing(2),
+    fontSize: 14
   },
+  notification: {
+    padding: theme.spacing(2, 0, 2, 2),
+    width: "100%",
+    fontSize: 14
+  },
+  notificationPreview:{
+    width: "3rem",
+    height: "3rem",
+    borderRadius: "2rem"
+  },
+  notificationDate: {
+    fontSize: 10,
+    padding: theme.spacing(0, 2, 0.5, 0),
+  },
+  notificationContainer: {
+    width: 360
+  },
+  notificationButton: {
+    textTransform: "none",
+    textAlign: "left"
+  }
 }));
 
 export default function Header() {
@@ -128,6 +150,10 @@ export default function Header() {
     })
   }
 
+  const checkCourse = (courseName) => {
+    history.push(`/courses?q=${courseName}`)
+  }
+
   useEffect(() => {
     if(isLoggedIn){
       const sse = new EventSource(`${API_URL}/notifications`,
@@ -135,12 +161,7 @@ export default function Header() {
       function getRealtimeData(event) {
         const data = event.data
         if(data){
-          console.log(notifications)
-          const newArray = [...notifications]
-          console.log(newArray)
-          newArray.push(JSON.parse(data))
-          console.log(newArray)
-          setNotifications(newArray)
+          setNotifications(prevState => [JSON.parse(data), ...prevState])
         }
       }
       sse.onmessage = e => getRealtimeData(e)
@@ -201,12 +222,23 @@ export default function Header() {
                 }}
               >
                 {notifications.length === 0 ?
-                  <Typography className={classes.notification}>No new notifications</Typography>
+                  <Typography className={classes.emptyNotification}>No New Notifications</Typography>
                 :
                 notifications.map(notification => (
-                  <Box>
-                    <Typography key={notification.id} className={classes.notification}>{notification.title}</Typography>
-                  </Box>
+                  <>
+                  <Grid container justify="center" className={classes.notificationContainer}>
+                    <Button className={classes.notificationButton} color="inherit" onClick={() => checkCourse(notification.title)}>
+                      <Grid container item xs={2} justify="flex-end" alignItems="center">
+                        <img alt="preview" className={classes.notificationPreview} src={`${notification.preview}`}></img>
+                      </Grid>
+                      <Grid container item xs={10} justify="flex-end">
+                        <Typography className={classes.notification}>New Course Created: {notification.title}</Typography>
+                        <Typography className={classes.notificationDate}>{new Date(notification.createdAt).toUTCString()}</Typography>
+                      </Grid>
+                    </Button>
+                  </Grid>
+                  <Divider />
+                  </>
                 ))}
               </Popover>
               <Tooltip title="Create Course" arrow>

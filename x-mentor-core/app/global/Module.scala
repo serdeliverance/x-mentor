@@ -17,6 +17,7 @@ import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 import javax.inject.{Named, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
+import constants.COURSE_IDX
 
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
 
@@ -42,6 +43,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
     poolConfig.setMaxWaitMillis(config.executionTimeout.toMillis)
     poolConfig.setMaxTotal(config.poolSize)
+    poolConfig.setMaxIdle(config.poolSize)
 
     new JedisPool(
       poolConfig,
@@ -73,7 +75,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides
   def rediSearch(config: RedisConfiguration): io.redisearch.client.Client =
-    new io.redisearch.client.Client("courses-idx", redisPool(config))
+    new io.redisearch.client.Client(COURSE_IDX, redisPool(config))
 
   @Provides
   def authConfiguration: AuthConfiguration = new AuthConfiguration(

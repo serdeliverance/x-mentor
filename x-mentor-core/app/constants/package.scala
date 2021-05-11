@@ -4,7 +4,7 @@ package object constants {
   final val COURSE_LAST_ID_KEY = "course-last-index"
   final val COURSE_IDS_FILTER  = "courses"
   final val USERS_FILTER       = "users"
-
+  final val COURSE_IDX         = "courses-idx"
   final val STUDENT_PROGRESS_KEY_PREFIX = "studentprogress"
   final val STUDENT_LABEL               = "student"
 
