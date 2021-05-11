@@ -46,7 +46,6 @@ class DataLoaderManager @Inject()(
       _             <- rateRelationLoader.loadRateRelations()
       _             <- identityLoader.loadPublicKey()
       _             <- studentProgressLoader.loadStudentProgress()
-      // _ <- loadTeachers()
     } yield Done
   }
 }
