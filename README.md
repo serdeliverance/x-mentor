@@ -8,9 +8,11 @@
 * React
 * Redis Graph
 * RediStreams
+* Redis Blooms
 * Redis Gears
 * RediSearch
 * Redis Json
+* Redis TimeSeries
 * Keycloak
 
 ## Main features
@@ -19,15 +21,12 @@
 * sign up
 * interest
 * student recommendation
-* recommendation (recommendation sent to the user)
+* recommendation system
 * course enrollment
-* course finish
 * student progress
+* leader boards
 
-* bestsellers
-
-
-## Architecture (first draft)
+## Architecture
 
 ![Alt text](diagrams/x-mentor-arch.png?raw=true "Architecture")
 
@@ -43,6 +42,7 @@
 * `course-created`
 * `course-rated`
 * `course-recommended`
+* `student-progress-registered`
 
 ## Graph relations
 
@@ -84,3 +84,4 @@
 
 * public-key
 * course-last-index
+* student-progress-list
