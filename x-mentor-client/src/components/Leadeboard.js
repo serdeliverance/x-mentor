@@ -3,7 +3,7 @@ import { Typography ,Divider, Grid, makeStyles } from '@material-ui/core'
 import { Bar } from 'react-chartjs-2';
 
 const useStyles = makeStyles(() => ({
-  leaderboards: {
+  leaderboard: {
     padding: "2rem 4rem",
     width: "100%"
   }
@@ -14,8 +14,8 @@ export default function Leaderboard({scores}) {
 
   return (
     <Grid container item xs={6}>
-      <Grid item className={classes.leaderboards}>
-          <Typography variant="h6">Leaderboards</Typography>
+      <Grid item className={classes.leaderboard}>
+          <Typography variant="h6">Leaderboard</Typography>
           <Divider />
           <Bar
             width={20}

@@ -83,7 +83,6 @@ const CoursePage = () => {
                         }
                     }
                 )
-                console.log(response.data)
             }
         }
         catch(error){
