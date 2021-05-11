@@ -23,7 +23,6 @@
 * student recommendation
 * recommendation system
 * course enrollment
-* course finish
 * student progress
 * leader boards
 
@@ -85,3 +84,4 @@
 
 * public-key
 * course-last-index
+* student-progress-list
