@@ -1,3 +1,13 @@
+###
+#  summary: create a card
+#  tags:
+#    - Card Endpoints
+#  responses:
+#    200:
+#      description: success
+#      schema:
+#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
+###
 GET     /healthcheck                           controllers.HealthcheckController.healthcheck()
 POST    /ratings                               controllers.RatingController.rate()
 GET     /courses                               controllers.CourseController.retrieve(q: String, page: Int)
@@ -15,3 +25,8 @@ GET     /recommendations                       controllers.RecommendationControl
 GET     /visitors/recommendations              controllers.RecommendationController.visitorRecommendation()
 GET     /notifications                         controllers.NotificationController.subscribeToNotifications()
 GET     /leaderboard                          controllers.LeaderboardController.get()
+
+### NoDocs ###
+GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+### NoDocs ###
+GET   /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)

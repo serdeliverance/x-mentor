@@ -2,11 +2,11 @@ name := """x-mentor-core"""
 organization := "xmentor"
 version := "0.1.0"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, sbtdocker.DockerPlugin)
-
+lazy val root = (project in file(".")).enablePlugins(PlayScala, sbtdocker.DockerPlugin, SwaggerPlugin)
 scalaVersion := "2.13.3"
 
 lazy val circeVersion = "0.12.2"
+swaggerDomainNameSpaces := Seq("models")
 
 libraryDependencies ++= Seq(
   guice,
@@ -32,7 +32,8 @@ libraryDependencies ++= Seq(
   "com.redislabs" % "jredisearch" % "2.0.0",
   //JWT
   "com.pauldijou" %% "jwt-core" % "4.2.0",
-
+  //Swagger
+  "org.webjars" % "swagger-ui" % "3.43.0",
   // Test
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 )

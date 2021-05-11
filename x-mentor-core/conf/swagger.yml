@@ -1,0 +1,8 @@
+swagger: "2.0"
+info:
+  title: "Poweramp API"
+  description: "Power your music"
+consumes:
+  - application/json
+produces:
+  - application/json
