@@ -1,7 +1,6 @@
 swagger: "2.0"
 info:
-  title: "Poweramp API"
-  description: "Power your music"
+  title: "X-Mentor API"
 consumes:
   - application/json
 produces:
