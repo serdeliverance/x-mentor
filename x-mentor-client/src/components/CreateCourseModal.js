@@ -181,6 +181,7 @@ export default function CreateCourseModal({open, setOpen}) {
                                 placeholder="Youtube video"
                                 onChange={handleContent}
                                 fullWidth
+                                required
                             /> : 
                         <>
                         <TextField
@@ -194,6 +195,7 @@ export default function CreateCourseModal({open, setOpen}) {
                             tabIndex="-1"
                             onChange={handleContent}
                             fullWidth
+                            required
                         />
                         </>
                     }

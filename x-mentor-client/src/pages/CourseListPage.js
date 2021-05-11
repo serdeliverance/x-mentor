@@ -34,7 +34,8 @@ const useStyles = makeStyles((theme) => ({
     WebkitLineClamp: 3,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
-    display: '-webkit-box'
+    display: '-webkit-box',
+    minHeight: "4em"
   },
   card: {
     height: '50vh'
@@ -76,7 +77,7 @@ const useStyles = makeStyles((theme) => ({
   },
   topicBadge: {
     right: "auto"
-  }
+  },
 }))
 
 function useQuery() {
@@ -183,7 +184,7 @@ export default function CourseListPage() {
                   <Button color="primary" className={classes.enroll} onClick={(e) => enroll(e.target.closest(".MuiCard-root").id)}>
                     Enroll
                   </Button>
-                  <Tooltip title={course.rating} placement="left">
+                  <Tooltip title={course.rating} className={classes.ratingTooltip} placement="left">
                     <Box component="fieldset" pb={0.2} borderColor="transparent">
                         <Rating name="read-only" value={course.rating} readOnly />
                     </Box>
