@@ -9,8 +9,9 @@ import play.api.Logging
 import play.api.mvc.{Action, BaseController, ControllerComponents}
 import services.RatingService
 import util.MapMarkerContext.fromAuthenticatedRequest
-
 import javax.inject.{Inject, Singleton}
+import util.MapMarkerContext
+
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -25,7 +26,7 @@ class RatingController @Inject()(
     with Logging {
 
   def rate(): Action[RatingRequestDTO] = authenticatedAction.async(decode[RatingRequestDTO]) { implicit request =>
-    implicit val mmc = fromAuthenticatedRequest()
+    implicit val mmc: MapMarkerContext = fromAuthenticatedRequest()
     val rating       = Rating(student = request.student, course = request.body.course, stars = request.body.stars)
     logger.info(s"Rating course: ${rating.course}")
     ratingService
