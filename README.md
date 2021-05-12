@@ -37,7 +37,7 @@ Following is a diagram that shows how the `Student Progress Registration Flow` i
 
 ![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
 
-First, the `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration` Domain Event, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`). `Redis Gears` listen to elements pushed to the stream an perform a sink of this data into our time series database to be available for future calculations. 
+First, the `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`). `Redis Gears` listen to elements pushed to the stream and then sinks this data into our time series database to be available for further calculations.
 
 ![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
 

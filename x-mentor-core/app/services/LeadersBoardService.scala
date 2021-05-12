@@ -34,7 +34,7 @@ class LeadersBoardService @Inject()(
     for {
       studentProgressKeys <- EitherT { redisRepository.listAll(STUDENT_PROGRESS_LIST_KEY) }
       studentProgress <- EitherT {
-        redisTimeSeriesRepository.forAllThreeMonthsSummarized[StudentProgress](studentProgressKeys)
+        redisTimeSeriesRepository.forAllThreeMonthsRangeSummarized[StudentProgress](studentProgressKeys)
       }
       leaders = studentProgress.sortBy(_.progress).reverse.take(LEADERS_COUNT)
     } yield LeadersBoardDTO(leaders)
