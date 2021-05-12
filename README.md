@@ -26,6 +26,21 @@
 * student progress
 * leader boards
 
+### Leader boards
+
+`Leader Board` is the functionallity that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who has more watching time using the platform. To accomplish that, we need to separate two functionallities:
+
+* Register the student progress
+* Getting the board
+
+Following is a diagram that shows how the `Student Progress Registration Flow` is implemented:  
+
+![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
+
+First, the `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration` Domain Event, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`). `Redis Gears` listen to elements pushed to the stream an perform a sink of this data into our time series database to be available for future calculations. 
+
+![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
+
 ## Architecture
 
 ![Alt text](diagrams/x-mentor-arch.png?raw=true "Architecture")
