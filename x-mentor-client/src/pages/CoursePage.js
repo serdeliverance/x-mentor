@@ -94,7 +94,7 @@ const CoursePage = () => {
         const value = event.target.value
         try{
             const response = await axios.post(
-                `${API_URL}/ratings`,
+                `${API_URL}/courses/rate `,
                 { course: course.title, stars: value },
                 {
                     headers: {

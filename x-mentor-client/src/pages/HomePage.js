@@ -87,7 +87,7 @@ const HomePage = () => {
                 const topics = topicsResponse.data.map(topic => topic.name)
                 setTopics(topics)
 
-                const interestsResponse = await axios(`${API_URL}/interests`, headers)
+                const interestsResponse = await axios(`${API_URL}/students/interests`, headers)
                 const interests = interestsResponse.data.map(interest => interest.name)
                 setInsterests(interests)
             }
@@ -116,7 +116,7 @@ const HomePage = () => {
         try{
             if(isLoggedIn){
                 await axios.post(
-                    `${API_URL}/interests`,
+                    `${API_URL}/students/interests`,
                     { "topics": interests },
                     {
                         headers: {
