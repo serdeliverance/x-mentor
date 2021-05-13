@@ -30,7 +30,7 @@ class RecommendationService @Inject()(
   /**
     * Performs different recommendation strategies and aggregate its results.
     * These are the following:
-    *    1. Recommend based on a course that the student has taken
+    *    1. Recommend based on a course that the student enrolled in
     *    2. Recommend based on an interest the student has shown
     *    3. Recommend based on a random course the platform has
     */

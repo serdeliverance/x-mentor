@@ -21,14 +21,14 @@
 
 ## Main features
 
-* login/logout
-* sign up
-* interest
-* student recommendation
-* recommendation system
-* course enrollment
-* student progress
-* leaderboard
+* Login/Logout
+* Sign Up
+* Interest
+* Student Recommendation
+* Recommendation System
+* Course Enrollment
+* Student Progress Registration
+* Leaderboard
 
 ## Architecture, Data Model and Domain Events
 
@@ -50,13 +50,104 @@ Our data model is expressed through nodes and relations using `Redis Graph`. The
 * `course-recommended`
 * `student-progress-registered`
 
-## How Redis Modules helped us to implement some core features
+## How it works?
 
 ### Recommendation System
 
 In order to implement a `Recommendation System` that suggest users different kind courses to take, we decided to rely on the power of `Redis Graph`. Searching for relations between nodes in the graph database give us an easy way to implement different king of recommendation strategies.
 
-`TODO image`
+#### Enrolled Recommendation Strategy
+
+1. Random select a course the student is enrolled in
+
+```
+TODO comandooooooo
+``` 
+
+2. Get the topic of the course
+
+```
+TODO comandoooooo
+```
+
+3. Look for students enrolled to the same course
+
+```
+TODO comandoooooo
+```
+
+4. Look for courses of the same topic when those students are enrolled
+
+```
+TODO comandoooooo
+```
+
+5. Recommend those courses.
+
+#### Interest Recommendation Strategy
+
+1. Random select a student interest
+
+```
+TODO comandoooooo
+```
+
+2. Look for students that are enrolled to course of that topic
+
+```
+TODO comandoooooo
+```
+
+3. Look for other courses of the same topic we students are enrolled in
+
+
+4. Return the recommended courses (having into account those which the student isn't already enrolled)
+
+#### Discover Recommendation Strategy
+
+1. Get all topics
+
+```
+TODO comandoooooo
+```
+
+2. Get student interest topics
+
+```
+TODO comandoooooo
+```
+
+3. Get topics the user is enrolled in
+
+```
+TODO comandoooooo
+```
+
+4. Get a topic the user is neither interesting nor enrolled
+
+5. Get courses of that topic and recomend them
+
+```
+TODO comandoooooo
+```
+
+### Student Progress Registration
+
+This functionallity allow us to track the time the user spend in the platform watching courses. That info is then used to implement the LeaderBoard.
+
+![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
+
+`x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`) via the following command:
+
+```
+TODO comandooooooooo
+```
+
+`Redis Gears` listen to elements pushed to the stream and then sinks this data into `Redis TimeSeries` using the following command:
+
+```
+TODO comandoooooooo
+```
 
 ### Leaderboard
 
@@ -65,26 +156,25 @@ In order to implement a `Recommendation System` that suggest users different kin
 * Register the student progress
 * Getting the board
 
-Following is a diagram that shows how the `Student Progress Registration Flow` is implemented:  
-
-![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
-
-First, the `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`). `Redis Gears` listen to elements pushed to the stream and then sinks this data into `Redis TimeSeries` database to be available for further calculations.
-
 ![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
 
-When the user request for the leaderboard data, we first look at `Redis` for the time series keys. For each key, we use `Redis TimeSeries` to get the range of
-samples in a time window of three months performing sum aggregation. That way we can get the accumulated watching hour of every student. After that we select the top 5 based on that metric and retrieve the board.
+When the user request for the leaderboard data, we first look at `Redis` for the time series keys
 
-## How it works?
+```
+TODO comandoooooooo
+```
 
-### 1. How the data is stored?
+For each key, we use `Redis TimeSeries` to get the range of
+samples in a time window of three months performing sum aggregation. 
 
-### 2. How the data is accessed?
+```
+TODO comandooooooo
+```
+
+That way we can get the accumulated watching hour of every student. After that we select the top 5 based on that metric and retrieve the board.
 
 ## How to run it locally?
 
 ### Prerequisites
-
 
 ### Local installation
