@@ -1,0 +1,21 @@
+{
+    "app_name": "X-Mentor",
+    "description": "An e-Learning platform powered by Redis",
+    "hidden": false,
+    "rank": 21,
+    "type": "Full App",
+    "contributed_by": "Community",
+    "repo_url": "https://github.com/serdeliverance/x-mentor",
+    "download_url": "",//This is a direct link to the Github's download button so people can download it directly from the Marketplace
+    "hosted_url": "",
+    "language": ["Scala", "Python"],
+    "redis_commands": [], // Enter all the Redis commands
+    "redis_features": ["caching", "streams"],// Enter any core Redis feature or leave it blank.
+    "redis_modules": ["RedisGraph", "RediSearch", "RediJSON", "RedisTimeseries", "RedisBlooms", "RedisGears"],
+    "app_image_urls": [
+    ], // Provide any image urls in an array.
+    "youtube_url": "", //Provide a Youtube link to your app's video
+    "special_tags": ["Hackathon","MOOC", "E-learning"],
+    "verticals": ["Education"],
+    "markdown": "", // Link to the RAW Markdown.
+}
