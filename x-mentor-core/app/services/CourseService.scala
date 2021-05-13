@@ -36,16 +36,16 @@ class CourseService @Inject()(
     with RedisJsonUtils {
 
   /**
-   * Creates a course which is going to be stored as a JSON in redisJSON
-   *
-   * 1. Gets the last course id from redis key [[constants.COURSE_LAST_ID_KEY]]
-   * 2. Increases course id key in 1
-   * 3. Stores course as JSON in redisJSON
-   * 4. Adds course id to [[constants.COURSE_IDS_FILTER]] bloom filter
-   * 5. Creates course in the [[constants.GRAPH_NAME]]
-   * 6. Publishes [[streams.COURSE_CREATION_STREAM]] event which sends notifications by Server Sent Event to the frontend
-   *
-   */
+    * Creates a course which is going to be stored as a JSON in redisJSON
+    *
+    * 1. Gets the last course id from redis key [[constants.COURSE_LAST_ID_KEY]]
+    * 2. Increases course id key in 1
+    * 3. Stores course as JSON in redisJSON
+    * 4. Adds course id to [[constants.COURSE_IDS_FILTER]] bloom filter
+    * 5. Creates course in the graph
+    * 6. Publishes [[streams.COURSE_CREATION_STREAM]] event which sends notifications by Server Sent Event to the frontend
+    *
+    */
   def create(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     val redisInstance      = redisPool.getResource
     val currentIndex: Long = redisInstance.get(COURSE_LAST_ID_KEY).toLong + 1
@@ -64,13 +64,13 @@ class CourseService @Inject()(
   }.value
 
   /**
-   * Enrolls a student in a specific course
-   *
-   * 1. Verifies if a user exists in [[constants.USERS_FILTER]] bloom filter
-   * 2. Gets course as JSON from redisJSON
-   * 3. Creates studying relation between the student and the course in redisGraph
-   *
-   */
+    * Enrolls a student in a specific course
+    *
+    * 1. Verifies if a user exists in [[constants.USERS_FILTER]] bloom filter
+    * 2. Gets course as JSON from redisJSON
+    * 3. Creates studying relation between the student and the course in redisGraph
+    *
+    */
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
     logger.info(s"Enrolling user $username in course $courseId")
     for {
@@ -81,9 +81,9 @@ class CourseService @Inject()(
   }.value
 
   /**
-   * Retrieves courses by query from redisJSON with rediSearch
-   *
-   */
+    * Retrieves courses by query from redisJSON with rediSearch
+    *
+    */
   def retrieve(q: String, page: Int): ApplicationResult[CourseResponse] = {
     val offset      = (page - 1) * ITEMS_PER_PAGE
     val queryString = if (q.isEmpty) "*" else s"$q*"
@@ -96,12 +96,12 @@ class CourseService @Inject()(
   }.value
 
   /**
-   * Retrieves courses that a student is enrolled in
-   *
-   * 1. Gets studying relations from redisGraph
-   * 2. Gets courses from redisJSON with rediSearch
-   *
-   */
+    * Retrieves courses that a student is enrolled in
+    *
+    * 1. Gets studying relations from redisGraph
+    * 2. Gets courses from redisJSON with rediSearch
+    *
+    */
   def getCoursesByStudent(student: String, page: Int): ApplicationResult[CourseResponse] = {
     for {
       coursesFromGraph <- EitherT { courseRepository.getCoursesByStudentPaginated(student, page) }
@@ -110,12 +110,12 @@ class CourseService @Inject()(
   }.value
 
   /**
-   * Retrieves course by id
-   *
-   * 1. Verifies if course id exists in [[constants.COURSE_IDS_FILTER]] bloom filter
-   * 2. Gets course from redisJSON
-   *
-   */
+    * Retrieves course by id
+    *
+    * 1. Verifies if course id exists in [[constants.COURSE_IDS_FILTER]] bloom filter
+    * 2. Gets course from redisJSON
+    *
+    */
   def retrieveById(courseId: Long): ApplicationResult[Course] = {
     for {
       _      <- EitherT(redisBloomRepository.exists(COURSE_IDS_FILTER, courseId.toString))
