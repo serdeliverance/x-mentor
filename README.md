@@ -95,58 +95,53 @@ In order to implement a `Recommendation System` that suggest users different kin
 #### How the graph data is accessed
 
 
-1. All student's courses
+* All student's courses
 
 ```
-TODO comandooooooo
-``` 
-
-2. Get topic by course
-
-```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
 ```
 
-3. Get students that are enrolled (`studying`) a course
+* Get all topics
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (topic:Topic) RETURN topic"
 ```
 
-4. Get courses by topic
+
+* Get topic by course
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (topic:Topic)-[:has]->(course:Course) WHERE course.name = '$course' RETURN topic"
 ```
 
-5. Get student's interests
+* Get students that are enrolled in (`studying` relation) a course
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course) WHERE course.name = '$course' RETURN student"
 ```
 
-6. Get courses the user is enrolled in by topic
+* Get courses by topic
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (topic)-[:has]->(course) WHERE topic.name = '${topic.name}' RETURN course"
 ```
 
-7. Get all topics
+* Get student's interests
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (student)-[:interested]->(topic) WHERE student.username ='$student' RETURN topic"
 ```
 
-8. Get student interest topics
+* Get courses the student is enrolled in by topic
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course), (topic)-[:has]->(course) where student.username = '${student.username}' and topic.name = '${topic.name}' RETURN course"
 ```
 
-9. Get topics the user is enrolled in
+* Get topics the user is enrolled in
 
 ```
-TODO comandoooooo
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course), (topic)-[:has]->(course) WHERE student.username = '${student.username}' RETURN topic"
 ```
 
 ### Student Progress Registration
