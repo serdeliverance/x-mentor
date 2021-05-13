@@ -14,7 +14,6 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class LeaderboardController @Inject()(
     val controllerComponents: ControllerComponents,
-    authenticatedAction: AuthenticatedAction,
     leadersBoardService: LeadersBoardService
   )(implicit ec: ExecutionContext)
     extends BaseController

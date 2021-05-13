@@ -22,24 +22,28 @@ class NotificationService @Inject()(
     extends ApplicationResultUtils
     with Logging {
 
+  /**
+    * Send the course creation message to redis streams. It also sends a message to SSE stream (Akka Stream source) in order
+    * to notify SSE subscribed users.
+    */
   def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
-    logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM")
+    logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM stream")
     sseService.pushEvent(CourseCreatedSseEvent(course, LocalDateTime.now))
     messagePublisher.publishEvent(COURSE_CREATION_STREAM, CourseCreated(course.title, course.topic))
   }
 
   def notifyRating(rating: Rating)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
-    logger.info(s"Sending message: $rating to $COURSE_RATED_STREAM")
+    logger.info(s"Sending message: $rating to $COURSE_RATED_STREAM stream")
     messagePublisher.publishEvent(COURSE_RATED_STREAM, CourseRated(rating.student, rating.course, rating.stars))
   }
 
   def notifyInterest(interest: Interest)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
-    logger.info(s"Sending message: $interest to $STUDENT_INTEREST_STREAM")
+    logger.info(s"Sending message: $interest to $STUDENT_INTEREST_STREAM stream")
     messagePublisher.publishEvent(STUDENT_INTEREST_STREAM, StudentInterested(interest.student, interest.topic))
   }
 
   def notifyInterestLost(interest: Interest)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
-    logger.info(s"Sending message: $interest to $LOST_INTEREST_STREAM")
+    logger.info(s"Sending message: $interest to $LOST_INTEREST_STREAM stream")
     messagePublisher.publishEvent(LOST_INTEREST_STREAM, LostInterest(interest.student, interest.topic))
   }
 
@@ -47,7 +51,7 @@ class NotificationService @Inject()(
       studentProgress: StudentProgress
     )(implicit mmc: MapMarkerContext
     ): ApplicationResult[Done] = {
-    logger.info(s"Sending message: $studentProgress to $STUDENT_PROGRESS_STREAM")
+    logger.info(s"Sending message: $studentProgress to $STUDENT_PROGRESS_STREAM stream")
     messagePublisher.publishEvent(STUDENT_PROGRESS_STREAM,
                                   StudentProgressRegistered(studentProgress.student, studentProgress.progress))
   }

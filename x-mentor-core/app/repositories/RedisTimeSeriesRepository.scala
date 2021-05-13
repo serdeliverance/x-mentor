@@ -35,13 +35,33 @@ class RedisTimeSeriesRepository @Inject()(redisTimeSeries: RedisTimeSeries)(impl
       }, _ => ApplicationResult(done()))
   }
 
-  def getAll[T](keys: List[String])(implicit decoder: SampleDecoder[T]): ApplicationResult[Seq[T]] =
-    sequence(keys.map(key => get[T](key)))
+  /**
+    * For all the specified keys, get the samples summarization in a time window of three months.
+    */
+  def forAllThreeMonthsRangeSummarized[T](
+      keys: List[String]
+    )(implicit decoder: SampleDecoder[T]
+    ): ApplicationResult[Seq[T]] =
+    sequence(keys.map(key => getLastThreeMonthsRageSummarized[T](key)))
 
-  def get[T](key: String)(implicit decoder: SampleDecoder[T]): ApplicationResult[T] =
+  /**
+    * For the specified key, summarizes sample values on a time window of three months
+    */
+  def getLastThreeMonthsRageSummarized[T](key: String)(implicit decoder: SampleDecoder[T]): ApplicationResult[T] =
+    getRangeSummarized[T](key: String, threeMonthsBack(), now())
+
+  /**
+    * For the specified key, get the samples by range performing the sum aggregation over them
+    */
+  def getRangeSummarized[T](
+      key: String,
+      from: Long,
+      to: Long
+    )(implicit decoder: SampleDecoder[T]
+    ): ApplicationResult[T] =
     Try(
       redisTimeSeries
-        .range(key, threeMonthsBack(), now(), Aggregation.SUM, TIME_BUCKET_MILLIS))
+        .range(key, from, to, Aggregation.SUM, TIME_BUCKET_MILLIS))
       .fold(
         error => {
           logger.error(s"Error retrieving key: $key from timeseries. Error: $error")
