@@ -9,6 +9,8 @@ package object configurations {
   val REDIS_EXECUTION_TIMEOUT_MILLIS  = "redis.execution-timeout-millis"
   val REDIS_POOL_SIZE                 = "redis.pool-size"
 
+  val REDIS_GRAPH = "redis.graph"
+
   val AUTH_BASE_URL           = "auth.urls.base"
   val AUTH_TOKEN_URL          = "auth.urls.token"
   val AUTH_USERS_URL          = "auth.urls.users"

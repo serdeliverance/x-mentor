@@ -61,7 +61,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides
   def redisGraphConfiguration(): RedisGraphConfiguration =
-    RedisGraphConfiguration(configuration.get[String](GRAPH_NAME))
+    RedisGraphConfiguration(configuration.get[String](REDIS_GRAPH))
 
   @Provides @Singleton @Named(MESSAGING_DISPATCHER)
   def messagingExecutionContext(system: ActorSystem): ExecutionContext =
