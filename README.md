@@ -29,6 +29,8 @@
 * Course Enrollment
 * Student Progress Registration
 * Leaderboard
+* Notifications
+* FullText Search
 
 ## Architecture, Data Model and Domain Events
 
