@@ -21,6 +21,16 @@ class InterestService @Inject()(
     extends Logging
     with ApplicationResultUtils {
 
+  /**
+   * Creates a relation between a student and different topics
+   *
+   * 1. Gets all interested relations from redisGraph
+   * 2. Gets difference between already existed relations and new ones
+   * 3. Creates new interested relations into redisGraph
+   * 4. Removes interested relations that don't apply anymore
+   * 5. Publishes [[streams.LOST_INTEREST_STREAM]] and [[streams.STUDENT_INTEREST_STREAM]] events
+   *
+   */
   def registerInterest(
       student: String,
       interests: List[Interest]
@@ -38,6 +48,10 @@ class InterestService @Inject()(
     } yield Done
   }.value
 
+  /**
+   * Retrieves all interested relations between a student and different topics from redisGraph
+   *
+   */
   def getInterests(student: String): ApplicationResult[List[Topic]] =
     topicRepository.getInterestTopicsByStudent(student)
 

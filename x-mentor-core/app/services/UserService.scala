@@ -34,6 +34,12 @@ class UserService @Inject()(
     extends Logging
     with CirceImplicits {
 
+  /**
+    * Starts the authentication process against Keycloak
+    *
+    * 1. Verifies if user's username already exists in [[constants.USERS_FILTER]] bloom filter
+    * 2. Gets auth token
+    */
   def login(
       username: String,
       password: String
@@ -54,6 +60,13 @@ class UserService @Inject()(
     } yield accessData
   }.value
 
+  /**
+    * Starts the registration process against Keycloak
+    *
+    * 1. Adds user's username to [[constants.USERS_FILTER]] bloom filter
+    * 2. Creates user in redisGraph
+    *
+    */
   def signup(
       username: String,
       password: String
@@ -83,7 +96,8 @@ class UserService @Inject()(
                     createUserHeaders.appended((HeaderNames.AUTHORIZATION, s"Bearer ${adminToken.accessToken}")))
       }
       response <- EitherT { handleCreationResponse(creationResponse) }
-      _ <- EitherT { studentRepository.createStudent(Student(username, s"$username@gmail.com")) }
+      _        <- EitherT { redisBloomRepository.add(USERS_FILTER, username) }
+      _        <- EitherT { studentRepository.createStudent(Student(username, s"$username@gmail.com")) }
     } yield response
   }.value
 

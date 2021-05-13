@@ -25,6 +25,7 @@ class NotificationService @Inject()(
   /**
     * Send the course creation message to redis streams. It also sends a message to SSE stream (Akka Stream source) in order
     * to notify SSE subscribed users.
+    *
     */
   def notifyCourseCreation(course: Course)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     logger.info(s"Sending message: $course to $COURSE_CREATION_STREAM stream")

@@ -2,7 +2,7 @@ name := """x-mentor-core"""
 organization := "xmentor"
 version := "0.1.0"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, sbtdocker.DockerPlugin, SwaggerPlugin)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, sbtdocker.DockerPlugin)
 scalaVersion := "2.13.3"
 
 lazy val circeVersion = "0.12.2"

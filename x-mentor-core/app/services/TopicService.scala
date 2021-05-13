@@ -10,6 +10,10 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class TopicService @Inject()(topicRepository: TopicRepository) extends Logging {
 
+  /**
+   * Retrieves all topics from redisGraph
+   *
+   */
   def getAll(): ApplicationResult[List[Topic]] =
     topicRepository.getTopics()
 }

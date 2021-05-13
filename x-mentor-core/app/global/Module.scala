@@ -17,7 +17,7 @@ import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 import javax.inject.{Named, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
-import constants.COURSE_IDX
+import constants.{COURSE_IDX, GRAPH_NAME}
 
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
 
@@ -61,7 +61,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
 
   @Provides
   def redisGraphConfiguration(): RedisGraphConfiguration =
-    RedisGraphConfiguration(configuration.get[String](REDIS_GRAPH))
+    RedisGraphConfiguration(configuration.get[String](GRAPH_NAME))
 
   @Provides @Singleton @Named(MESSAGING_DISPATCHER)
   def messagingExecutionContext(system: ActorSystem): ExecutionContext =
