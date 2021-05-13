@@ -22,6 +22,6 @@ GET     /visitors/recommendations              controllers.RecommendationControl
 # General ENDPOINTS
 GET     /topics                                controllers.TopicController.getAll()
 GET     /notifications                         controllers.NotificationController.subscribeToNotifications()
-GET     /leaderboard                          controllers.LeaderboardController.get()
+GET     /leaderboard                           controllers.LeaderboardController.get()
 
 GET     /healthcheck                           controllers.HealthcheckController.healthcheck()
