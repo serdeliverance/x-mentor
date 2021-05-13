@@ -36,11 +36,11 @@ The following picture gives a high level overview of the system architecture:
 
 ![Alt text](diagrams/x-mentor-arch.png?raw=true "Architecture")
 
-Our data model is expressed through nodes and relations using `Redis Graph`. The model is very simple: just `Student`, `Course` and `Topic` entities expressing different kind of relations between each other:
+Our data model is expressed through nodes and relations using `Redis Graph`. The model is very simple: just `Student`, `Course` and `Topic` entities expressing different kind of relations between each other.
 
 ![Alt text](diagrams/graph-model.png?raw=true "Graph model")
 
-It is important to mention `X-Mentor` was implemented following an `Event Driven Architecture` approach in which the following `Domain Events` are considered:
+`X-Mentor` follows an `Event Driven Architecture` approach in which the following `Domain Events` are considered:
 
 * `student-enrolled`
 * `student-interested`
@@ -58,9 +58,9 @@ In order to implement a `Recommendation System` that suggest users different kin
 
 `TODO image`
 
-### Leader boards
+### Leaderboard
 
-`Leader Board` is the functionallity that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who has more watching time using the platform. To accomplish that, we need to separate two functionallities:
+`Leaderboard` is the functionallity that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who has more watching time using the platform. To accomplish that, we need to separate two functionallities:
 
 * Register the student progress
 * Getting the board
@@ -73,7 +73,7 @@ First, the `x-mentor` microservices receives the request. Then, it publishes the
 
 ![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
 
-When the user request for the leader board data, we first look at `Redis` for the time series keys. For each key, we use `Redis TimeSeries` to get the range of
+When the user request for the leaderboard data, we first look at `Redis` for the time series keys. For each key, we use `Redis TimeSeries` to get the range of
 samples in a time window of three months performing sum aggregation. That way we can get the accumulated watching hour of every student. After that we select the top 5 based on that metric and retrieve the board.
 
 ## How it works?
