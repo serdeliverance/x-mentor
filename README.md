@@ -62,27 +62,11 @@ In order to implement a `Recommendation System` that suggest users different kin
 
 1. Random select a course the student is enrolled in
 
-```
-TODO comandooooooo
-``` 
-
 2. Get the topic of the course
-
-```
-TODO comandoooooo
-```
 
 3. Look for students enrolled to the same course
 
-```
-TODO comandoooooo
-```
-
 4. Look for courses of the same topic when those students are enrolled
-
-```
-TODO comandoooooo
-```
 
 5. Recommend those courses.
 
@@ -90,18 +74,9 @@ TODO comandoooooo
 
 1. Random select a student interest
 
-```
-TODO comandoooooo
-```
-
 2. Look for students that are enrolled to course of that topic
 
-```
-TODO comandoooooo
-```
-
 3. Look for other courses of the same topic we students are enrolled in
-
 
 4. Return the recommended courses (having into account those which the student isn't already enrolled)
 
@@ -109,25 +84,66 @@ TODO comandoooooo
 
 1. Get all topics
 
-```
-TODO comandoooooo
-```
-
 2. Get student interest topics
 
-```
-TODO comandoooooo
-```
-
 3. Get topics the user is enrolled in
-
-```
-TODO comandoooooo
-```
 
 4. Get a topic the user is neither interesting nor enrolled
 
 5. Get courses of that topic and recomend them
+
+#### How the graph data is accessed
+
+
+1. All student's courses
+
+```
+TODO comandooooooo
+``` 
+
+2. Get topic by course
+
+```
+TODO comandoooooo
+```
+
+3. Get students that are enrolled (`studying`) a course
+
+```
+TODO comandoooooo
+```
+
+4. Get courses by topic
+
+```
+TODO comandoooooo
+```
+
+5. Get student's interests
+
+```
+TODO comandoooooo
+```
+
+6. Get courses the user is enrolled in by topic
+
+```
+TODO comandoooooo
+```
+
+7. Get all topics
+
+```
+TODO comandoooooo
+```
+
+8. Get student interest topics
+
+```
+TODO comandoooooo
+```
+
+9. Get topics the user is enrolled in
 
 ```
 TODO comandoooooo
@@ -142,13 +158,13 @@ This functionallity allow us to track the time the user spend in the platform wa
 `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`) via the following command:
 
 ```
-TODO comandooooooooo
+XADD student-progress-registered $timestamp student $student_username duration $duration
 ```
 
 `Redis Gears` listen to elements pushed to the stream and then sinks this data into `Redis TimeSeries` using the following command:
 
 ```
-TODO comandoooooooo
+TS.ADD studentprogress:$student_username $timestamp $duration RETENTION 0 LABELS student $student_username
 ```
 
 ### Leaderboard
@@ -163,17 +179,23 @@ TODO comandoooooooo
 When the user request for the leaderboard data, we first look at `Redis` for the time series keys
 
 ```
-TODO comandoooooooo
+LRANGE student-progress-list 0 -1		// to retrieve all the list elements
 ```
 
-For each key, we use `Redis TimeSeries` to get the range of
-samples in a time window of three months performing sum aggregation. 
+For each key, we use `Redis TimeSeries` to get the range of samples in a time window of three months performing sum aggregation. 
 
 ```
-TODO comandooooooo
+TS.RANGE $student_key $thee_months_back_timestamp $timestamp AGGREGATION sum 1000
 ```
 
-That way we can get the accumulated watching hour of every student. After that we select the top 5 based on that metric and retrieve the board.
+where:
+
+	* `student_key ` is the student's time series key. For example: `studentprogress:codi.sipes` is the time series key for student `codi.sipes`.
+	* `three_months_back_timestamp` is a `Unix Timestamp` with represents a point in time three months back than `timestamp` (in order to have a time window of three months).
+	* `timestamp` the current timestamp (in `Unix Timestamp` format).
+	* We perform sum aggregation of the sample values in that time windows using a `Time Bucket` of 1000 milliseconds.
+
+That way we can get the accumulated watching hour of every student. After that we select the highest top 5 accumulated watching hours and retrive that information to visualize the board.
 
 ## How to run it locally?
 
