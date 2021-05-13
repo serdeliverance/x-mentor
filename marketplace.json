@@ -17,5 +17,5 @@
     "youtube_url": "", //Provide a Youtube link to your app's video
     "special_tags": ["Hackathon","MOOC", "E-learning"],
     "verticals": ["Education"],
-    "markdown": "", // Link to the RAW Markdown.
+    "markdown": "https://raw.githubusercontent.com/serdeliverance/x-mentor/main/README.md",
 }
