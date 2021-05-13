@@ -27,6 +27,13 @@ class RecommendationService @Inject()(
     extends Logging
     with RandomUtils {
 
+  /**
+    * Performs different recommendation strategies and aggregate its results.
+    * These are the following:
+    *    1. Recommend based on a course that the student has taken
+    *    2. Recommend based on an interest the student has shown
+    *    3. Recommend based on a random course the platform has
+    */
   def getRecommendation(
       username: String
     )(implicit mmc: MapMarkerContext
@@ -39,6 +46,9 @@ class RecommendationService @Inject()(
     } yield RecommendationResponseDTO(enrolledBasedRecommendation, interestBasedRecommendation, discoverRecommendation)
   }.value
 
+  /**
+    * Retrieves recommendation for non-logged users. For that case, it uses the [[DiscoverRecommendationStrategy]]
+    */
   def getVisitorRecommendation()(implicit mmc: MapMarkerContext): ApplicationResult[RecommendationResponseDTO] =
     discoverRecommendationStrategy
       .visitorRecommendation()

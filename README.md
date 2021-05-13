@@ -2,6 +2,10 @@
 
 `WIP`
 
+## Screenshots
+
+`TODO`
+
 ## Stack
 
 * Scala/Play Framework/Akka Streams
@@ -24,7 +28,35 @@
 * recommendation system
 * course enrollment
 * student progress
-* leader boards
+* leaderboard
+
+## Architecture, Data Model and Domain Events
+
+The following picture gives a high level overview of the system architecture:
+
+![Alt text](diagrams/x-mentor-arch.png?raw=true "Architecture")
+
+Our data model is expressed through nodes and relations using `Redis Graph`. The model is very simple: just `Student`, `Course` and `Topic` entities expressing different kind of relations between each other:
+
+![Alt text](diagrams/graph-model.png?raw=true "Graph model")
+
+It is important to mention `X-Mentor` was implemented following an `Event Driven Architecture` approach in which the following `Domain Events` are considered:
+
+* `student-enrolled`
+* `student-interested`
+* `student-interest-lost`
+* `course-created`
+* `course-rated`
+* `course-recommended`
+* `student-progress-registered`
+
+## How Redis Modules helped us to implement some core features
+
+### Recommendation System
+
+In order to implement a `Recommendation System` that suggest users different kind courses to take, we decided to rely on the power of `Redis Graph`. Searching for relations between nodes in the graph database give us an easy way to implement different king of recommendation strategies.
+
+`TODO image`
 
 ### Leader boards
 
@@ -37,66 +69,22 @@ Following is a diagram that shows how the `Student Progress Registration Flow` i
 
 ![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
 
-First, the `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`). `Redis Gears` listen to elements pushed to the stream and then sinks this data into our time series database to be available for further calculations.
+First, the `x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`). `Redis Gears` listen to elements pushed to the stream and then sinks this data into `Redis TimeSeries` database to be available for further calculations.
 
 ![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
 
-## Architecture
+When the user request for the leader board data, we first look at `Redis` for the time series keys. For each key, we use `Redis TimeSeries` to get the range of
+samples in a time window of three months performing sum aggregation. That way we can get the accumulated watching hour of every student. After that we select the top 5 based on that metric and retrieve the board.
 
-![Alt text](diagrams/x-mentor-arch.png?raw=true "Architecture")
+## How it works?
 
-## Graph model
+### 1. How the data is stored?
 
-![Alt text](diagrams/graph-model.png?raw=true "Graph model")
+### 2. How the data is accessed?
 
-## Domain Events
+## How to run it locally?
 
-* `student-enrolled`
-* `student-interested`
-* `student-interest-lost`
-* `course-created`
-* `course-rated`
-* `course-recommended`
-* `student-progress-registered`
+### Prerequisites
 
-## Graph relations
 
-* `interested_in`
-
-`(student) -[:interested_in]-> (topic)`
-
-* `has`
-
-`(topic) -[:has]-> (course)`
-
-* `studying`
-
-`(student) -[:studying]-> (course)`
-
-* `rates`
-
-`(student) -[:rates]-> (course)`
-
-## Redis Keys
-
-### Bloom filters
-
-* courses
-* users
-
-### Graphs
-
-* xmentor
-	- topics
-	- users
-	- courses 
-
-### Json
-
-* `courses:{n}`
-
-### Keys
-
-* public-key
-* course-last-index
-* student-progress-list
+### Local installation
