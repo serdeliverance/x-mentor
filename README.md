@@ -216,7 +216,7 @@ XADD student-interest-lost $timestamp student $student_username topic $topic
 
 ### Course Review (Rating)
 
-It is the functionallity that allows a student to rate a course. For that purpose, it do the following:
+It is the functionality that allows a student to rate a course. For that purpose, it do the following:
 
 1. Verifies if a studying relation exists between the student and the course
 2. Verifies that a rates relation does not exists between the student and the course
@@ -334,7 +334,7 @@ GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course), (topic)-[:has]->(cou
 
 ### Student Progress Registration
 
-This functionallity allow us to track the time the user spend in the platform watching courses. That info is then used to implement the LeaderBoard.
+This functionality allow us to track the time the user spend in the platform watching courses. That info is then used to implement the LeaderBoard.
 
 ![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
 
@@ -352,7 +352,7 @@ TS.ADD studentprogress:$student_username $timestamp $duration RETENTION 0 LABELS
 
 ### Leaderboard
 
-`Leaderboard` is the functionallity that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who has more watching time using the platform. To accomplish that, we need to separate two functionallities:
+`Leaderboard` is the functionality that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who has more watching time using the platform. To accomplish that, we need to separate two functionallities:
 
 * Register the student progress
 * Getting the board
