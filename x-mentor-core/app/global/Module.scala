@@ -17,7 +17,7 @@ import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 import javax.inject.{Named, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
-import constants.{COURSE_IDX, GRAPH_NAME}
+import constants.COURSE_IDX
 
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
 

@@ -10,8 +10,6 @@ import repositories.timeseries.SampleDecoder
 import repositories.timeseries.SampleDecoderSyntax.decodeSample
 import util.{ApplicationResultUtils, UnixTimestampUtils}
 
-import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDateTime}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
