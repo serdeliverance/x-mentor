@@ -1,6 +1,6 @@
 # X-Mentor
 
-X-Mentor is an e-Learning platform which not only tries to connect students and teachers, but also ideas, emotions and knowledge. We want people to progress and to learn how to use their powers, because everyone has something to teach and everyone has something to learn, but everyone has a power and don't forget, with great power comes great responsability.
+X-Mentor is an e-Learning platform which not only tries to connect students and teachers, but also ideas, emotions and knowledge. We want people to progress and to learn how to use their powers, because everyone has something to teach and everyone has something to learn, but everyone has a power and remember, with great power comes great responsability.
 
 ## Screenshots
 
