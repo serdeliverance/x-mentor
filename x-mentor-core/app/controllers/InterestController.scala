@@ -10,10 +10,11 @@ import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.InterestService
 import util.MapMarkerContext.fromAuthenticatedRequest
+
 import javax.inject.{Inject, Singleton}
 import util.MapMarkerContext
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class InterestController @Inject()(
@@ -32,14 +33,7 @@ class InterestController @Inject()(
       logger.info(s"Registering interests")
       interestService
         .registerInterest(request.student, request.body.topics.map(topic => Interest(request.student, topic)))
-        .map {
-          case Right(_) =>
-            logger.info("Student interest registered successfully")
-            Ok
-          case Left(error) =>
-            logger.info("Error registering interest")
-            handleError(error)
-        }
+      Future(Ok)
     }
 
   def get(): Action[AnyContent] = authenticatedAction.async { implicit request =>
