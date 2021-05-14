@@ -1,10 +1,14 @@
-# x-mentor-core
+# X-Mentor
 
-`WIP`
+X-Mentor is an e-Learning platform which not only tries to connect students and teachers, but also ideas, emotions and knowledge. We want people to progress and to learn how to use their powers, because everyone has something to teach and everyone has something to learn, but everyone has a power and don't forget, with great power comes great responsability.
 
 ## Screenshots
 
-`TODO`
+![Alt text](screenshots/CourseListPage.png?raw=true "Home Page")
+
+![Alt text](screenshots/CoursePage.png?raw=true "Course List Page")
+
+![Alt text](screenshots/HomePage.png?raw=true "Course Page")
 
 ## Stack
 
@@ -15,22 +19,22 @@
 * Redis Blooms
 * Redis Gears
 * RediSearch
-* Redis Json
+* Redis JSON
 * Redis TimeSeries
 * Keycloak
 
 ## Main features
 
-* Login/Logout
+* Login
 * Sign Up
-* Interest
-* Student Recommendation
-* Recommendation System
+* Student's Interests
+* Course Review
+* Course Recommendation System
 * Course Enrollment
 * Student Progress Registration
 * Leaderboard
 * Notifications
-* FullText Search
+* Courses Search
 
 ## Architecture, Data Model and Domain Events
 
@@ -54,7 +58,77 @@ Our data model is expressed through nodes and relations using `Redis Graph`. The
 
 ## How it works?
 
-### Interest
+### Login
+
+Starts the authentication process against Keycloak
+1. Verifies if user's username already exists in [[constants.USERS_FILTER]] bloom filter
+2. Gets auth token
+
+```
+BF.EXISTS users '${student.username}'
+``` 
+
+### Sign Up
+
+Starts the registration process against Keycloak
+1. Adds user's username to [[constants.USERS_FILTER]] bloom filter
+2. Creates user in redisGraph
+
+```
+BF.ADD users '${student.username}'
+``` 
+
+### Course Enrollment
+
+Enrolls a student in a specific course
+
+1. Verifies if a student exists in [[constants.USERS_FILTER]] bloom filter
+2. Gets course as JSON from redisJSON
+3. Creates studying relation between the student and the course in redisGraph
+
+
+* Verifies if a student exists in [[constants.USERS_FILTER]] bloom filter
+```
+BF.EXISTS users ${student.username}
+``` 
+
+* Gets course as JSON from redisJSON
+```
+JSON.GET course:${course.id}
+``` 
+
+* Creates studying relation between the student and the course in redisGraph
+```
+GRAPH.QUERY xmentor "CREATE (:Course {name: '${course.title}', id: '${course.id.get}', preview: '${course.preview}'})"
+``` 
+
+### Courses Search
+
+#### All
+Retrieves courses by query from redisJSON with rediSearch
+
+```
+FT.SEARCH courses-idx ${query}*
+``` 
+
+#### By ID
+
+```
+BF.EXISTS courses ${course.id}
+
+JSON.GET course:${course.id}
+``` 
+
+#### By Student
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+
+FT.SEARCH courses-idx ${course.title}
+``` 
+
+
+### Student's Interests
 
 1. Gets all interested relations from redisGraph
 2. Gets difference between already existed relations and new ones (it allow us to separate new interests from existing ones and also to identify lost of interest)
@@ -97,7 +171,7 @@ XADD student-interested $timestamp student $student_username topic $topic
 XADD student-interest-lost $timestamp student $student_username topic $topic
 ```
 
-### Student Recommendation (Rating)
+### Course Review (Rating)
 
 It is the functionallity that allows a student to rate a course. For that purpose, it do the following:
 
@@ -108,7 +182,7 @@ It is the functionallity that allows a student to rate a course. For that purpos
 
 The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
 
-![Alt text](diagrams/student-recommendation.png?raw=true "Student Recommendation Graph queries")
+![Alt text](diagrams/course-review.png?raw=true "Course Review Graph queries")
 
 The commands are used:
 
@@ -136,42 +210,31 @@ GRAPH.QUERY xmentor "MATCH (s:Student), (c:Course) WHERE s.username = '${rating.
 XADD course-rated $timestamp student $student_username course $course starts $stars
 ```
 
-### Recommendation System
+### Course Recommendation System
 
-In order to implement a `Recommendation System` that suggest users different kind courses to take, we decided to rely on the power of `Redis Graph`. Searching for relations between nodes in the graph database give us an easy way to implement different king of recommendation strategies.
+In order to implement a `Course Recommendation System` that suggest users different kind courses to take, we decided to rely on the power of `Redis Graph`. Searching for relations between nodes in the graph database give us an easy way to implement different king of recommendation strategies.
 
 #### Enrolled Recommendation Strategy
 
 1. Random select a course the student is enrolled in
-
 2. Get the topic of the course
-
 3. Look for students enrolled to the same course
-
 4. Look for courses of the same topic when those students are enrolled
-
 5. Recommend those courses.
 
 #### Interest Recommendation Strategy
 
-1. Random select a student interest
-
+1. Random select a student's interest
 2. Look for students that are enrolled to course of that topic
-
 3. Look for other courses of the same topic we students are enrolled in
-
 4. Return the recommended courses (having into account those which the student isn't already enrolled)
 
 #### Discover Recommendation Strategy
 
 1. Get all topics
-
-2. Get student interest topics
-
+2. Get student's interest topics
 3. Get topics the user is enrolled in
-
 4. Get a topic the user is neither interesting nor enrolled
-
 5. Get courses of that topic and recomend them
 
 #### How the graph data is accessed
@@ -274,8 +337,12 @@ where:
 
 That way we can get the accumulated watching hour of every student. After that we select the highest top 5 accumulated watching hours and retrive that information to visualize the board.
 
-## How to run it locally?
+## How to run it locally? Run the *docker-compose.yml*
 
 ### Prerequisites
+* Docker Engine and Docker Compose
 
-### Local installation
+### Start
+```
+docker-compose up
+```
