@@ -13,7 +13,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class LeadersBoardService @Inject()(
+class LeaderboardService @Inject()(
     redisRepository: RedisRepository,
     redisTimeSeriesRepository: RedisTimeSeriesRepository
   )(implicit ec: ExecutionContext)

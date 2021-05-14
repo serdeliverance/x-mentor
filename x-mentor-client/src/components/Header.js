@@ -82,7 +82,10 @@ const useStyles = makeStyles((theme) => ({
   notificationPreview:{
     width: "3rem",
     height: "3rem",
-    borderRadius: "2rem"
+    borderRadius: "2rem",
+    objectFit: "contain",
+    border: "#d0d0d0 1px solid",
+    backgroundColor: "white"
   },
   notificationDate: {
     fontSize: 10,

@@ -6,7 +6,7 @@ import controllers.converters.ErrorToResultConverter
 import io.circe.syntax._
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import services.LeadersBoardService
+import services.LeaderboardService
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class LeaderboardController @Inject()(
     val controllerComponents: ControllerComponents,
-    leadersBoardService: LeadersBoardService
+    leadersBoardService: LeaderboardService
   )(implicit ec: ExecutionContext)
     extends BaseController
     with ErrorToResultConverter
