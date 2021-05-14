@@ -21,7 +21,7 @@ class RedisTimeSeriesRepository @Inject()(redisTimeSeries: RedisTimeSeries)(impl
     with UnixTimestampUtils
     with Logging {
 
-  private val TIME_BUCKET_MILLIS = 2000
+  private val TIME_BUCKET_MILLIS = 1000
   private val RETENTION_TIME     = 0
 
   def create(key: String, labels: Map[String, String] = Map.empty): ApplicationResult[Done] = {
