@@ -66,13 +66,13 @@ class CourseService @Inject()(
   /**
     * Enrolls a student in a specific course
     *
-    * 1. Verifies if a user exists in [[constants.USERS_FILTER]] bloom filter
+    * 1. Verifies if a student exists in [[constants.USERS_FILTER]] bloom filter
     * 2. Gets course as JSON from redisJSON
     * 3. Creates studying relation between the student and the course in redisGraph
     *
     */
   def enroll(courseId: Long, username: String): ApplicationResult[Done] = {
-    logger.info(s"Enrolling user $username in course $courseId")
+    logger.info(s"Enrolling student $username in course $courseId")
     for {
       _      <- EitherT(redisBloomRepository.exists(USERS_FILTER, username))
       course <- EitherT(retrieveById(courseId))

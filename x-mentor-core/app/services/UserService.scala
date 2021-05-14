@@ -14,14 +14,14 @@ import play.api.libs.ws.WSResponse
 import sender.Request.formUrlEncodedBody
 import sender.Sender
 import util.MapMarkerContext
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 import cats.implicits._
-import constants.USERS_FILTER
+import constants.{STUDENT_LABEL, STUDENT_PROGRESS_KEY_PREFIX, STUDENT_PROGRESS_LIST_KEY, USERS_FILTER}
 import models.Student
 import play.api.libs.json._
-import repositories.RedisBloomRepository
+import repositories.{RedisBloomRepository, RedisRepository, RedisTimeSeriesRepository}
 import repositories.graph.StudentRepository
 
 @Singleton
@@ -29,7 +29,9 @@ class UserService @Inject()(
     sender: Sender,
     configuration: AuthConfiguration,
     redisBloomRepository: RedisBloomRepository,
-    studentRepository: StudentRepository
+    studentRepository: StudentRepository,
+    redisTimeSeriesRepository: RedisTimeSeriesRepository,
+    redisRepository: RedisRepository
   )(implicit ec: ExecutionContext)
     extends Logging
     with CirceImplicits {
@@ -98,6 +100,13 @@ class UserService @Inject()(
       response <- EitherT { handleCreationResponse(creationResponse) }
       _        <- EitherT { redisBloomRepository.add(USERS_FILTER, username) }
       _        <- EitherT { studentRepository.createStudent(Student(username, s"$username@gmail.com")) }
+      studentProgressTimeSeriesKey = s"$STUDENT_PROGRESS_KEY_PREFIX:$username"
+      _ <- EitherT {
+        redisTimeSeriesRepository.create(studentProgressTimeSeriesKey, Map(STUDENT_LABEL -> username))
+      }
+      _ <- EitherT {
+        redisRepository.rpush(STUDENT_PROGRESS_LIST_KEY, studentProgressTimeSeriesKey)
+      }
     } yield response
   }.value
 

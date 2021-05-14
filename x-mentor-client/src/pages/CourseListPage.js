@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     minHeight: "4em"
   },
   card: {
-    height: '50vh'
+    height: '48vh'
   },
   title: {
     fontWeight: 'bold',
