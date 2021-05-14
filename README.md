@@ -10,6 +10,34 @@ X-Mentor is an e-Learning platform which not only tries to connect students and 
 
 ![Alt text](screenshots/HomePage.png?raw=true "Course Page")
 
+## Table of Contents
+
+- [X-Mentor](#x-mentor)
+  * [Screenshots](#screenshots)
+  * [Stack](#stack)
+  * [Main features](#main-features)
+  * [Architecture, Data Model and Domain Events](#architecture--data-model-and-domain-events)
+  * [How it works?](#how-it-works-)
+    + [Login](#login)
+    + [Sign Up](#sign-up)
+    + [Course Enrollment](#course-enrollment)
+    + [Courses Search](#courses-search)
+      - [All](#all)
+      - [By ID](#by-id)
+      - [By Student](#by-student)
+    + [Student's Interests](#student-s-interests)
+    + [Course Review (Rating)](#course-review--rating-)
+    + [Course Recommendation System](#course-recommendation-system)
+      - [Enrolled Recommendation Strategy](#enrolled-recommendation-strategy)
+      - [Interest Recommendation Strategy](#interest-recommendation-strategy)
+      - [Discover Recommendation Strategy](#discover-recommendation-strategy)
+      - [How the graph data is accessed](#how-the-graph-data-is-accessed)
+    + [Student Progress Registration](#student-progress-registration)
+    + [Leaderboard](#leaderboard)
+  * [How to run it locally? Run the *docker-compose.yml*](#how-to-run-it-locally--run-the--docker-composeyml-)
+    + [Prerequisites](#prerequisites)
+    + [Start](#start)
+
 ## Stack
 
 * Scala/Play Framework/Akka Streams
