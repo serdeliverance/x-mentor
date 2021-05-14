@@ -9,7 +9,7 @@
     "download_url": "",//This is a direct link to the Github's download button so people can download it directly from the Marketplace
     "hosted_url": "",
     "language": ["Scala", "Python"],
-    "redis_commands": ["BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "FT.SEARCH", "XADD", "RPUSH"],
+    "redis_commands": ["GET","SET", "XADD", "RPUSH", "BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "FT.SEARCH"],
     "redis_features": ["caching", "streams"],
     "redis_modules": ["RedisGraph", "RediSearch", "RediJSON", "RedisTimeseries", "RedisBlooms", "RedisGears"],
     "app_image_urls": ["https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true"],
