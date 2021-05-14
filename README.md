@@ -73,10 +73,25 @@ BF.EXISTS users '${student.username}'
 Starts the registration process against Keycloak
 1. Adds user's username to [[constants.USERS_FILTER]] bloom filter
 2. Creates user in redisGraph
+3. Add timeseries key needed for registering student progress
+
+* Add bloom filter
 
 ```
 BF.ADD users '${student.username}'
-``` 
+```
+
+* Create student into the graph
+
+```
+GRAPH.QUERY xmentor "CREATE (:Student {username: '${student.username}', email: '${student.email}'})"
+```
+
+* Create student progress timeseries key
+
+```
+TS.CREATE studentprogress:${username} RETENTION 0 LABELS student ${username}
+```
 
 ### Course Enrollment
 
@@ -330,10 +345,10 @@ TS.RANGE $student_key $thee_months_back_timestamp $timestamp AGGREGATION sum 100
 
 where:
 
-	* `student_key ` is the student's time series key. For example: `studentprogress:codi.sipes` is the time series key for student `codi.sipes`.
-	* `three_months_back_timestamp` is a `Unix Timestamp` with represents a point in time three months back than `timestamp` (in order to have a time window of three months).
-	* `timestamp` the current timestamp (in `Unix Timestamp` format).
-	* We perform sum aggregation of the sample values in that time windows using a `Time Bucket` of 1000 milliseconds.
+* `student_key ` is the student's time series key. For example: `studentprogress:codi.sipes` is the time series key for student `codi.sipes`.
+* `three_months_back_timestamp` is a `Unix Timestamp` with represents a point in time three months back than `timestamp` (in order to have a time window of three months).
+* `timestamp` the current timestamp (in `Unix Timestamp` format).
+* We perform sum aggregation of the sample values in that time windows using a `Time Bucket` of 1000 milliseconds.
 
 That way we can get the accumulated watching hour of every student. After that we select the highest top 5 accumulated watching hours and retrive that information to visualize the board.
 
