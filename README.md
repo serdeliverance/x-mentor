@@ -2,17 +2,18 @@
 
 X-Mentor is an e-Learning platform which not only tries to connect students and teachers, but also ideas, emotions and knowledge. We want people to progress and to learn how to use their powers, because everyone has something to teach and everyone has something to learn, but everyone has a power and remember, with great power comes great responsability.
 
+## Screenshots
+
 ![Alt text](screenshots/CourseListPage.png?raw=true "Home Page")
 
 ![Alt text](screenshots/CoursePage.png?raw=true "Course List Page")
 
 ![Alt text](screenshots/HomePage.png?raw=true "Course Page")
 
-Some `X-Mentor` screenshots
-
 ## Table of Contents
 
 - [X-Mentor](#x-mentor)
+  * [Screenshots](#screenshots)
   * [Stack](#stack)
   * [Main features](#main-features)
   * [Architecture, Data Model and Domain Events](#architecture--data-model-and-domain-events)
