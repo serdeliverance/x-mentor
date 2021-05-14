@@ -21,6 +21,15 @@ class RatingService @Inject()(
   )(implicit ec: ExecutionContext)
     extends Logging {
 
+  /**
+   * Rates a specific course
+   *
+   * 1. Verifies if a studying relation exists between the student and the course
+   * 2. Verifies that a rates relation does not exists between the student and the course
+   * 3. Creates the rates relation between the student and the course
+   * 4. Publishes [[streams.COURSE_RATED_STREAM]] event
+   *
+   */
   def rate(rating: Rating)(implicit mmc: MapMarkerContext): ApplicationResult[Done] = {
     for {
       _ <- EitherT { validateIsEnrolled(rating.student, rating.course) }

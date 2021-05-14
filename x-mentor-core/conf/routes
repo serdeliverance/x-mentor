@@ -1,218 +1,27 @@
 # COURSE ENDPOINTS
-
-
-###
-#  summary: Get all courses by query
-#  tags:
-#    - Course Endpoints
-#  requests:
-
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/Course'
-###
 GET     /courses                               controllers.CourseController.retrieve(q: String, page: Int)
-
-###
-#  summary: Get course data
-#  tags:
-#    - Course Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/Course'
-###
 GET     /courses/:courseId                     controllers.CourseController.retrieveById(courseId: Long)
-
-###
-#  summary: Crete a course
-#  tags:
-#    - Course Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 POST    /courses                               controllers.CourseController.create()
-
-###
-#  summary: Enroll to a course
-#  tags:
-#    - Course Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 POST    /courses/:courseId/enroll              controllers.CourseController.enroll(courseId: Long)
-
-###
-#  summary: Rate a course
-#  tags:
-#    - Course Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 POST    /courses/rate                          controllers.RatingController.rate()
 
-
 # STUDENT ENDPOINTS
-
-
-###
-#  summary: Get student courses
-#  tags:
-#    - Student Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 GET     /students/courses                      controllers.CourseController.getByStudent(page: Int)
-
-###
-#  summary: Get student interests
-#  tags:
-#    - Student Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 GET     /students/interests                    controllers.InterestController.get()
-
-###
-#  summary: Modify student interests
-#  tags:
-#    - Student Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 POST    /students/interests                    controllers.InterestController.registerInterest()
-
-###
-#  summary: Store student course progress
-#  tags:
-#    - Student Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 POST    /students/progress                     controllers.MetricsController.registerStudentProgress()
 
-
 # AUTH ENDPOINTS
-
-
-###
-#  summary: Login
-#  tags:
-#    - Auth Endpoints
-#  parameters:
-#    - username: body
-#    - password: body
-#      schema:
-#        $ref: '#/models/dto/requests/LoginRequestDTO'
-#  content:
-#    examples:
-#      user:
-#        username: codi.sipes
-#        password: codi.sipes
-#    schema:
-#      $ref: '#/models/dto/requests/LoginRequestDTO'
-#  responses:
-#    200:
-#      description: success
-###
 POST    /login                                 controllers.UserController.login()
-
-###
-#  summary: Register a user
-#  tags:
-#    - Auth Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 POST    /signup                                controllers.UserController.signup()
 
 # RECOMMENDATIONS ENDPOINTS
-
-
-###
-#  summary: Get recommendations for logged in users
-#  tags:
-#    - Recommendations Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 GET     /recommendations                       controllers.RecommendationController.recommend()
-
-###
-#  summary: Get recommendations for visitors
-#  tags:
-#    - Recommendations Endpoints
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 GET     /visitors/recommendations              controllers.RecommendationController.visitorRecommendation()
 
-###
-#  summary: Get available topics for courses
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
+# General ENDPOINTS
 GET     /topics                                controllers.TopicController.getAll()
-
-###
-#  summary: Subscribe to notifications
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
 GET     /notifications                         controllers.NotificationController.subscribeToNotifications()
+GET     /leaderboard                           controllers.LeaderboardController.get()
 
-###
-#  summary: Get the students who have watched the most seconds of courses
-#  responses:
-#    200:
-#      description: success
-#      schema:
-#        $ref: '#/definitions/com.iheart.api.Protocol.CardCreated'
-###
-GET     /leaderboard                          controllers.LeaderboardController.get()
-
-### NoDocs ###
 GET     /healthcheck                           controllers.HealthcheckController.healthcheck()
-### NoDocs ###
-GET     /swagger-ui/*file                      controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
-### NoDocs ###
-GET     /assets/*file                          controllers.Assets.versioned(path="/public", file: Asset)
