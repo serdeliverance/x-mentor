@@ -64,7 +64,7 @@ Our data model is expressed through nodes and relations using `Redis Graph`. The
 
 The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
 
-![Alt text](diagrams/student-recommendation.png?raw=true "Interests Flow")
+![Alt text](diagrams/interests.png?raw=true "Interests Flow")
 
 * Get all student's interests
 
