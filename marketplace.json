@@ -10,10 +10,9 @@
     "hosted_url": "",
     "language": ["Scala", "Python"],
     "redis_commands": ["BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "FT.SEARCH", "XADD", "RPUSH"],
-    "redis_features": ["caching", "streams"],// Enter any core Redis feature or leave it blank.
+    "redis_features": ["caching", "streams"],
     "redis_modules": ["RedisGraph", "RediSearch", "RediJSON", "RedisTimeseries", "RedisBlooms", "RedisGears"],
-    "app_image_urls": [
-    ], // Provide any image urls in an array.
+    "app_image_urls": ["https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true"],
     "youtube_url": "", //Provide a Youtube link to your app's video
     "special_tags": ["Hackathon","MOOC", "E-learning"],
     "verticals": ["Education"],
