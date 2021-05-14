@@ -54,6 +54,88 @@ Our data model is expressed through nodes and relations using `Redis Graph`. The
 
 ## How it works?
 
+### Interest
+
+1. Gets all interested relations from redisGraph
+2. Gets difference between already existed relations and new ones (it allow us to separate new interests from existing ones and also to identify lost of interest)
+3. Creates new interested relations into redisGraph
+4. Removes interested relations that don't apply anymore
+5. Publishes to `student-interest-lost` and `student-interested` stream
+
+The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
+
+![Alt text](diagrams/student-recommendation.png?raw=true "Interests Flow")
+
+* Get all student's interests
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[:interested]->(topic) WHERE student.username ='$student' RETURN topic"
+```
+
+
+* Create interest relation
+
+```
+GRAPH.QUERY xmentor "MATCH (s:Student), (t:Topic) WHERE s.username = '${interest.student}' AND t.name = '${interest.topic}' CREATE (s)-[:interested]->(t)"
+```
+
+* Delete interest relation
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[interest:interested]->(topic) WHERE student.username='${interest.student}' and topic.name='${interest.topic}' DELETE interest"
+```
+
+* Publishing to `student-interested` stream
+
+```
+XADD student-interested $timestamp student $student_username topic $topic
+```
+
+* Publishing to `student-interest-lost` stream
+
+```
+XADD student-interest-lost $timestamp student $student_username topic $topic
+```
+
+### Student Recommendation (Rating)
+
+It is the functionallity that allows a student to rate a course. For that purpose, it do the following:
+
+1. Verifies if a studying relation exists between the student and the course
+2. Verifies that a rates relation does not exists between the student and the course
+3. Creates the rate realation (see the diagramn below) in the graph.
+4. Publish event `course-rated` stream
+
+The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
+
+![Alt text](diagrams/student-recommendation.png?raw=true "Student Recommendation Graph queries")
+
+The commands are used:
+
+* Get courses by student
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+``` 
+
+* Get courses rated by user
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[:rates]->(course) where student.username ='$student' RETURN course"
+```
+
+* Create rates relation in the graph
+
+```
+GRAPH.QUERY xmentor "MATCH (s:Student), (c:Course) WHERE s.username = '${rating.student}' AND c.name = '${rating.course}' CREATE (s)-[:rates {rating:${rating.stars}}]->(c)"
+```
+
+* Publish event to `course-rated` stream
+
+```
+XADD course-rated $timestamp student $student_username course $course starts $stars
+```
+
 ### Recommendation System
 
 In order to implement a `Recommendation System` that suggest users different kind courses to take, we decided to rely on the power of `Redis Graph`. Searching for relations between nodes in the graph database give us an easy way to implement different king of recommendation strategies.
