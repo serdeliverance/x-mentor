@@ -104,11 +104,12 @@ BF.EXISTS users '${student.username}'
 
 ### Sign Up
 
-Starts the registration process against Keycloak
+1. Registering user against Keycloak
+2. Adds user's username to `users` bloom filter
+3. Creates user in redisGraph
+4. Add student's timeseries key (needed for registering student progress)
 
-1. Adds user's username to `users` bloom filter
-2. Creates user in redisGraph
-3. Add timeseries key needed for registering student progress
+![Alt text](diagrams/sign-up.png?raw=true "Sign Up")
 
 * Adds username to `users` bloom filter
 
