@@ -104,11 +104,12 @@ BF.EXISTS users '${student.username}'
 
 ### Sign Up
 
-Starts the registration process against Keycloak
+1. Registering user against Keycloak
+2. Adds user's username to `users` bloom filter
+3. Creates user in redisGraph
+4. Add student's timeseries key (needed for registering student progress)
 
-1. Adds user's username to `users` bloom filter
-2. Creates user in redisGraph
-3. Add timeseries key needed for registering student progress
+![Alt text](diagrams/sign-up.png?raw=true "Sign Up")
 
 * Adds username to `users` bloom filter
 
@@ -138,6 +139,8 @@ Creates a course which is going to be stored as a JSON in redisJSON
 4. Adds course id to `courses` bloom filter
 5. Creates course in the graph
 6. Publishes `course-created` event which sends notifications by Server Sent Event to the frontend
+
+![Alt text](diagrams/course-creation.png?raw=true "Course Creation")
 
 * Gets the last course id from redis key `course-last-index`
 ```
@@ -177,6 +180,8 @@ Enrolls a student in a specific course
 1. Verifies if a student exists in `users` bloom filter
 2. Gets course as JSON from redisJSON
 3. Creates studying relation between the student and the course in redisGraph
+
+![Alt text](diagrams/course-enrollment.png?raw=true "Course Enrollment")
 
 * Verifies if a student exists in `users` bloom filter
 ```
