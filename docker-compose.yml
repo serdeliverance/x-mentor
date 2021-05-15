@@ -2,25 +2,25 @@ version: '3.7'
 
 services:
 
-#  x-mentor-core:
-#    image: xmentor/x-mentor-core:latest
-#    restart: always
-#    environment:
-#        - REDIS_HOST:x-redis
-#        - CLIENT_BASE_AUTH_URL:http://x-keycloak:8080/auth
-#    ports:
-#      - 9000:9000
-#    entrypoint: ["/opt/docker/conf/wait-for-keycloak.sh", "/opt/docker/conf/wrapper.sh"]
-#    depends_on:
-#      - x-redis
-#      - x-keycloak
+  x-mentor-core:
+    image: xmentor/x-mentor-core:latest
+    restart: always
+    environment:
+        - "REDIS_HOST=x-redis"
+        - "CLIENT_BASE_AUTH_URL=http://x-keycloak:8080/auth"
+    ports:
+      - 9000:9000
+    entrypoint: ["/opt/docker/conf/wait-for-keycloak.sh", "/opt/docker/conf/wrapper.sh"]
+    depends_on:
+      - x-redis
+      - x-keycloak
       
-#  x-mentor-client:
-#    image: xmentor/x-mentor-client:latest
-#    ports:
-#      - 3080:80
-#    depends_on:
-#      - x-mentor-core
+  x-mentor-client:
+    image: xmentor/x-mentor-client:latest
+    ports:
+      - 3080:80
+    depends_on:
+      - x-mentor-core
 
   x-redis:
     image: redislabs/redismod:feature-search-json
