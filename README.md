@@ -386,6 +386,9 @@ That way we can get the accumulated watching hour of every student. After that w
 * Docker Engine and Docker Compose
 
 ### Start
+
 ```
 docker-compose up
 ```
+
+Go to http://localhost:3080 and welcome to X-Mentor!
