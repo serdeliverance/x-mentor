@@ -3,15 +3,14 @@ package services
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.{OverflowStrategy, QueueOfferResult}
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{BroadcastHub, Keep, Source}
 import play.api.Logging
 import play.api.libs.EventSource
 import play.api.libs.EventSource.Event
-import services.SseService.{CourseCreatedSseEvent, SseEvent, heartbeat}
+import services.SseService.{heartbeat, CourseCreatedSseEvent, SseEvent}
+
 import java.time.LocalDateTime
-
 import javax.inject.{Inject, Singleton}
-
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import io.circe.syntax._
@@ -23,11 +22,16 @@ class SseService @Inject()()(implicit system: ActorSystem) extends Logging {
   private val (eventSourceQueue, sseSource) = Source
     .queue[SseEvent](10000, OverflowStrategy.backpressure)
     .map {
-      case CourseCreatedSseEvent(course, createdAt) => course.asJson.deepMerge(Map("createdAt" -> createdAt.toString).asJson).deepMerge(Map("read" -> false).asJson).noSpaces
+      case CourseCreatedSseEvent(course, createdAt) =>
+        course.asJson
+          .deepMerge(Map("createdAt" -> createdAt.toString).asJson)
+          .deepMerge(Map("read" -> false).asJson)
+          .noSpaces
     }
     .via(EventSource.flow)
     .keepAlive(5.second, () => heartbeat)
-    .preMaterialize()
+    .toMat(BroadcastHub.sink)(Keep.both)
+    .run()
 
   def pushEvent(event: SseEvent): Future[QueueOfferResult] = {
     logger.info(s"Pushing event to SSE event queue $event")
