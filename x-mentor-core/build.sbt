@@ -64,6 +64,7 @@ dockerfile in docker := {
     run("apt", "-y", "upgrade")
     run("apt", "-y", "install", "curl")
     copy(appDir, targetDir)
+    run("chmod", "-R", "755", s"$targetDir")
     entryPoint(s"$targetDir/conf/wrapper.sh")
   }
 }
