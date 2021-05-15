@@ -18,7 +18,7 @@ services:
   x-mentor-client:
     image: xmentor/x-mentor-client:latest
     ports:
-      - 3080:80
+      - 3000:80
     depends_on:
       - x-mentor-core
 

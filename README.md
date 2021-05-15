@@ -1,4 +1,4 @@
-# X-Mentor
+# X-Mentor - Where Heroes Learn
 
 X-Mentor is an e-Learning platform which not only tries to connect students and teachers, but also ideas, emotions and knowledge. We want people to progress and learn how to use their powers, because everyone has something to teach and everyone has something to learn, but everyone has a power and remember, with great power comes great responsability.
 
@@ -12,21 +12,22 @@ X-Mentor is an e-Learning platform which not only tries to connect students and 
 
 ## Table of Contents
 
-- [X-Mentor](#x-mentor)
+- [X-Mentor - Where Heroes Learn](#x-mentor---where-heroes-learn)
   * [Screenshots](#screenshots)
   * [Stack](#stack)
   * [Main features](#main-features)
   * [Architecture, Data Model and Domain Events](#architecture--data-model-and-domain-events)
-  * [How it works?](#how-it-works-)
+  * [How it works](#how-it-works)
     + [Login](#login)
     + [Sign Up](#sign-up)
+    + [Course Creation](#course-creation)
     + [Course Enrollment](#course-enrollment)
+    + [Course Review (Rating)](#course-review--rating-)
     + [Courses Search](#courses-search)
       - [All](#all)
       - [By ID](#by-id)
       - [By Student](#by-student)
     + [Student's Interests](#student-s-interests)
-    + [Course Review (Rating)](#course-review--rating-)
     + [Course Recommendation System](#course-recommendation-system)
       - [Enrolled Recommendation Strategy](#enrolled-recommendation-strategy)
       - [Interest Recommendation Strategy](#interest-recommendation-strategy)
@@ -55,14 +56,15 @@ X-Mentor is an e-Learning platform which not only tries to connect students and 
 
 * Login
 * Sign Up
-* Student's Interests
-* Course Review
-* Course Recommendation System
+* Course Creation
 * Course Enrollment
+* Course Review
+* Course Search
+* Course Recommendation System
+* Student's Interests
 * Student Progress Registration
 * Leaderboard
-* Notifications
-* Courses Search
+* Real Time Course Creation Notifications
 
 ## Architecture, Data Model and Domain Events
 
@@ -89,48 +91,94 @@ Our data model is expressed through nodes and relations using `Redis Graph`. The
 ### Login
 
 Starts the authentication process against Keycloak
-1. Verifies if user's username already exists in [[constants.USERS_FILTER]] bloom filter
+
+1. Verifies if user's username already exists in `users` bloom filter
 2. Gets auth token
 
+* Verifies if username already exists in `users` bloom filter
 ```
 BF.EXISTS users '${student.username}'
 ``` 
 
+![Alt text](diagrams/login.png?raw=true "Login")
+
 ### Sign Up
 
 Starts the registration process against Keycloak
-1. Adds user's username to [[constants.USERS_FILTER]] bloom filter
+
+1. Adds user's username to `users` bloom filter
 2. Creates user in redisGraph
 3. Add timeseries key needed for registering student progress
 
-* Add bloom filter
+* Adds username to `users` bloom filter
 
 ```
 BF.ADD users '${student.username}'
 ```
 
-* Create student into the graph
+* Creates student into the graph
 
 ```
 GRAPH.QUERY xmentor "CREATE (:Student {username: '${student.username}', email: '${student.email}'})"
 ```
 
-* Create student progress timeseries key
+* Creates student progress timeseries key
 
 ```
 TS.CREATE studentprogress:${username} RETENTION 0 LABELS student ${username}
 ```
 
+### Course Creation
+
+Creates a course which is going to be stored as a JSON in redisJSON
+
+1. Gets the last course id from redis key `course-last-index`
+2. Increases course id key in 1
+3. Stores course as JSON in redisJSON
+4. Adds course id to `courses` bloom filter
+5. Creates course in the graph
+6. Publishes `course-created` event which sends notifications by Server Sent Event to the frontend
+
+* Gets the last course id from redis key `course-last-index`
+```
+GET course-last-index
+``` 
+
+* Increases course id key in 1
+```
+INCR course-last-index
+``` 
+
+* Stores course as JSON in redisJSON
+```
+JSON.SET course:${course.id} . '${course.asJson}'
+
+``` 
+
+* Adds course id to `courses` bloom filter
+```
+BF.ADD coourses '${course.id}'
+``` 
+
+* Creates course in the graph
+```
+GRAPH.QUERY xmentor "CREATE (:Course {name: '${course.title}', id: '${course.id.get}', preview: '${course.preview}'})"
+``` 
+
+* Publishes `course-created` event which sends notifications by Server Sent Event to the frontend
+```
+XADD course-created $timestamp title ${course.title} topic ${course.topic}
+``` 
+    
 ### Course Enrollment
 
 Enrolls a student in a specific course
 
-1. Verifies if a student exists in [[constants.USERS_FILTER]] bloom filter
+1. Verifies if a student exists in `users` bloom filter
 2. Gets course as JSON from redisJSON
 3. Creates studying relation between the student and the course in redisGraph
 
-
-* Verifies if a student exists in [[constants.USERS_FILTER]] bloom filter
+* Verifies if a student exists in `users` bloom filter
 ```
 BF.EXISTS users ${student.username}
 ``` 
@@ -142,77 +190,8 @@ JSON.GET course:${course.id}
 
 * Creates studying relation between the student and the course in redisGraph
 ```
-GRAPH.QUERY xmentor "CREATE (:Course {name: '${course.title}', id: '${course.id.get}', preview: '${course.preview}'})"
+GRAPH.QUERY xmentor "MATCH (s:Student), (c:Course) WHERE s.username = '${studying.student}' AND c.name = '${studying.course}' CREATE (s)-[:studying]->(c)"
 ``` 
-
-### Courses Search
-
-#### All
-Retrieves courses by query from redisJSON with rediSearch
-
-```
-FT.SEARCH courses-idx ${query}*
-``` 
-
-#### By ID
-
-```
-BF.EXISTS courses ${course.id}
-
-JSON.GET course:${course.id}
-``` 
-
-#### By Student
-
-```
-GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
-
-FT.SEARCH courses-idx ${course.title}
-``` 
-
-
-### Student's Interests
-
-1. Gets all interested relations from redisGraph
-2. Gets difference between already existed relations and new ones (it allow us to separate new interests from existing ones and also to identify lost of interest)
-3. Creates new interested relations into redisGraph
-4. Removes interested relations that don't apply anymore
-5. Publishes to `student-interest-lost` and `student-interested` stream
-
-The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
-
-![Alt text](diagrams/interests.png?raw=true "Interests Flow")
-
-* Get all student's interests
-
-```
-GRAPH.QUERY xmentor "MATCH (student)-[:interested]->(topic) WHERE student.username ='$student' RETURN topic"
-```
-
-
-* Create interest relation
-
-```
-GRAPH.QUERY xmentor "MATCH (s:Student), (t:Topic) WHERE s.username = '${interest.student}' AND t.name = '${interest.topic}' CREATE (s)-[:interested]->(t)"
-```
-
-* Delete interest relation
-
-```
-GRAPH.QUERY xmentor "MATCH (student)-[interest:interested]->(topic) WHERE student.username='${interest.student}' and topic.name='${interest.topic}' DELETE interest"
-```
-
-* Publishing to `student-interested` stream
-
-```
-XADD student-interested $timestamp student $student_username topic $topic
-```
-
-* Publishing to `student-interest-lost` stream
-
-```
-XADD student-interest-lost $timestamp student $student_username topic $topic
-```
 
 ### Course Review (Rating)
 
@@ -253,6 +232,74 @@ GRAPH.QUERY xmentor "MATCH (s:Student), (c:Course) WHERE s.username = '${rating.
 XADD course-rated $timestamp student $student_username course $course starts $stars
 ```
 
+### Course Search
+
+#### All
+Retrieves courses by query from redisJSON with rediSearch
+
+```
+FT.SEARCH courses-idx ${query}*
+``` 
+
+#### By ID
+
+```
+BF.EXISTS courses ${course.id}
+
+JSON.GET course:${course.id}
+``` 
+
+#### By Student
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course) where student.username = '$student' RETURN course"
+
+FT.SEARCH courses-idx ${course.title}
+```
+
+### Student's Interests
+
+1. Gets all interested relations from redisGraph
+2. Gets difference between already existed relations and new ones (it allow us to separate new interests from existing ones and also to identify lost of interest)
+3. Creates new interested relations into redisGraph
+4. Removes interested relations that don't apply anymore
+5. Publishes to `student-interest-lost` and `student-interested` stream
+
+The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
+
+![Alt text](diagrams/interests.png?raw=true "Interests Flow")
+
+* Get all student's interests
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[:interested]->(topic) WHERE student.username ='$student' RETURN topic"
+```
+
+
+* Create interest relation
+
+```
+GRAPH.QUERY xmentor "MATCH (s:Student), (t:Topic) WHERE s.username = '${interest.student}' AND t.name = '${interest.topic}' CREATE (s)-[:interested]->(t)"
+```
+
+* Delete interest relation
+
+```
+GRAPH.QUERY xmentor "MATCH (student)-[interest:interested]->(topic) WHERE student.username='${interest.student}' and topic.name='${interest.topic}' DELETE interest"
+```
+
+* Publishing to `student-interested` stream
+
+```
+XADD student-interested $timestamp student ${student.username} topic $topic
+```
+
+* Publishing to `student-interest-lost` stream
+
+```
+XADD student-interest-lost $timestamp student ${student.username} topic $topic
+```
+
 ### Course Recommendation System
 
 In order to implement a `Course Recommendation System` that suggest users different kind courses to take, we decided to rely on the power of `Redis Graph`. Searching for relations between nodes in the graph database give us an easy way to implement different king of recommendation strategies.
@@ -281,7 +328,6 @@ In order to implement a `Course Recommendation System` that suggest users differ
 5. Get courses of that topic and recomend them
 
 #### How the graph data is accessed
-
 
 * All student's courses
 
@@ -334,11 +380,11 @@ GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course), (topic)-[:has]->(cou
 
 ### Student Progress Registration
 
-This functionallity allow us to track the time the user spend in the platform watching courses. That info is then used to implement the LeaderBoard.
+This functionallity allow us to track the time the user spend in the platform watching courses. That info is then used to implement the Leaderboard.
 
 ![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
 
-`x-mentor` microservices receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as en element inside `student-progress-registered stream` (which is a `Redis Stream`) via the following command:
+`x-mentor-core` receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as an element inside `student-progress-registered stream` (which is a `Redis Stream`) via the following command:
 
 ```
 XADD student-progress-registered $timestamp student $student_username duration $duration
@@ -352,10 +398,10 @@ TS.ADD studentprogress:$student_username $timestamp $duration RETENTION 0 LABELS
 
 ### Leaderboard
 
-`Leaderboard` is the functionallity that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who has more watching time using the platform. To accomplish that, we need to separate two functionallities:
+`Leaderboard` is the functionality that allow us to have a board with the ranking of top students that uses `X-Mentor`. Top students are those who have more watching time using the platform. To accomplish that, we need to separate two functionallities:
 
 * Register the student progress
-* Getting the board
+* Getting the board data
 
 ![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
 
@@ -378,7 +424,7 @@ where:
 * `timestamp` the current timestamp (in `Unix Timestamp` format).
 * We perform sum aggregation of the sample values in that time windows using a `Time Bucket` of 1000 milliseconds.
 
-That way we can get the accumulated watching hour of every student. After that we select the highest top 5 accumulated watching hours and retrive that information to visualize the board.
+That way we can get the accumulated watching time of every student. After that, we select the top 5 highest accumulated watching time and retrive that information to visualize the board.
 
 ## How to run it locally? Run the *docker-compose.yml*
 
@@ -391,4 +437,4 @@ That way we can get the accumulated watching hour of every student. After that w
 docker-compose up
 ```
 
-Go to http://localhost:3080 and welcome to X-Mentor!
+Go to http://localhost:3000 and welcome to X-Mentor!
