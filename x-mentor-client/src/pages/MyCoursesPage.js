@@ -33,9 +33,6 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'hidden',
     display: '-webkit-box'
   },
-  card: {
-    height: '36vh'
-  },
   cardActions: {
     '&:hover': {
     }
@@ -106,7 +103,7 @@ export default function CourseListPage() {
       <Grid container classes={{ root: classes.grid }}>
         {courses.map((course) => (
           <Grid item className={classes.tile} key={course.id}>
-              <Card className={classes.card} id={course.id}>
+              <Card id={course.id}>
                   <CardActionArea onClick={(e) => watchCourse(e.target.closest(".MuiCard-root").id)}>
                       <CardContent className={classes.content}>
                           <Typography gutterBottom variant="h6" className={classes.title}>
