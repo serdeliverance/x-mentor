@@ -6,7 +6,7 @@
     "type": "Full App",
     "contributed_by": "Community",
     "repo_url": "https://github.com/serdeliverance/x-mentor",
-    "download_url": "",
+    "download_url": "https://github.com/serdeliverance/x-mentor/archive/refs/heads/main.zip",
     "hosted_url": "",
     "language": ["Scala", "Python"],
     "redis_commands": ["GET","SET", "XADD", "RPUSH", "BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "FT.SEARCH"],
