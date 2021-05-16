@@ -4,11 +4,11 @@ X-Mentor is an e-Learning platform which not only tries to connect students and 
 
 ## Screenshots
 
-![Alt text](screenshots/CourseListPage.png?raw=true "Home Page")
+![Home Page](https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/HomePage.png?raw=true)
 
-![Alt text](screenshots/CoursePage.png?raw=true "Course List Page")
+![Course List Page](https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true)
 
-![Alt text](screenshots/HomePage.png?raw=true "Course Page")
+![Course Page](https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CoursePage.png?raw=true)
 
 ## Table of Contents
 
@@ -70,11 +70,11 @@ X-Mentor is an e-Learning platform which not only tries to connect students and 
 
 The following picture gives a high level overview of the system architecture:
 
-![Alt text](diagrams/x-mentor-arch.png?raw=true "Architecture")
+![Architecture](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/x-mentor-arch.png?raw=true)
 
 Our data model is expressed through nodes and relations using `Redis Graph`. The model is very simple: just `Student`, `Course` and `Topic` entities expressing different kind of relations between each other.
 
-![Alt text](diagrams/graph-model.png?raw=true "Graph model")
+![Graph model](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/graph-model.png?raw=true)
 
 `X-Mentor` follows an `Event Driven Architecture` approach in which the following `Domain Events` are considered:
 
@@ -100,7 +100,7 @@ Starts the authentication process against Keycloak
 BF.EXISTS users '${student.username}'
 ``` 
 
-![Alt text](diagrams/login.png?raw=true "Login")
+![Login](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/login.png?raw=true)
 
 ### Sign Up
 
@@ -109,7 +109,7 @@ BF.EXISTS users '${student.username}'
 3. Creates user in redisGraph
 4. Add student's timeseries key (needed for registering student progress)
 
-![Alt text](diagrams/sign-up.png?raw=true "Sign Up")
+![Sign Up](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/sign-up.png?raw=true)
 
 * Adds username to `users` bloom filter
 
@@ -140,7 +140,7 @@ Creates a course which is going to be stored as a JSON in redisJSON
 5. Creates course in the graph
 6. Publishes `course-created` event which sends notifications by Server Sent Event to the frontend
 
-![Alt text](diagrams/course-creation.png?raw=true "Course Creation")
+![Course Creation](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/course-creation.png?raw=true)
 
 * Gets the last course id from redis key `course-last-index`
 ```
@@ -181,7 +181,7 @@ Enrolls a student in a specific course
 2. Gets course as JSON from redisJSON
 3. Creates studying relation between the student and the course in redisGraph
 
-![Alt text](diagrams/course-enrollment.png?raw=true "Course Enrollment")
+![Course Enrollment](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/course-enrollment.png?raw=true)
 
 * Verifies if a student exists in `users` bloom filter
 ```
@@ -209,7 +209,7 @@ It is the functionallity that allows a student to rate a course. For that purpos
 
 The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
 
-![Alt text](diagrams/course-review.png?raw=true "Course Review Graph queries")
+![Course Review](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/course-review.png?raw=true)
 
 The commands are used:
 
@@ -272,7 +272,7 @@ FT.SEARCH courses-idx ${course.title}
 
 The following diagram shows the interaction with `Redis Graph` and `Redis Streams`
 
-![Alt text](diagrams/interests.png?raw=true "Interests Flow")
+![Interests Flow](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/interests.png?raw=true)
 
 * Get all student's interests
 
@@ -387,7 +387,7 @@ GRAPH.QUERY xmentor "MATCH (student)-[:studying]->(course), (topic)-[:has]->(cou
 
 This functionallity allow us to track the time the user spend in the platform watching courses. That info is then used to implement the Leaderboard.
 
-![Alt text](diagrams/student-progress-registration.png?raw=true "Student Progress Registration Flow")
+![Student Progress Registration Flow](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/student-progress-registration.png?raw=true)
 
 `x-mentor-core` receives the request. Then, it publishes the `Student Progress Registration Domain Event`, which ends up as an element inside `student-progress-registered stream` (which is a `Redis Stream`) via the following command:
 
@@ -408,7 +408,7 @@ TS.ADD studentprogress:$student_username $timestamp $duration RETENTION 0 LABELS
 * Register the student progress
 * Getting the board data
 
-![Alt text](diagrams/leader-board.png?raw=true "Leader Board Flow")
+![Leader Board Flow](https://github.com/serdeliverance/x-mentor/blob/develop/diagrams/leader-board.png?raw=true)
 
 When the user request for the leaderboard data, we first look at `Redis` for the time series keys
 
