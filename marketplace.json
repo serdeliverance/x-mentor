@@ -9,7 +9,7 @@
     "download_url": "https://github.com/serdeliverance/x-mentor/archive/refs/heads/main.zip",
     "hosted_url": "",
     "language": ["Scala", "Python"],
-    "redis_commands": ["GET","SET", "XADD", "RPUSH", "BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "FT.SEARCH"],
+    "redis_commands": ["GET", "SET", "INCR", "XADD", "RPUSH", "BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "JSON.SET", "FT.CREATE", "FT.SEARCH"],
     "redis_features": ["caching", "streams"],
     "redis_modules": ["RedisGraph", "RediSearch", "RediJSON", "RedisTimeseries", "RedisBlooms", "RedisGears"],
     "app_image_urls": ["https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true", "https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CoursePage.png?raw=true", "https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/HomePage.png?raw=true"],
