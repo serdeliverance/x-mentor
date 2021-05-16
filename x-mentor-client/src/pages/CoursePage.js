@@ -73,7 +73,7 @@ const CoursePage = () => {
     const updateWatchTime = async (seconds) => {
         try{
             if(isLoggedIn){
-                const response = await axios.post(
+                await axios.post(
                     `${API_URL}/students/progress`,
                     { "duration_in_seconds": seconds },
                     {
@@ -93,7 +93,7 @@ const CoursePage = () => {
     const rate = async (event) => {
         const value = event.target.value
         try{
-            const response = await axios.post(
+            await axios.post(
                 `${API_URL}/courses/rate `,
                 { course: course.title, stars: value },
                 {
@@ -103,6 +103,7 @@ const CoursePage = () => {
                     }
                 }
             )
+            notify("Rated successfully", "success")
         }
         catch(error){
             notify("You have already rated the course!", "error")

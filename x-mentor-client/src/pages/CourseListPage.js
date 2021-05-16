@@ -37,9 +37,6 @@ const useStyles = makeStyles((theme) => ({
     display: '-webkit-box',
     minHeight: "4em"
   },
-  card: {
-    height: '48vh'
-  },
   title: {
     fontWeight: 'bold',
     WebkitLineClamp: 1,
@@ -118,7 +115,7 @@ export default function CourseListPage() {
           }
         }
       )
-      notify("Enroll successfully", "success")
+      notify("Enrolled successfully", "success")
     }
     catch(error){
       const status = error.response.status
@@ -158,17 +155,23 @@ export default function CourseListPage() {
       <Grid container classes={{ root: classes.grid }}>
         {courses.map((course) => (
           <Grid item className={classes.tile} key={course.id}>
-            <Card className={classes.card} id={course.id}>
+            <Card id={course.id}>
                 <CardActionArea onClick={() => handleCourseModal(course)}>
                     <CardContent className={classes.content}>
                       <Badge classes={{root: classes.topic, badge: classes.topicBadge}} badgeContent={course.topic} color="secondary"></Badge>
-                        <Typography gutterBottom variant="h6" className={classes.title}>
-                          {course.title}
+                        <Grid container>
+                          <Grid item xs={11}>
+                            <Typography gutterBottom variant="h6" className={classes.title}>
+                              {course.title}
+                            </Typography>
+                          </Grid>
                           {course.rating >= 4 ? 
-                            <Tooltip placement="top" title="Top Course">
-                              <EmojiEventsIcon className={classes.star} />
-                            </Tooltip> : <></>}
-                        </Typography>
+                            <Grid item xs={1}>
+                              <Tooltip placement="top" title="Top Course">
+                                <EmojiEventsIcon className={classes.star} />
+                              </Tooltip>
+                            </Grid>: <></>}
+                        </Grid>
 
                         <Typography variant="body2" color="textSecondary" component="p" className={classes.description}>
                           {course.description}
