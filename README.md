@@ -155,7 +155,6 @@ INCR course-last-index
 * Stores course as JSON in redisJSON
 ```
 JSON.SET course:${course.id} . '${course.asJson}'
-
 ``` 
 
 * Adds course id to `courses` bloom filter
@@ -442,4 +441,4 @@ That way we can get the accumulated watching time of every student. After that, 
 docker-compose up
 ```
 
-Go to http://localhost:3000 and welcome to X-Mentor!
+Wait until Keycloak and x-mentor-core are ready, then go to http://localhost:3000. Welcome to X-Mentor!
