@@ -6,15 +6,15 @@
     "type": "Full App",
     "contributed_by": "Community",
     "repo_url": "https://github.com/serdeliverance/x-mentor",
-    "download_url": "",//This is a direct link to the Github's download button so people can download it directly from the Marketplace
+    "download_url": "",
     "hosted_url": "",
     "language": ["Scala", "Python"],
     "redis_commands": ["GET","SET", "XADD", "RPUSH", "BF.EXISTS", "BF.ADD", "GRAPH.QUERY", "TS.CREATE", "TS.ADD", "TS.RANGE", "JSON.GET", "FT.SEARCH"],
     "redis_features": ["caching", "streams"],
     "redis_modules": ["RedisGraph", "RediSearch", "RediJSON", "RedisTimeseries", "RedisBlooms", "RedisGears"],
-    "app_image_urls": ["https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true"],
-    "youtube_url": "", //Provide a Youtube link to your app's video
-    "special_tags": ["Hackathon","MOOC", "E-learning"],
+    "app_image_urls": ["https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true", "https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CoursePage.png?raw=true", "https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/HomePage.png?raw=true"],
+    "youtube_url": "https://www.youtube.com/watch?v=PEQC3__OUU0&ab_channel=XMentor",
+    "special_tags": ["Hackathon","MOOC", "E-learning", "RedisModules"],
     "verticals": ["Education"],
     "markdown": "https://raw.githubusercontent.com/serdeliverance/x-mentor/main/README.md",
 }
