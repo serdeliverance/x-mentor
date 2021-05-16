@@ -13,7 +13,7 @@
     "redis_features": ["caching", "streams"],
     "redis_modules": ["RedisGraph", "RediSearch", "RediJSON", "RedisTimeseries", "RedisBlooms", "RedisGears"],
     "app_image_urls": ["https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CourseListPage.png?raw=true", "https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/CoursePage.png?raw=true", "https://github.com/serdeliverance/x-mentor/blob/develop/screenshots/HomePage.png?raw=true"],
-    "youtube_url": "https://www.youtube.com/watch?v=PEQC3__OUU0&ab_channel=XMentor",
+    "youtube_url": "https://www.youtube.com/embed/PEQC3__OUU0",
     "special_tags": ["Hackathon","MOOC", "E-learning", "RedisModules"],
     "verticals": ["Education"],
     "markdown": "https://raw.githubusercontent.com/serdeliverance/x-mentor/main/README.md",
