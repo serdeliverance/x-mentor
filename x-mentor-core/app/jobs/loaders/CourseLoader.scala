@@ -1,65 +1,89 @@
 package jobs.loaders
 
+import akka.Done.done
 import akka.actor.ActorSystem
-import akka.stream.IOResult
-import akka.stream.scaladsl.{FileIO, Framing, JsonFraming, Sink}
-import akka.util.ByteString
+import akka.stream.ClosedShape
+import akka.stream.scaladsl.{Broadcast, FileIO, Flow, GraphDSL, JsonFraming, RunnableGraph, Sink}
+import akka.{Done, NotUsed}
+import constants._
+import io.circe.parser.decode
+import io.rebloom.client.Client
 import models.Course
 import play.api.Logging
-import repositories.RedisGraphRepository
+import repositories.{RedisBloomRepository, RedisGraphRepository, RedisJsonRepository, RedisRepository}
+import util.CourseConverter
+
 import java.nio.file.Paths
+import global.EitherResult
+import repositories.graph.CourseRepository
 
-import com.redislabs.modules.rejson.JReJSON
-import io.circe.parser.decode
 import javax.inject.{Inject, Singleton}
-
 import scala.concurrent._
-import io.circe.generic.auto._
-import constans._
-import play.api.libs.json.Json._
-import play.api.libs.json.Json
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.util.Pool
+import scala.jdk.CollectionConverters._
 
 @Singleton
 class CourseLoader @Inject()(
-  redisGraphRepository: RedisGraphRepository,
-  redisJSON: JReJSON,
-  redisPool: Pool[Jedis]
-)(implicit system: ActorSystem)
-  extends Logging {
+    courseRepository: CourseRepository,
+    redisGraphRepository: RedisGraphRepository,
+    redisJsonRepository: RedisJsonRepository,
+    redisBloomRepository: RedisBloomRepository,
+    redisRepository: RedisRepository,
+    redisBloom: Client
+  )(implicit system: ActorSystem,
+    ec: ExecutionContext)
+    extends Logging {
 
-  implicit val writes = Json.writes[Course]
-  private val COURSE_CSV_PATH = "conf/data/courses.csv"
   private val COURSE_JSON_PATH = "conf/data/courses.json"
 
-  /*def loadCourses(): Future[IOResult] = {
-    logger.info("Loading courses into the graph")
-    FileIO
-      .fromPath(Paths.get(COURSE_CSV_PATH))
-      .via(Framing.delimiter(ByteString("\n"), 256, true).map(_.utf8String))
-      .map(decode[Course](_))
-      .mapAsync(1)(redisGraphRepository.createCourse)
-      .to(Sink.ignore)
-      .run()
-  }*/
+  def loadCourses(): Future[Done] =
+    Future(graph().run()).map(_ => done())
 
-  def loadJSONCourses(): Future[IOResult] = {
-    logger.info("Loading JSON courses into the redisJSON")
-    redisPool.getResource.set(COURSE_LAST_ID_KEY, "19")
+  def loadCoursesToGraph(): Future[Int] =
     FileIO
       .fromPath(Paths.get(COURSE_JSON_PATH))
       .via(JsonFraming.objectScanner(Int.MaxValue))
       .map(_.utf8String)
       .map(decode[Course](_))
-      .map(course => {
-        val courseId = s"$COURSE_KEY${course.map(_.id).getOrElse(0) match {
-          case None => ""
-          case Some(s) => s //return the string to set your value
-        }}"
-        redisJSON.set(courseId, s"'${toJson(course.getOrElse(null))}'")
-      })
-      .to(Sink.ignore)
-      .run()
-  }
+      .collect {
+        case Right(course) => course
+      }
+      .filter(course => course.id.nonEmpty)
+      .mapAsync(1)(courseRepository.createCourse)
+      .runWith(Sink.seq[EitherResult[Done]])
+      .map(list => list.size)
+
+  private def graph(): RunnableGraph[NotUsed] =
+    RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
+      import GraphDSL.Implicits._
+      redisRepository.set(COURSE_LAST_ID_KEY, "40")
+
+      val source = FileIO
+        .fromPath(Paths.get(COURSE_JSON_PATH))
+        .via(JsonFraming.objectScanner(Int.MaxValue))
+        .map(_.utf8String)
+
+      val convertToJson = Flow[String]
+        .map(decode[Course](_))
+        .collect {
+          case Right(course) => course
+        }
+        .filter(course => course.id.nonEmpty)
+
+      val redisBloomSink = Flow[Course]
+        .mapAsync(1)(course => redisBloomRepository.add(COURSE_IDS_FILTER, course.id.get.toString))
+        .to(Sink.ignore)
+
+      val redisJsonSink = Flow[Course]
+        .map(course => (s"$COURSE_KEY${course.id.get}", course))
+        .mapAsync(1)(courseIdAndCourse =>
+          redisJsonRepository.set(courseIdAndCourse._1, CourseConverter.courseToMap(courseIdAndCourse._2).asJava))
+        .to(Sink.ignore)
+
+      val broadcast = builder.add(Broadcast[Course](2))
+
+      source ~> convertToJson ~> broadcast ~> redisBloomSink
+      broadcast ~> redisJsonSink
+      ClosedShape
+    })
+
 }

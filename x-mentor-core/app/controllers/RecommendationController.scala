@@ -1,11 +1,13 @@
 package controllers
 
+import controllers.actions.AuthenticatedAction
 import controllers.circe.Decodable
 import controllers.converters.ErrorToResultConverter
-import models.dtos.requests.{CourseRecommendationRequestDTO, TopicRecommendationRequestDTO}
+import io.circe.syntax._
 import play.api.Logging
-import play.api.mvc.{Action, BaseController, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.RecommendationService
+import util.MapMarkerContext.{fromAuthenticatedRequest, fromRequest}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -13,6 +15,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class RecommendationController @Inject()(
     val controllerComponents: ControllerComponents,
+    authenticatedAction: AuthenticatedAction,
     recommendationService: RecommendationService
   )(implicit ec: ExecutionContext)
     extends BaseController
@@ -20,25 +23,29 @@ class RecommendationController @Inject()(
     with ErrorToResultConverter
     with Logging {
 
-  def recommendCourse(): Action[CourseRecommendationRequestDTO] = Action.async(decode[CourseRecommendationRequestDTO]) {
-    request =>
-      // TODO remove hardcoded variable
-      val userId   = 1
-      val courseId = request.body.courseId
-      logger.info(s"Receiving course recommendation. user: $userId recommends course: $courseId")
-      recommendationService
-        .recommend(userId, None, Some(courseId))
-        .map(_ => Created)
+  def recommend(): Action[AnyContent] = authenticatedAction.async { implicit request =>
+    implicit val mmc = fromAuthenticatedRequest()
+    logger.info(s"Getting recommendations")
+    recommendationService.getRecommendation(request.student).map {
+      case Right(recommendations) =>
+        logger.info("Recommendations retrieved successfully")
+        Ok(recommendations.asJson)
+      case Left(error) =>
+        logger.info("Error getting recommendations")
+        handleError(error)
+    }
   }
 
-  def recommendTopic(): Action[TopicRecommendationRequestDTO] = Action.async(decode[TopicRecommendationRequestDTO]) {
-    request =>
-      // TODO remove hardcoded variable
-      val userId  = 1
-      val topicId = request.body.topicId
-      logger.info(s"Receiving topic recommendation. user: $userId recommends topic: $topicId")
-      recommendationService
-        .recommend(userId, Some(topicId), None)
-        .map(_ => Created)
+  def visitorRecommendation(): Action[AnyContent] = Action.async { implicit request =>
+    implicit val mmc = fromRequest()
+    logger.info("Getting recommendation for visitor")
+    recommendationService.getVisitorRecommendation().map {
+      case Right(recommendations) =>
+        logger.info("Recommendations retrieved successfully")
+        Ok(recommendations.asJson)
+      case Left(error) =>
+        logger.info("Error getting recommendations")
+        handleError(error)
+    }
   }
 }

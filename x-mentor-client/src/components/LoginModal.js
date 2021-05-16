@@ -1,24 +1,73 @@
-import React from 'react'
-import Button from '@material-ui/core/Button'
-import TextField from '@material-ui/core/TextField'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
+import React, { useState, useContext } from 'react'
+import { Button, Dialog, TextField, DialogActions, DialogContent, DialogTitle, Tooltip, makeStyles } from '@material-ui/core'
+import axios from 'axios'
+import { API_URL } from '../environment'
+import HelpIcon from '@material-ui/icons/Help'
+import { useNotification } from '../hooks/notify'
+import { AuthContext } from '../Providers/AuthProvider'
 
-export default function LoginModal({open, setOpen}) {
+const useStyles = makeStyles(() => ({
+  title: {
+    textAlign: "center"
+  },
+  tooltip: {
+    maxWidth: "42ch"
+  }
+}))
 
-  const handleLogin = () => {
-    setOpen(false)
+export default function LoginModal({settings, setSettings}) {
+  const classes = useStyles()
+  const notify = useNotification()
+  const { login } = useContext(AuthContext)
+
+  const [loginForm, setLoginForm] = useState({
+    username: "",
+    password: ""
+  })
+
+  const keyPress = (e) => {
+    if(e.keyCode === 13 && loginForm.username && loginForm.password){
+      handleAuth()
+    }
+  }
+
+  const handleAuth = async () => {
+    if(loginForm.username && loginForm.password){
+      try{
+        const response = await axios.post(
+          `${API_URL}${settings.endpoint}`,
+          loginForm
+        )
+        login(response.data)
+        setSettings({...settings, open: false})
+      }
+      catch (error){
+        console.error(error)
+        notify("There was an error", "error")
+      }
+    }
+  }
+
+  const handleTextField = (event) => {
+    setLoginForm({
+        ...loginForm,
+        [event.target.id]: event.target.value
+    })
   }
 
   const handleCancel = () => {
-    setOpen(false)
+    setSettings({...settings, open: false})
   }
 
   return (
-    <Dialog open={open} onClose={handleCancel} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Login</DialogTitle>
+    <Dialog open={settings.open} onClose={handleCancel} aria-labelledby="form-dialog-title">
+        <DialogTitle className={classes.title}>
+          {settings.title}
+          {settings.mode === "login" && <Tooltip fontSize="small" classes={{ tooltip: classes.tooltip }} placement="right"
+            title="Psst... you can create an user or use this one username: codi.sipes	 / password: codi.sipes	">
+            <HelpIcon/>
+          </Tooltip>}
+        </DialogTitle>
         <DialogContent>
             <TextField
                 autoFocus
@@ -26,14 +75,17 @@ export default function LoginModal({open, setOpen}) {
                 id="username"
                 label="Username"
                 type="text"
+                onChange={handleTextField}
+                onKeyDown={keyPress}
                 fullWidth
             />
             <TextField
-                autoFocus
                 margin="dense"
                 id="password"
                 label="Password"
                 type="password"
+                onChange={handleTextField}
+                onKeyDown={keyPress}
                 fullWidth
             />
         </DialogContent>
@@ -41,8 +93,8 @@ export default function LoginModal({open, setOpen}) {
             <Button onClick={handleCancel} color="primary">
                 Cancel
             </Button>
-            <Button onClick={handleLogin} color="primary">
-                Login
+            <Button onClick={handleAuth} color="primary">
+                { settings.title }
             </Button>
         </DialogActions>
     </Dialog>

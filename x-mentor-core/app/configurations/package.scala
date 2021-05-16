@@ -1,5 +1,6 @@
 package object configurations {
-  final val MESSAGING_DISPATCHER = "x-mentor.dispatchers.messaging"
+
+  final val MESSAGING_DISPATCHER      = "x-mentor.dispatchers.messaging"
   val REDIS_HOST                      = "redis.host"
   val REDIS_PORT                      = "redis.port"
   val REDIS_PASSWORD                  = "redis.password"
@@ -10,13 +11,22 @@ package object configurations {
 
   val REDIS_GRAPH = "redis.graph"
 
-  final val MESSAGE_HANDLER_ACTOR = "message-handler-actor"
+  val AUTH_BASE_URL           = "auth.urls.base"
+  val AUTH_TOKEN_URL          = "auth.urls.token"
+  val AUTH_USERS_URL          = "auth.urls.users"
+  val AUTH_REALM_URL          = "auth.urls.realm"
+  val AUTH_ADMIN_USERNAME     = "auth.users.admin.username"
+  val AUTH_ADMIN_PASSWORD     = "auth.users.admin.password"
+  val USERNAME_ATTRIBUTE_NAME = "auth.users.usernameAttributeName"
+  val AUTH_CLIENT_ID          = "auth.clientId"
+  val AUTH_ADMIN_CLIENT_ID    = "auth.adminClientId"
+  val AUTH_CLIENT_SECRET      = "auth.clientSecret"
+  val AUTH_SCOPE              = "auth.scope"
+  val AUTH_GRANT_TYPE         = "auth.grantType"
+  val AUTH_LOGOUT_URL         = "auth.urls.logout"
+  val AUTH_PUBLIC_KEY         = "auth.publicKey"
 
-  final val COURSE_RATED_TOPIC       = "course-rated-topic"
-  final val COURSE_RECOMMENDED_TOPIC = "course-recommended-topic"
-}
-
-package object constans {
-  final val COURSE_KEY = "course:"
-  final val COURSE_LAST_ID_KEY = "course-last-index"
+  val ENROLLED_RECOMMENDATION_SIZE = "recommendations.enrolled-recommendation-size"
+  val INTEREST_RECOMMENDATION_SIZE = "recommendations.interest-recommendation-size"
+  val DISCOVER_RECOMMENDATION_SIZE = "recommendations.discover-recommendation-size"
 }

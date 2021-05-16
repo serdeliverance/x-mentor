@@ -1,9 +1,27 @@
-GET     /healthcheck                           controllers.HealthcheckController.healthcheck()
-POST    /ratings                               controllers.RatingController.rate()
-POST    /recommendations/courses               controllers.RecommendationController.recommendCourse()
-POST    /recommendations/topics                controllers.RecommendationController.recommendTopic()
-GET     /courses                               controllers.CourseController.retrieveAll()
-POST    /courses                               controllers.CourseController.create()
+# COURSE ENDPOINTS
+GET     /courses                               controllers.CourseController.retrieve(q: String, page: Int)
 GET     /courses/:courseId                     controllers.CourseController.retrieveById(courseId: Long)
+POST    /courses                               controllers.CourseController.create()
 POST    /courses/:courseId/enroll              controllers.CourseController.enroll(courseId: Long)
-POST    /login                                 controllers.LoginController.login(username: String, password: String)
+POST    /courses/rate                          controllers.RatingController.rate()
+
+# STUDENT ENDPOINTS
+GET     /students/courses                      controllers.CourseController.getByStudent(page: Int)
+GET     /students/interests                    controllers.InterestController.get()
+POST    /students/interests                    controllers.InterestController.registerInterest()
+POST    /students/progress                     controllers.MetricsController.registerStudentProgress()
+
+# AUTH ENDPOINTS
+POST    /login                                 controllers.UserController.login()
+POST    /signup                                controllers.UserController.signup()
+
+# RECOMMENDATIONS ENDPOINTS
+GET     /recommendations                       controllers.RecommendationController.recommend()
+GET     /visitors/recommendations              controllers.RecommendationController.visitorRecommendation()
+
+# General ENDPOINTS
+GET     /topics                                controllers.TopicController.getAll()
+GET     /notifications                         controllers.NotificationController.subscribeToNotifications()
+GET     /leaderboard                           controllers.LeaderboardController.get()
+
+GET     /healthcheck                           controllers.HealthcheckController.healthcheck()

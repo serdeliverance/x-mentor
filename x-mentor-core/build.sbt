@@ -1,10 +1,8 @@
 name := """x-mentor-core"""
-organization := "io.github.serdeliverance"
+organization := "xmentor"
+version := "0.1.0"
 
-version := "1.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
-
+lazy val root = (project in file(".")).enablePlugins(PlayScala, sbtdocker.DockerPlugin)
 scalaVersion := "2.13.3"
 
 lazy val circeVersion = "0.12.2"
@@ -30,7 +28,9 @@ libraryDependencies ++= Seq(
   "com.redislabs" % "jredistimeseries" % "1.4.0",
   "com.redislabs" % "jredisai" % "0.9.0",
   "com.redislabs" % "jrejson" % "1.3.0",
-
+  "com.redislabs" % "jredisearch" % "2.0.0",
+  //JWT
+  "com.pauldijou" %% "jwt-core" % "4.2.0",
   // Test
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 )
@@ -47,3 +47,24 @@ scalacOptions ++= Seq(
   "-language:implicitConversions", // Allow definition of implicit functions called views
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.
 )
+
+// imageName:Tag value
+imageNames in docker := Seq(
+  ImageName(s"${organization.value}/${name.value}:latest")
+)
+
+dockerfile in docker := {
+  val appDir: File = stage.value
+  val targetDir = "/opt/docker"
+
+  new Dockerfile {
+    from("openjdk:8-jre-slim")
+    expose(9000)
+    run("apt", "update")
+    run("apt", "-y", "upgrade")
+    run("apt", "-y", "install", "curl")
+    copy(appDir, targetDir)
+    run("chmod", "-R", "755", s"$targetDir")
+    entryPoint(s"$targetDir/conf/wrapper.sh")
+  }
+}

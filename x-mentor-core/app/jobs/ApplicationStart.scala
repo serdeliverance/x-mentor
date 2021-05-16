@@ -1,38 +1,27 @@
 package jobs
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import configurations.MESSAGING_DISPATCHER
 import jobs.loaders.DataLoaderManager
-import configurations.COURSE_RATED_TOPIC
-import play.api.Logging
 import play.api.inject.ApplicationLifecycle
-import queues.MessageHandler.CourseRated
-import queues.{COURSE_RATED_EVENT, ChannelListener}
-import redis.clients.jedis.Jedis
 import javax.inject.{Inject, Named, Singleton}
-import models.configurations.RedisConfiguration
-
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 
 @Singleton
 class ApplicationStart @Inject()(
     lifecycle: ApplicationLifecycle,
-    dataLoaderManager: DataLoaderManager,
-    redisConfiguration: RedisConfiguration,
-    @Named(COURSE_RATED_TOPIC) channelListener: ChannelListener[CourseRated]
-  )(implicit @Named(MESSAGING_DISPATCHER) ec: ExecutionContext)
-    extends Logging {
+    dataLoaderManager: DataLoaderManager
+  )(implicit @Named(MESSAGING_DISPATCHER) ec: ExecutionContext, system: ActorSystem) {
 
   dataLoaderManager.load()
 
-  // TODO refactor this
-  val jedis = new Jedis(redisConfiguration.host, redisConfiguration.port)
-
-  Future {
-    logger.info("Subscribing to queues")
-    jedis.subscribe(channelListener, COURSE_RATED_EVENT)
-  }
-
   lifecycle.addStopHook { () =>
-    Future.successful(())
+    Future {
+      Await.result(Http().shutdownAllConnectionPools(), 10 seconds)
+      Await.result(system.terminate(), 10 seconds)
+    }
   }
 }
